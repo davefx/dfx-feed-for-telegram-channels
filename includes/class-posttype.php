@@ -40,7 +40,8 @@ class PostType {
             'labels'              => $labels,
             'public'              => false,
             'show_ui'             => true,
-            'show_in_menu'        => 'options-general.php',
+            'show_in_menu'        => true,
+            'menu_position'       => 25,
             'capability_type'     => 'post',
             'capabilities'        => [
                 'create_posts' => 'do_not_allow',
