@@ -92,6 +92,19 @@ class Shortcodes {
         }
         
         $ttl = intval(get_option('dfx_tg_feed_ttl', 300));
+        
+        // Smart on-demand refresh: Check if last update is > 10 minutes old
+        $channel_safe = sanitize_key($channel);
+        $last_sync = get_transient("dfx_tg_last_sync_{$channel_safe}");
+        if (!$last_sync || (time() - $last_sync) > 600) { // 600 seconds = 10 minutes
+            // Check if not already refreshing (lock)
+            if (!get_transient("dfx_tg_refreshing_{$channel_safe}")) {
+                set_transient("dfx_tg_refreshing_{$channel_safe}", true, 30); // 30-second lock
+                $result = Cache::instance()->refresh_cache($channel, 100, $ttl);
+                set_transient("dfx_tg_last_sync_{$channel_safe}", time(), 3600);
+                delete_transient("dfx_tg_refreshing_{$channel_safe}");
+            }
+        }
 
         $cache = Cache::instance()->get_cached_messages($channel, $limit);
         if ($cache === false) {
