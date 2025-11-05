@@ -51,9 +51,35 @@ if (!defined('ABSPATH')) exit;
             <!-- 3. Media/Images (if exists) -->
             <?php if (!empty($msg['media'])): ?>
                 <div class="dfx-tg-feed-media <?php echo $is_sticker ? 'dfx-tg-feed-media-sticker' : ''; ?>">
-                    <img src="<?php echo esc_url($msg['media']); ?>" alt="<?php echo $is_sticker ? esc_attr__('Telegram sticker', 'dfx-tg-feed') : esc_attr__('Telegram message media', 'dfx-tg-feed'); ?>" />
-                    <?php if ($has_emoji): ?>
-                        <span class="dfx-tg-feed-emoji-overlay"><?php echo esc_html($msg['emoji']); ?></span>
+                    <?php 
+                    $sticker_type = $msg['sticker_type'] ?? null;
+                    if ($is_sticker && $sticker_type === 'tgs'): 
+                        // TGS (Lottie) animated sticker
+                    ?>
+                        <div class="dfx-tg-sticker-container" data-sticker-url="<?php echo esc_url($msg['media']); ?>"></div>
+                        <?php if ($has_emoji): ?>
+                            <span class="dfx-tg-feed-emoji-overlay"><?php echo esc_html($msg['emoji']); ?></span>
+                        <?php endif; ?>
+                    <?php elseif ($is_sticker && $sticker_type === 'webm'): 
+                        // WEBM video sticker
+                    ?>
+                        <video class="dfx-tg-sticker-video" autoplay loop muted playsinline>
+                            <source src="<?php echo esc_url($msg['media']); ?>" type="video/webm">
+                            <!-- Fallback to emoji if video doesn't load -->
+                            <?php if ($has_emoji): ?>
+                                <span class="dfx-tg-feed-emoji-fallback"><?php echo esc_html($msg['emoji']); ?></span>
+                            <?php endif; ?>
+                        </video>
+                        <?php if ($has_emoji): ?>
+                            <span class="dfx-tg-feed-emoji-overlay"><?php echo esc_html($msg['emoji']); ?></span>
+                        <?php endif; ?>
+                    <?php else: 
+                        // Static sticker or regular image
+                    ?>
+                        <img src="<?php echo esc_url($msg['media']); ?>" alt="<?php echo $is_sticker ? esc_attr__('Telegram sticker', 'dfx-tg-feed') : esc_attr__('Telegram message media', 'dfx-tg-feed'); ?>" />
+                        <?php if ($has_emoji): ?>
+                            <span class="dfx-tg-feed-emoji-overlay"><?php echo esc_html($msg['emoji']); ?></span>
+                        <?php endif; ?>
                     <?php endif; ?>
                 </div>
             <?php endif; ?>

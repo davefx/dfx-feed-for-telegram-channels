@@ -22,6 +22,24 @@ class Shortcodes {
             [],
             DFX_TG_FEED_VER
         );
+        
+        // Enqueue Lottie library for TGS stickers
+        wp_enqueue_script(
+            'lottie-player',
+            'https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js',
+            [],
+            '5.12.2',
+            true
+        );
+        
+        // Enqueue our sticker initialization script
+        wp_enqueue_script(
+            'dfx-tg-stickers',
+            DFX_TG_FEED_URL . 'assets/js/stickers.js',
+            ['lottie-player'],
+            DFX_TG_FEED_VER,
+            true
+        );
     }
     
     /**

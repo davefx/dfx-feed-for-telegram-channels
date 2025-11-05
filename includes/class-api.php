@@ -74,10 +74,12 @@ class API {
                         if (isset($msg['photo'])) {
                             $media = $this->get_attachment_url($bot_token, $msg['photo']);
                         } elseif (isset($msg['sticker'])) {
-                            // For stickers, get the thumbnail or file
-                            $media = $this->get_sticker_url($bot_token, $msg['sticker']);
+                            // For stickers, get the file and determine type
+                            $sticker_info = $this->get_sticker_info($bot_token, $msg['sticker']);
+                            $media = $sticker_info['url'] ?? null;
                             if (defined('WP_DEBUG') && WP_DEBUG) {
                                 error_log('DFX Telegram Feed: Processing sticker message. Media URL: ' . ($media ? $media : 'NULL'));
+                                error_log('DFX Telegram Feed: Sticker type: ' . ($sticker_info['type'] ?? 'unknown'));
                                 error_log('DFX Telegram Feed: Sticker emoji: ' . ($msg['sticker']['emoji'] ?? 'no emoji'));
                             }
                         } elseif (isset($msg['video'])) {
@@ -111,6 +113,21 @@ class API {
                             ];
                         }
                         
+                        $sticker_info = isset($msg['sticker']) ? ['type' => null] : [];
+                        if (isset($msg['sticker']) && !empty($media)) {
+                            // Determine sticker type from the sticker info we got earlier
+                            $is_animated = $msg['sticker']['is_animated'] ?? false;
+                            $is_video = $msg['sticker']['is_video'] ?? false;
+                            
+                            if ($is_animated) {
+                                $sticker_info['type'] = 'tgs';
+                            } elseif ($is_video) {
+                                $sticker_info['type'] = 'webm';
+                            } else {
+                                $sticker_info['type'] = 'static';
+                            }
+                        }
+                        
                         $message_data = [
                             'id'      => $msg['message_id'],
                             'date'    => $msg['date'],
@@ -118,6 +135,7 @@ class API {
                             'entities' => $entities,
                             'media'   => $media,
                             'sticker' => isset($msg['sticker']),
+                            'sticker_type' => $sticker_info['type'] ?? null,
                             'emoji'   => $msg['sticker']['emoji'] ?? null,
                             'author'  => $author,
                             'deleted' => false
@@ -143,20 +161,33 @@ class API {
         return $this->get_file_url($bot_token, $file_id);
     }
     
-    private function get_sticker_url($bot_token, $sticker) {
+    private function get_sticker_info($bot_token, $sticker) {
         // Get sticker file - stickers have file_id directly
         $file_id = $sticker['file_id'] ?? null;
         if (!$file_id) {
             if (defined('WP_DEBUG') && WP_DEBUG) {
                 error_log('DFX Telegram Feed: Sticker has no file_id');
             }
-            return null;
+            return ['url' => null, 'type' => null];
         }
+        
+        // Determine sticker type
+        $is_animated = $sticker['is_animated'] ?? false;
+        $is_video = $sticker['is_video'] ?? false;
+        
+        $type = 'static'; // PNG/WEBP
+        if ($is_animated) {
+            $type = 'tgs'; // Lottie animation
+        } elseif ($is_video) {
+            $type = 'webm'; // Video sticker
+        }
+        
         $url = $this->get_file_url($bot_token, $file_id);
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('DFX Telegram Feed: Sticker URL fetched: ' . ($url ? $url : 'FAILED'));
+            error_log('DFX Telegram Feed: Sticker URL fetched: ' . ($url ? $url : 'FAILED') . ' (type: ' . $type . ')');
         }
-        return $url;
+        
+        return ['url' => $url, 'type' => $type];
     }
     
     private function get_file_url($bot_token, $file_id) {
