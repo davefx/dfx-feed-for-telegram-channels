@@ -40,6 +40,12 @@ class Shortcodes {
             DFX_TG_FEED_VER,
             true
         );
+        
+        // Localize script with AJAX URL and nonce for sticker proxy
+        wp_localize_script('dfx-tg-stickers', 'dfxTgFeedStickers', [
+            'ajaxUrl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('dfx_tg_sticker_proxy')
+        ]);
     }
     
     /**
