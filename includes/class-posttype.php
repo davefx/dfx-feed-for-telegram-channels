@@ -15,6 +15,10 @@ class PostType {
         add_action('init', [$this, 'register_post_type']);
         add_filter('manage_dfx_tg_message_posts_columns', [$this, 'set_custom_columns']);
         add_action('manage_dfx_tg_message_posts_custom_column', [$this, 'custom_column_content'], 10, 2);
+        add_filter('manage_edit-dfx_tg_message_sortable_columns', [$this, 'set_sortable_columns']);
+        add_action('restrict_manage_posts', [$this, 'add_channel_filter']);
+        add_filter('parse_query', [$this, 'filter_by_channel']);
+        add_filter('post_row_actions', [$this, 'modify_row_actions'], 10, 2);
     }
     
     public function register_post_type() {
@@ -55,6 +59,8 @@ class PostType {
         $new_columns['cb'] = $columns['cb'];
         $new_columns['title'] = __('Message Preview', 'dfx-tg-feed');
         $new_columns['channel'] = __('Channel', 'dfx-tg-feed');
+        $new_columns['author'] = __('Author', 'dfx-tg-feed');
+        $new_columns['media'] = __('Media', 'dfx-tg-feed');
         $new_columns['message_id'] = __('Message ID', 'dfx-tg-feed');
         $new_columns['date'] = __('Posted Date', 'dfx-tg-feed');
         return $new_columns;
@@ -63,12 +69,106 @@ class PostType {
     public function custom_column_content($column, $post_id) {
         switch ($column) {
             case 'channel':
-                echo esc_html(get_post_meta($post_id, '_tg_channel', true));
+                $channel = get_post_meta($post_id, '_tg_channel', true);
+                echo '<strong>' . esc_html($channel) . '</strong>';
                 break;
             case 'message_id':
-                echo esc_html(get_post_meta($post_id, '_tg_message_id', true));
+                echo '<code>' . esc_html(get_post_meta($post_id, '_tg_message_id', true)) . '</code>';
+                break;
+            case 'media':
+                $media = get_post_meta($post_id, '_tg_media', true);
+                $is_sticker = get_post_meta($post_id, '_tg_is_sticker', true);
+                if ($is_sticker) {
+                    echo '<span class="dashicons dashicons-format-image" title="Sticker"></span>';
+                } elseif ($media) {
+                    echo '<span class="dashicons dashicons-format-gallery" title="Has media"></span>';
+                } else {
+                    echo '—';
+                }
+                break;
+            case 'author':
+                $author = get_post_meta($post_id, '_tg_author', true);
+                if ($author) {
+                    $display = $author['name'] ?? '';
+                    if (!empty($author['username'])) {
+                        $display .= ' (@' . $author['username'] . ')';
+                    }
+                    echo esc_html($display);
+                } else {
+                    echo '—';
+                }
                 break;
         }
+    }
+    
+    public function set_sortable_columns($columns) {
+        $columns['channel'] = 'channel';
+        $columns['message_id'] = 'message_id';
+        return $columns;
+    }
+    
+    public function add_channel_filter() {
+        global $typenow;
+        
+        if ($typenow !== 'dfx_tg_message') {
+            return;
+        }
+        
+        // Get all unique channels
+        global $wpdb;
+        $channels = $wpdb->get_col("
+            SELECT DISTINCT meta_value 
+            FROM {$wpdb->postmeta} 
+            WHERE meta_key = '_tg_channel' 
+            ORDER BY meta_value ASC
+        ");
+        
+        $current_channel = isset($_GET['channel_filter']) ? $_GET['channel_filter'] : '';
+        
+        echo '<select name="channel_filter">';
+        echo '<option value="">' . __('All Channels', 'dfx-tg-feed') . '</option>';
+        foreach ($channels as $channel) {
+            printf(
+                '<option value="%s"%s>%s</option>',
+                esc_attr($channel),
+                selected($current_channel, $channel, false),
+                esc_html($channel)
+            );
+        }
+        echo '</select>';
+    }
+    
+    public function filter_by_channel($query) {
+        global $pagenow, $typenow;
+        
+        if ($pagenow === 'edit.php' && $typenow === 'dfx_tg_message' && isset($_GET['channel_filter']) && $_GET['channel_filter'] !== '') {
+            $query->query_vars['meta_key'] = '_tg_channel';
+            $query->query_vars['meta_value'] = sanitize_text_field($_GET['channel_filter']);
+        }
+    }
+    
+    public function modify_row_actions($actions, $post) {
+        if ($post->post_type === 'dfx_tg_message') {
+            // Remove "Quick Edit" since posts are synced from Telegram
+            unset($actions['inline hide-if-no-js']);
+            
+            // Add custom action to view in Telegram
+            $message_id = get_post_meta($post->ID, '_tg_message_id', true);
+            $channel = get_post_meta($post->ID, '_tg_channel', true);
+            
+            if ($message_id && $channel) {
+                // Remove @ if present
+                $channel_clean = ltrim($channel, '@');
+                $actions['view_telegram'] = sprintf(
+                    '<a href="https://t.me/%s/%s" target="_blank">%s</a>',
+                    esc_attr($channel_clean),
+                    esc_attr($message_id),
+                    __('View in Telegram', 'dfx-tg-feed')
+                );
+            }
+        }
+        
+        return $actions;
     }
     
     /**

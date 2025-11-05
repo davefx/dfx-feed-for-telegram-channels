@@ -73,13 +73,6 @@ class Settings {
             </form>
             <div id="dfx-tg-feed-reload-result"></div>
 
-            <form id="dfx-tg-feed-refresh-form" method="post">
-                <h3><?php _e('Force cache refresh', 'dfx-tg-feed'); ?></h3>
-                <input type="text" name="channel" value="<?php echo $channel;?>" placeholder="@channelusername" />
-                <button class="button" id="dfx-tg-feed-refresh-btn"><?php _e('Refresh Now', 'dfx-tg-feed'); ?></button>
-                <?php wp_nonce_field('dfx_tg_feed_refresh'); ?>
-            </form>
-            <div id="dfx-tg-feed-refresh-result"></div>
             <script>
             document.getElementById('dfx-tg-feed-test-btn').addEventListener('click', function(e){
                 e.preventDefault();
@@ -110,16 +103,6 @@ class Settings {
                 .catch(err => {
                     btn.disabled = false;
                     resultDiv.innerHTML = '<span style="color:red;">Error: '+err.message+'</span>';
-                });
-            });
-
-            document.getElementById('dfx-tg-feed-refresh-form').addEventListener('submit', function(e){
-                e.preventDefault();
-                let data = new FormData(this);
-                fetch(ajaxurl, { method: "POST", body: data })
-                .then(r=>r.json())
-                .then(resp=>{
-                    document.getElementById('dfx-tg-feed-refresh-result').textContent = resp.success ? "Refreshed!" : "Failed: "+resp.data
                 });
             });
             </script>
