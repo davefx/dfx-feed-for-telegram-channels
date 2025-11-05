@@ -1,0 +1,22 @@
+{
+  "name": "dfx-telegram-channel-feed",
+  "version": "1.0.0",
+  "description": "Display messages from a Telegram channel on your WordPress site using your Telegram Bot",
+  "scripts": {
+    "build": "wp-scripts build",
+    "start": "wp-scripts start",
+    "lint:js": "wp-scripts lint-js",
+    "format:js": "wp-scripts format-js"
+  },
+  "devDependencies": {
+    "@wordpress/scripts": "^27.0.0"
+  },
+  "dependencies": {
+    "@wordpress/block-editor": "^13.0.0",
+    "@wordpress/blocks": "^13.0.0",
+    "@wordpress/components": "^28.0.0",
+    "@wordpress/element": "^6.0.0",
+    "@wordpress/i18n": "^5.0.0",
+    "@wordpress/server-side-render": "^5.0.0"
+  }
+}

@@ -11,53 +11,62 @@ class Blocks {
     }
     
     public function register() {
-        // Register block scripts
-        add_action('enqueue_block_editor_assets', [$this, 'enqueue_block_editor_assets']);
-        
-        // Register blocks with PHP only (server-side rendering)
-        register_block_type('dfx-tg-feed/channel-feed', [
-            'render_callback' => [$this, 'render_channel_feed'],
-            'attributes' => [
-                'channel' => [
-                    'type' => 'string',
-                    'default' => ''
-                ],
-                'count' => [
-                    'type' => 'number',
-                    'default' => 10
-                ]
-            ]
-        ]);
-        
-        register_block_type('dfx-tg-feed/channel-browser', [
-            'render_callback' => [$this, 'render_channel_browser'],
-            'attributes' => [
-                'channel' => [
-                    'type' => 'string',
-                    'default' => ''
-                ]
-            ]
-        ]);
+        // Register blocks
+        add_action('init', [$this, 'register_blocks']);
     }
     
-    public function enqueue_block_editor_assets() {
-        // Enqueue the channel feed block script
-        wp_enqueue_script(
-            'dfx-tg-feed-channel-feed-block',
-            DFX_TG_FEED_URL . 'blocks/channel-feed/index.js',
-            ['wp-blocks', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-i18n', 'wp-server-side-render'],
-            DFX_TG_FEED_VER,
-            true
-        );
+    public function register_blocks() {
+        // Register Channel Feed block
+        $channel_feed_asset_file = DFX_TG_FEED_PATH . 'build/channel-feed/index.asset.php';
+        if (file_exists($channel_feed_asset_file)) {
+            $channel_feed_asset = include $channel_feed_asset_file;
+            
+            wp_register_script(
+                'dfx-tg-feed-channel-feed-block',
+                DFX_TG_FEED_URL . 'build/channel-feed/index.js',
+                $channel_feed_asset['dependencies'],
+                $channel_feed_asset['version']
+            );
+            
+            register_block_type('dfx-tg-feed/channel-feed', [
+                'editor_script' => 'dfx-tg-feed-channel-feed-block',
+                'render_callback' => [$this, 'render_channel_feed'],
+                'attributes' => [
+                    'channel' => [
+                        'type' => 'string',
+                        'default' => ''
+                    ],
+                    'count' => [
+                        'type' => 'number',
+                        'default' => 10
+                    ]
+                ]
+            ]);
+        }
         
-        // Enqueue the channel browser block script
-        wp_enqueue_script(
-            'dfx-tg-feed-channel-browser-block',
-            DFX_TG_FEED_URL . 'blocks/channel-browser/index.js',
-            ['wp-blocks', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-i18n', 'wp-server-side-render'],
-            DFX_TG_FEED_VER,
-            true
-        );
+        // Register Channel Browser block
+        $channel_browser_asset_file = DFX_TG_FEED_PATH . 'build/channel-browser/index.asset.php';
+        if (file_exists($channel_browser_asset_file)) {
+            $channel_browser_asset = include $channel_browser_asset_file;
+            
+            wp_register_script(
+                'dfx-tg-feed-channel-browser-block',
+                DFX_TG_FEED_URL . 'build/channel-browser/index.js',
+                $channel_browser_asset['dependencies'],
+                $channel_browser_asset['version']
+            );
+            
+            register_block_type('dfx-tg-feed/channel-browser', [
+                'editor_script' => 'dfx-tg-feed-channel-browser-block',
+                'render_callback' => [$this, 'render_channel_browser'],
+                'attributes' => [
+                    'channel' => [
+                        'type' => 'string',
+                        'default' => ''
+                    ]
+                ]
+            ]);
+        }
     }
     
     public function render_channel_feed($attributes) {
