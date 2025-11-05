@@ -65,10 +65,45 @@ class Blocks {
     }
     
     public function render_channel_feed($attributes) {
+        // Ensure frontend assets are enqueued
+        $this->enqueue_frontend_assets();
         return Shortcodes::instance()->shortcode_channel_feed($attributes);
     }
     
     public function render_channel_browser($attributes) {
+        // Ensure frontend assets are enqueued
+        $this->enqueue_frontend_assets();
         return Shortcodes::instance()->shortcode_channel_browser($attributes);
+    }
+    
+    /**
+     * Enqueue frontend assets (CSS and JS for stickers)
+     */
+    private function enqueue_frontend_assets() {
+        // Enqueue CSS
+        wp_enqueue_style(
+            'dfx-tg-feed',
+            DFX_TG_FEED_URL . 'assets/css/style.css',
+            [],
+            DFX_TG_FEED_VER
+        );
+        
+        // Enqueue Lottie library for TGS stickers
+        wp_enqueue_script(
+            'lottie-player',
+            'https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js',
+            [],
+            '5.12.2',
+            true
+        );
+        
+        // Enqueue our sticker initialization script
+        wp_enqueue_script(
+            'dfx-tg-stickers',
+            DFX_TG_FEED_URL . 'assets/js/stickers.js',
+            ['lottie-player'],
+            DFX_TG_FEED_VER,
+            true
+        );
     }
 }

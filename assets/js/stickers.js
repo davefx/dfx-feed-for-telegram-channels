@@ -10,6 +10,8 @@
         // Find all TGS sticker containers
         var stickerContainers = document.querySelectorAll('.dfx-tg-sticker-container');
         
+        console.log('DFX Telegram Feed: Found', stickerContainers.length, 'sticker containers');
+        
         if (!stickerContainers.length) {
             return;
         }
@@ -20,24 +22,41 @@
             return;
         }
         
-        stickerContainers.forEach(function(container) {
+        console.log('DFX Telegram Feed: Lottie library loaded successfully');
+        
+        stickerContainers.forEach(function(container, index) {
             var stickerUrl = container.getAttribute('data-sticker-url');
             
+            console.log('DFX Telegram Feed: Processing sticker', index, 'URL:', stickerUrl);
+            
             if (!stickerUrl) {
+                console.warn('DFX Telegram Feed: Sticker container has no URL');
                 return;
             }
             
+            // Check if already initialized
+            if (container.dataset.initialized === 'true') {
+                console.log('DFX Telegram Feed: Sticker', index, 'already initialized, skipping');
+                return;
+            }
+            
+            // Mark as initialized
+            container.dataset.initialized = 'true';
+            
             // Load the TGS file and initialize Lottie
+            console.log('DFX Telegram Feed: Fetching sticker data from:', stickerUrl);
             fetch(stickerUrl)
                 .then(function(response) {
+                    console.log('DFX Telegram Feed: Fetch response status:', response.status);
                     if (!response.ok) {
-                        throw new Error('Failed to load sticker');
+                        throw new Error('Failed to load sticker (HTTP ' + response.status + ')');
                     }
                     return response.json();
                 })
                 .then(function(animationData) {
+                    console.log('DFX Telegram Feed: Animation data loaded, initializing Lottie');
                     // Initialize Lottie animation
-                    lottie.loadAnimation({
+                    var animation = lottie.loadAnimation({
                         container: container,
                         renderer: 'canvas',
                         loop: true,
@@ -49,6 +68,7 @@
                             progressiveLoad: true
                         }
                     });
+                    console.log('DFX Telegram Feed: Lottie animation initialized for sticker', index);
                 })
                 .catch(function(error) {
                     console.error('DFX Telegram Feed: Error loading TGS sticker:', error);
