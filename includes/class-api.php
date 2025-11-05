@@ -76,6 +76,10 @@ class API {
                         } elseif (isset($msg['sticker'])) {
                             // For stickers, get the thumbnail or file
                             $media = $this->get_sticker_url($bot_token, $msg['sticker']);
+                            if (defined('WP_DEBUG') && WP_DEBUG) {
+                                error_log('DFX Telegram Feed: Processing sticker message. Media URL: ' . ($media ? $media : 'NULL'));
+                                error_log('DFX Telegram Feed: Sticker emoji: ' . ($msg['sticker']['emoji'] ?? 'no emoji'));
+                            }
                         } elseif (isset($msg['video'])) {
                             // For videos, get thumbnail
                             if (isset($msg['video']['thumb'])) {
@@ -142,8 +146,17 @@ class API {
     private function get_sticker_url($bot_token, $sticker) {
         // Get sticker file - stickers have file_id directly
         $file_id = $sticker['file_id'] ?? null;
-        if (!$file_id) return null;
-        return $this->get_file_url($bot_token, $file_id);
+        if (!$file_id) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('DFX Telegram Feed: Sticker has no file_id');
+            }
+            return null;
+        }
+        $url = $this->get_file_url($bot_token, $file_id);
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('DFX Telegram Feed: Sticker URL fetched: ' . ($url ? $url : 'FAILED'));
+        }
+        return $url;
     }
     
     private function get_file_url($bot_token, $file_id) {
