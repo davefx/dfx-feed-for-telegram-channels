@@ -63,6 +63,16 @@ class Settings {
             <button class="button" id="dfx-tg-feed-test-btn"><?php _e('Test Connection', 'dfx-tg-feed'); ?></button>
             <div id="dfx-tg-feed-test-result"></div>
 
+            <hr />
+            <h3><?php _e('Reload Messages from Telegram', 'dfx-tg-feed'); ?></h3>
+            <p><?php _e('Fetch all available messages from the channel and save them to the database. This will sync new messages and update existing ones.', 'dfx-tg-feed'); ?></p>
+            <form id="dfx-tg-feed-reload-form" method="post">
+                <input type="text" name="channel" value="<?php echo $channel;?>" placeholder="@channelusername" style="width: 300px;" />
+                <button class="button button-primary" id="dfx-tg-feed-reload-btn"><?php _e('Reload All Messages', 'dfx-tg-feed'); ?></button>
+                <?php wp_nonce_field('dfx_tg_feed_reload', 'dfx_tg_feed_reload_nonce'); ?>
+            </form>
+            <div id="dfx-tg-feed-reload-result"></div>
+
             <form id="dfx-tg-feed-refresh-form" method="post">
                 <h3><?php _e('Force cache refresh', 'dfx-tg-feed'); ?></h3>
                 <input type="text" name="channel" value="<?php echo $channel;?>" placeholder="@channelusername" />
@@ -79,6 +89,28 @@ class Settings {
                   .then(resp=>{
                     document.getElementById('dfx-tg-feed-test-result').innerHTML = resp.success ? '<span style="color:green">'+resp.data+'</span>' : '<span style="color:red">'+resp.data+'</span>';
                   });
+            });
+
+            document.getElementById('dfx-tg-feed-reload-form').addEventListener('submit', function(e){
+                e.preventDefault();
+                let resultDiv = document.getElementById('dfx-tg-feed-reload-result');
+                let btn = document.getElementById('dfx-tg-feed-reload-btn');
+                btn.disabled = true;
+                resultDiv.innerHTML = '<span style="color:blue;">Reloading messages... This may take a moment.</span>';
+                
+                let data = new FormData(this);
+                data.append('action', 'dfx_tg_feed_reload');
+                
+                fetch(ajaxurl, { method: "POST", body: data })
+                .then(r=>r.json())
+                .then(resp=>{
+                    btn.disabled = false;
+                    resultDiv.innerHTML = resp.success ? '<span style="color:green;">'+resp.data+'</span>' : '<span style="color:red;">Failed: '+resp.data+'</span>';
+                })
+                .catch(err => {
+                    btn.disabled = false;
+                    resultDiv.innerHTML = '<span style="color:red;">Error: '+err.message+'</span>';
+                });
             });
 
             document.getElementById('dfx-tg-feed-refresh-form').addEventListener('submit', function(e){
@@ -176,5 +208,65 @@ class Settings {
         }
         
         wp_send_json_success(implode('<br>', $results));
+    }
+    
+    public function ajax_reload_messages() {
+        check_ajax_referer('dfx_tg_feed_reload', 'dfx_tg_feed_reload_nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Permission denied.');
+        }
+        
+        $bot_token = get_option('dfx_tg_feed_bot_token', '');
+        $channel = sanitize_text_field($_POST['channel'] ?? '');
+        
+        if (!$bot_token || !$channel) {
+            wp_send_json_error('Please set both Bot Token and Channel.');
+        }
+        
+        // Fetch all available messages (limit to 100 for safety)
+        $messages = API::instance()->fetch_channel_messages($channel, 100);
+        
+        if (empty($messages)) {
+            wp_send_json_error('No messages found. Make sure the bot is admin and messages have been posted after the bot was added.');
+        }
+        
+        $count = count($messages);
+        $new_count = 0;
+        $updated_count = 0;
+        
+        // Messages are already stored by the API, but let's count them
+        foreach ($messages as $msg) {
+            // Check if message already exists
+            $existing = get_posts([
+                'post_type' => 'dfx_tg_message',
+                'meta_query' => [
+                    'relation' => 'AND',
+                    [
+                        'key' => '_tg_channel',
+                        'value' => $channel,
+                    ],
+                    [
+                        'key' => '_tg_message_id',
+                        'value' => $msg['id'],
+                    ],
+                ],
+                'posts_per_page' => 1,
+            ]);
+            
+            if (empty($existing)) {
+                $new_count++;
+            } else {
+                $updated_count++;
+            }
+        }
+        
+        wp_send_json_success(sprintf(
+            __('Successfully reloaded %d messages from channel %s. New: %d, Updated: %d', 'dfx-tg-feed'),
+            $count,
+            '<strong>' . esc_html($channel) . '</strong>',
+            $new_count,
+            $updated_count
+        ));
     }
 }

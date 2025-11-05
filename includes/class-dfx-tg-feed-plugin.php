@@ -36,6 +36,7 @@ final class Plugin {
         add_action('admin_menu',    [$this, 'settings_page']);
         add_action('admin_init',    [$this, 'register_settings']);
         add_action('wp_ajax_dfx_tg_feed_test', [Settings::instance(), 'ajax_test_bot_channel']);
+        add_action('wp_ajax_dfx_tg_feed_reload', [Settings::instance(), 'ajax_reload_messages']);
         add_action('wp_ajax_dfx_tg_feed_refresh', [Cache::instance(), 'ajax_refresh_cache']);
     }
 
