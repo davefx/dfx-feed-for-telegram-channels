@@ -9,12 +9,11 @@ class Blocks {
         return self::$instance;
     }
     public function register() {
-        // PHP side: provide server-rendered block for editors without JS
-        // (You’d add JS code for custom block in /blocks/ later)
-        register_block_type('dfx-tg-feed/channel-feed', [
+        // Register blocks from block.json files
+        register_block_type(DFX_TG_FEED_PATH . 'blocks/channel-feed', [
             'render_callback' => [Shortcodes::instance(), 'shortcode_channel_feed']
         ]);
-        register_block_type('dfx-tg-feed/channel-browser', [
+        register_block_type(DFX_TG_FEED_PATH . 'blocks/channel-browser', [
             'render_callback' => [Shortcodes::instance(), 'shortcode_channel_browser']
         ]);
     }

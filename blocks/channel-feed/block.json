@@ -1,0 +1,21 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 2,
+  "name": "dfx-tg-feed/channel-feed",
+  "title": "Telegram Channel Feed",
+  "category": "widgets",
+  "icon": "rss",
+  "description": "Display recent messages from a Telegram channel",
+  "attributes": {
+    "channel": {
+      "type": "string",
+      "default": ""
+    },
+    "count": {
+      "type": "number",
+      "default": 10
+    }
+  },
+  "textdomain": "dfx-tg-feed",
+  "editorScript": "file:./index.js"
+}

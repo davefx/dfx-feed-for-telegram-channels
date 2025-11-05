@@ -28,8 +28,8 @@ class Settings {
                 <li>Open Telegram and chat with <a href="https://t.me/botfather" target="_blank">@BotFather</a></li>
                 <li>Send <code>/newbot</code>, follow instructions, and copy your bot token.</li>
                 <li>Paste the bot token below and click "Save Settings".</li>
-                <li>In your Telegram channel: add your bot as an <strong>admin</strong> or <strong>member</strong> (navigate: channel &rarr; Administrators &rarr; Add Admin &rarr; [YOUR BOT USERNAME]).</li>
-                <li>Enter your channel username below, including the <code>@</code> (e.g., <code>@yourchannel</code>).</li>
+                <li>Add your bot as an <strong>admin</strong> to each Telegram channel you want to display (channel &rarr; Administrators &rarr; Add Admin &rarr; [YOUR BOT USERNAME]).</li>
+                <li>Use any channel with your bot by specifying the channel username in the shortcode or block (e.g., <code>[dfx_tg_channel_feed channel="@yourchannel"]</code>).</li>
             </ol>
 
             <form method="post" action="options.php">
@@ -40,8 +40,11 @@ class Settings {
                         <td><input type="text" name="dfx_tg_feed_bot_token" value="<?php echo $bot_token; ?>" size="50" autocomplete="off"/></td>
                     </tr>
                     <tr>
-                        <th><?php _e('Telegram Channel Username (with @)', 'dfx-tg-feed'); ?></th>
-                        <td><input type="text" name="dfx_tg_feed_channel" value="<?php echo $channel; ?>" size="32" autocomplete="off" placeholder="@yourchannel"/></td>
+                        <th><?php _e('Test Channel Username (optional)', 'dfx-tg-feed'); ?></th>
+                        <td>
+                            <input type="text" name="dfx_tg_feed_channel" value="<?php echo $channel; ?>" size="32" autocomplete="off" placeholder="@yourchannel"/>
+                            <p class="description"><?php _e('This field is only used for connection testing below. You can specify any channel directly in your shortcodes or blocks.', 'dfx-tg-feed'); ?></p>
+                        </td>
                     </tr>
                     <tr>
                         <th><?php _e('Default Message Count', 'dfx-tg-feed'); ?></th>

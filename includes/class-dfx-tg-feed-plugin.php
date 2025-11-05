@@ -31,6 +31,7 @@ final class Plugin {
 
         add_action('init',          [$this, 'register_shortcodes']);
         add_action('init',          [$this, 'register_blocks']);
+        add_action('init',          [$this, 'init_elementor']);
         add_action('admin_menu',    [$this, 'settings_page']);
         add_action('admin_init',    [$this, 'register_settings']);
         add_action('wp_ajax_dfx_tg_feed_test', [Settings::instance(), 'ajax_test_bot_channel']);
@@ -43,6 +44,10 @@ final class Plugin {
 
     public function register_blocks() {
         Blocks::instance()->register();
+    }
+
+    public function init_elementor() {
+        Elementor::instance()->init();
     }
 
     public function settings_page() {
