@@ -3,9 +3,18 @@
  */
 
 /* Feed Container */
-.dfx-tg-feed-layout {
-    max-width: 100%;
+.dfx-tg-feed-layout,
+.dfx-tg-browser-layout {
+    max-width: 800px;
     margin: 0 auto;
+}
+
+/* Remove max-width on small screens for full mobile width */
+@media (max-width: 768px) {
+    .dfx-tg-feed-layout,
+    .dfx-tg-browser-layout {
+        max-width: 100%;
+    }
 }
 
 /* Individual Message */
