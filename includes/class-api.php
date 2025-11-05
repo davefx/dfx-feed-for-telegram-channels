@@ -19,10 +19,14 @@ class API {
     public function fetch_channel_messages($channel_username, $limit = 10) {
         $bot_token = get_option('dfx_tg_feed_bot_token');
         if (!$bot_token) return [];
-        // Clean the @ if present
-        if (strpos($channel_username, '@') === 0) $channel_username = substr($channel_username, 1);
+        
+        // Clean the @ if present, or use as-is if it's a channel ID
+        $channel_id = $channel_username;
+        if (strpos($channel_username, '@') === 0) {
+            $channel_id = substr($channel_username, 1);
+        }
 
-        // Bot API limitation: Only receives messages after being added to the channel
+        // Bot API: getUpdates returns both messages and channel_post updates
         $api_url = "https://api.telegram.org/bot" . $bot_token . "/getUpdates";
         $response = wp_remote_get($api_url);
         if (is_wp_error($response)) {
@@ -30,18 +34,48 @@ class API {
         }
         $body = json_decode(wp_remote_retrieve_body($response), true);
         $messages = [];
+        
         if (isset($body['ok']) && $body['ok']) {
             foreach (array_reverse($body['result']) as $update) {
-                if (!empty($update['message']) && isset($update['message']['chat']['username'])) {
+                $msg = null;
+                $chat_identifier = null;
+                
+                // Check for channel_post (channel messages)
+                if (!empty($update['channel_post'])) {
+                    $msg = $update['channel_post'];
+                    $chat_identifier = $msg['chat']['username'] ?? $msg['chat']['id'] ?? null;
+                }
+                // Check for regular message (if bot receives direct messages)
+                elseif (!empty($update['message']) && isset($update['message']['chat'])) {
                     $msg = $update['message'];
-                    if (strtolower($msg['chat']['username']) == strtolower($channel_username)) {
-                        $messages[] = [
+                    $chat_identifier = $msg['chat']['username'] ?? $msg['chat']['id'] ?? null;
+                }
+                
+                if ($msg && $chat_identifier) {
+                    // Match by username or channel ID
+                    $matches = false;
+                    if (is_numeric($channel_id)) {
+                        // Channel ID match (e.g., -1001234567890)
+                        $matches = ($chat_identifier == $channel_id);
+                    } else {
+                        // Username match
+                        $matches = (strtolower($chat_identifier) == strtolower($channel_id));
+                    }
+                    
+                    if ($matches) {
+                        $message_data = [
                             'id'      => $msg['message_id'],
                             'date'    => $msg['date'],
-                            'text'    => $msg['text'] ?? '',
+                            'text'    => $msg['text'] ?? $msg['caption'] ?? '',
                             'media'   => isset($msg['photo']) ? $this->get_attachment_url($bot_token, $msg['photo']) : null,
                             'deleted' => false
                         ];
+                        
+                        $messages[] = $message_data;
+                        
+                        // Store in database
+                        PostType::instance()->store_message($channel_username, $message_data);
+                        
                         if (count($messages) >= $limit) break;
                     }
                 }
