@@ -11,11 +11,6 @@ class Blocks {
     }
     
     public function register() {
-        // Register blocks
-        add_action('init', [$this, 'register_blocks']);
-    }
-    
-    public function register_blocks() {
         // Register Channel Feed block
         $channel_feed_asset_file = DFX_TG_FEED_PATH . 'build/channel-feed/index.asset.php';
         if (file_exists($channel_feed_asset_file)) {
