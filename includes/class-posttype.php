@@ -225,6 +225,9 @@ class PostType {
             if (!empty($message_data['emoji'])) {
                 update_post_meta($post_id, '_tg_emoji', $message_data['emoji']);
             }
+            if (!empty($message_data['file_id'])) {
+                update_post_meta($post_id, '_tg_file_id', $message_data['file_id']);
+            }
             if (!empty($message_data['entities'])) {
                 update_post_meta($post_id, '_tg_entities', $message_data['entities']);
             }
@@ -264,6 +267,7 @@ class PostType {
                 'sticker' => get_post_meta($post->ID, '_tg_is_sticker', true),
                 'sticker_type' => get_post_meta($post->ID, '_tg_sticker_type', true),
                 'emoji' => get_post_meta($post->ID, '_tg_emoji', true),
+                'file_id' => get_post_meta($post->ID, '_tg_file_id', true),
                 'author' => get_post_meta($post->ID, '_tg_author', true),
                 'deleted' => false,
             ];

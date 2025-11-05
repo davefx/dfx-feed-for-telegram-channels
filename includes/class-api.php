@@ -137,6 +137,7 @@ class API {
                             'sticker' => isset($msg['sticker']),
                             'sticker_type' => $sticker_info['type'] ?? null,
                             'emoji'   => $msg['sticker']['emoji'] ?? null,
+                            'file_id' => $msg['sticker']['file_id'] ?? null,
                             'author'  => $author,
                             'deleted' => false
                         ];
@@ -168,7 +169,7 @@ class API {
             if (defined('WP_DEBUG') && WP_DEBUG) {
                 error_log('DFX Telegram Feed: Sticker has no file_id');
             }
-            return ['url' => null, 'type' => null];
+            return ['url' => null, 'type' => null, 'file_id' => null];
         }
         
         // Determine sticker type
@@ -184,10 +185,10 @@ class API {
         
         $url = $this->get_file_url($bot_token, $file_id);
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('DFX Telegram Feed: Sticker URL fetched: ' . ($url ? $url : 'FAILED') . ' (type: ' . $type . ')');
+            error_log('DFX Telegram Feed: Sticker URL fetched: ' . ($url ? $url : 'FAILED') . ' (type: ' . $type . ', file_id: ' . $file_id . ')');
         }
         
-        return ['url' => $url, 'type' => $type];
+        return ['url' => $url, 'type' => $type, 'file_id' => $file_id];
     }
     
     private function get_file_url($bot_token, $file_id) {

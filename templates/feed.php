@@ -56,7 +56,7 @@ if (!defined('ABSPATH')) exit;
                     if ($is_sticker && $sticker_type === 'tgs'): 
                         // TGS (Lottie) animated sticker
                     ?>
-                        <div class="dfx-tg-sticker-container" data-sticker-url="<?php echo esc_url($msg['media']); ?>"></div>
+                        <div class="dfx-tg-sticker-container" data-sticker-url="<?php echo esc_url($msg['media']); ?>" data-file-id="<?php echo esc_attr($msg['file_id'] ?? ''); ?>"></div>
                         <?php if ($has_emoji): ?>
                             <span class="dfx-tg-feed-emoji-overlay"><?php echo esc_html($msg['emoji']); ?></span>
                         <?php endif; ?>
