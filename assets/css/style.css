@@ -63,11 +63,6 @@
     max-height: none;
 }
 
-/* Message Content */
-.dfx-tg-feed-content {
-    line-height: 1.6;
-}
-
 /* Meta Information */
 .dfx-tg-feed-meta {
     display: flex;
@@ -87,7 +82,24 @@
     font-family: monospace;
 }
 
-/* Message Text */
+/* Author Information */
+.dfx-tg-feed-author {
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #14171a;
+    font-weight: 600;
+}
+
+.dfx-tg-feed-username {
+    color: #1da1f2;
+    font-weight: 400;
+}
+
+/* Media appears after date and author */
+.dfx-tg-feed-media {
+    margin-bottom: 12px;
+    line-height: 0;
+}
 .dfx-tg-feed-text {
     color: #14171a;
     font-size: 15px;
@@ -98,6 +110,79 @@
 /* Browser Specific Styles */
 .dfx-tg-feed-browser .dfx-tg-feed-message-browser {
     border-left: 4px solid #1da1f2;
+}
+
+/* Sticker Styles */
+.dfx-tg-feed-sticker .dfx-tg-feed-media-sticker {
+    max-height: none;
+    text-align: center;
+}
+
+.dfx-tg-feed-sticker .dfx-tg-feed-media-sticker img {
+    max-width: 150px;
+    max-height: 150px;
+    object-fit: contain;
+}
+
+.dfx-tg-feed-emoji-overlay {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    font-size: 24px;
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+}
+
+/* Text Formatting */
+.dfx-tg-feed-text code {
+    background: #f6f8fa;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    color: #24292e;
+}
+
+.dfx-tg-feed-text pre {
+    background: #f6f8fa;
+    padding: 12px;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin: 10px 0;
+}
+
+.dfx-tg-feed-text pre code {
+    background: transparent;
+    padding: 0;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.dfx-tg-feed-text blockquote {
+    border-left: 4px solid #dfe2e5;
+    padding-left: 16px;
+    margin: 10px 0;
+    color: #6a737d;
+    font-style: italic;
+}
+
+.dfx-tg-feed-text a {
+    color: #1da1f2;
+    text-decoration: none;
+}
+
+.dfx-tg-feed-text a:hover {
+    text-decoration: underline;
+}
+
+.dfx-tg-feed-text .tg-mention,
+.dfx-tg-feed-text .tg-hashtag {
+    color: #1da1f2;
+    font-weight: 500;
+}
+
+.dfx-tg-feed-text .tg-bot_command {
+    color: #0366d6;
+    font-family: monospace;
 }
 
 /* Error and Info Messages */

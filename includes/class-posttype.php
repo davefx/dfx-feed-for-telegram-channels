@@ -115,6 +115,18 @@ class PostType {
             if (!empty($message_data['media'])) {
                 update_post_meta($post_id, '_tg_media', $message_data['media']);
             }
+            if (!empty($message_data['sticker'])) {
+                update_post_meta($post_id, '_tg_is_sticker', true);
+            }
+            if (!empty($message_data['emoji'])) {
+                update_post_meta($post_id, '_tg_emoji', $message_data['emoji']);
+            }
+            if (!empty($message_data['entities'])) {
+                update_post_meta($post_id, '_tg_entities', $message_data['entities']);
+            }
+            if (!empty($message_data['author'])) {
+                update_post_meta($post_id, '_tg_author', $message_data['author']);
+            }
         }
         
         return $post_id;
@@ -143,7 +155,11 @@ class PostType {
                 'id' => get_post_meta($post->ID, '_tg_message_id', true),
                 'date' => get_post_meta($post->ID, '_tg_date', true),
                 'text' => $post->post_content,
+                'entities' => get_post_meta($post->ID, '_tg_entities', true) ?: [],
                 'media' => get_post_meta($post->ID, '_tg_media', true),
+                'sticker' => get_post_meta($post->ID, '_tg_is_sticker', true),
+                'emoji' => get_post_meta($post->ID, '_tg_emoji', true),
+                'author' => get_post_meta($post->ID, '_tg_author', true),
                 'deleted' => false,
             ];
         }
