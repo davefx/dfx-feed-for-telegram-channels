@@ -38,6 +38,8 @@ final class Plugin {
         add_action('wp_ajax_dfx_tg_feed_test', [Settings::instance(), 'ajax_test_bot_channel']);
         add_action('wp_ajax_dfx_tg_feed_reload', [Settings::instance(), 'ajax_reload_messages']);
         add_action('wp_ajax_dfx_tg_feed_refresh', [Cache::instance(), 'ajax_refresh_cache']);
+        add_action('wp_ajax_dfx_tg_proxy_sticker', [$this, 'ajax_proxy_sticker']);
+        add_action('wp_ajax_nopriv_dfx_tg_proxy_sticker', [$this, 'ajax_proxy_sticker']);
     }
 
     public function register_shortcodes() {
@@ -68,5 +70,82 @@ final class Plugin {
 
     public function register_settings() {
         Settings::instance()->register();
+    }
+
+    /**
+     * AJAX handler to proxy TGS sticker files (bypasses CORS)
+     */
+    public function ajax_proxy_sticker() {
+        // Verify nonce
+        if (!isset($_GET['nonce']) || !wp_verify_nonce($_GET['nonce'], 'dfx_tg_sticker_proxy')) {
+            wp_send_json_error(['message' => 'Invalid nonce'], 403);
+        }
+
+        // Get sticker URL and file_id
+        $sticker_url = isset($_GET['url']) ? urldecode($_GET['url']) : '';
+        $file_id = isset($_GET['file_id']) ? sanitize_text_field($_GET['file_id']) : '';
+
+        if (empty($sticker_url) || empty($file_id)) {
+            wp_send_json_error(['message' => 'Missing parameters'], 400);
+        }
+
+        // Validate URL is from Telegram
+        if (strpos($sticker_url, 'api.telegram.org') === false) {
+            wp_send_json_error(['message' => 'Invalid sticker URL'], 400);
+        }
+
+        // Check cache first
+        $cache_key = 'dfx_tg_sticker_' . md5($file_id);
+        $cached_data = get_transient($cache_key);
+
+        if ($cached_data !== false) {
+            header('Content-Type: application/json');
+            echo $cached_data;
+            exit;
+        }
+
+        // Fetch sticker data from Telegram
+        $response = wp_remote_get($sticker_url, [
+            'timeout' => 15,
+            'sslverify' => true
+        ]);
+
+        if (is_wp_error($response)) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('DFX TG Feed: Failed to fetch sticker: ' . $response->get_error_message());
+            }
+            wp_send_json_error(['message' => 'Failed to fetch sticker from Telegram'], 500);
+        }
+
+        $status_code = wp_remote_retrieve_response_code($response);
+        if ($status_code !== 200) {
+            wp_send_json_error(['message' => 'Telegram returned status ' . $status_code], 500);
+        }
+
+        $sticker_data = wp_remote_retrieve_body($response);
+
+        // TGS files are gzipped JSON
+        // Try to decompress if it's gzipped
+        if (function_exists('gzdecode')) {
+            $decompressed = @gzdecode($sticker_data);
+            if ($decompressed !== false) {
+                $sticker_data = $decompressed;
+            }
+        }
+
+        // Validate JSON
+        $json_data = json_decode($sticker_data, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            wp_send_json_error(['message' => 'Invalid TGS data (not valid JSON)'], 500);
+        }
+
+        // Cache for 24 hours
+        set_transient($cache_key, $sticker_data, DAY_IN_SECONDS);
+
+        // Return with proper headers
+        header('Content-Type: application/json');
+        header('Access-Control-Allow-Origin: *');
+        echo $sticker_data;
+        exit;
     }
 }

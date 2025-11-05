@@ -26,6 +26,7 @@
         
         stickerContainers.forEach(function(container, index) {
             var stickerUrl = container.getAttribute('data-sticker-url');
+            var fileId = container.getAttribute('data-file-id');
             
             console.log('DFX Telegram Feed: Processing sticker', index, 'URL:', stickerUrl);
             
@@ -43,9 +44,16 @@
             // Mark as initialized
             container.dataset.initialized = 'true';
             
+            // Use WordPress AJAX proxy to bypass CORS
+            var proxyUrl = dfxTgFeedStickers.ajaxUrl + 
+                '?action=dfx_tg_proxy_sticker' +
+                '&nonce=' + encodeURIComponent(dfxTgFeedStickers.nonce) +
+                '&url=' + encodeURIComponent(stickerUrl) +
+                '&file_id=' + encodeURIComponent(fileId || '');
+            
             // Load the TGS file and initialize Lottie
-            console.log('DFX Telegram Feed: Fetching sticker data from:', stickerUrl);
-            fetch(stickerUrl)
+            console.log('DFX Telegram Feed: Fetching sticker data via proxy:', proxyUrl);
+            fetch(proxyUrl)
                 .then(function(response) {
                     console.log('DFX Telegram Feed: Fetch response status:', response.status);
                     if (!response.ok) {
