@@ -12,6 +12,38 @@ class Shortcodes {
     public function register() {
         add_shortcode('dfx_tg_channel_feed',    [$this, 'shortcode_channel_feed']);
         add_shortcode('dfx_tg_channel_browser', [$this, 'shortcode_channel_browser']);
+        add_action('wp_enqueue_scripts', [$this, 'enqueue_styles']);
+    }
+    
+    public function enqueue_styles() {
+        wp_enqueue_style(
+            'dfx-tg-feed',
+            DFX_TG_FEED_URL . 'assets/css/style.css',
+            [],
+            DFX_TG_FEED_VER
+        );
+    }
+    
+    /**
+     * Load a template file with variables
+     */
+    private function load_template($template_name, $variables = []) {
+        extract($variables);
+        $template_path = DFX_TG_FEED_PATH . 'templates/' . $template_name . '.php';
+        
+        // Allow themes to override templates
+        $theme_template = locate_template('dfx-tg-feed/' . $template_name . '.php');
+        if ($theme_template) {
+            $template_path = $theme_template;
+        }
+        
+        if (file_exists($template_path)) {
+            ob_start();
+            include $template_path;
+            return ob_get_clean();
+        }
+        
+        return '';
     }
 
     // [dfx_tg_channel_feed channel="tele_channel" count="5"]
@@ -53,21 +85,10 @@ class Shortcodes {
             ));
         }
 
-        ob_start();
-        ?>
-        <div class="dfx-tg-feed">
-            <?php foreach ($messages as $msg): ?>
-                <div class="dfx-tg-feed-message" data-id="<?php echo esc_attr($msg['id']); ?>">
-                  <div class="dfx-tg-feed-date"><?php echo date('Y-m-d H:i:s', $msg['date']); ?></div>
-                  <div class="dfx-tg-feed-text"><?php echo esc_html($msg['text']); ?></div>
-                  <?php if (!empty($msg['media'])): ?>
-                      <img src="<?php echo esc_url($msg['media']); ?>" />
-                  <?php endif; ?>
-                </div>
-            <?php endforeach; ?>
-        </div>
-        <?php
-        return ob_get_clean();
+        return $this->load_template('feed', [
+            'messages' => $messages,
+            'channel' => $channel,
+        ]);
     }
     
     // [dfx_tg_channel_browser channel="tele_channel"]
@@ -107,20 +128,10 @@ class Shortcodes {
             ));
         }
         
-        ob_start(); ?>
-        <div class="dfx-tg-feed-browser">
-            <?php foreach ($messages as $msg): ?>
-                <div class="dfx-tg-feed-message" data-id="<?php echo esc_attr($msg['id']); ?>">
-                  <div class="dfx-tg-feed-date"><?php echo date('Y-m-d H:i:s', $msg['date']); ?></div>
-                  <div class="dfx-tg-feed-text"><?php echo esc_html($msg['text']); ?></div>
-                  <?php if (!empty($msg['media'])): ?>
-                      <img src="<?php echo esc_url($msg['media']); ?>" />
-                  <?php endif; ?>
-                </div>
-            <?php endforeach; ?>
-        </div>
-        <?php
-        return ob_get_clean();
+        return $this->load_template('browser', [
+            'messages' => $messages,
+            'channel' => $channel,
+        ]);
     }
     
     /**

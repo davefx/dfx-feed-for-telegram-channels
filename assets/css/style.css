@@ -1,0 +1,168 @@
+/**
+ * DFX Telegram Channel Feed - Frontend Styles
+ */
+
+/* Feed Container */
+.dfx-tg-feed-layout {
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+/* Individual Message */
+.dfx-tg-feed-message {
+    background: #ffffff;
+    border: 1px solid #e1e8ed;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    padding: 16px;
+    transition: box-shadow 0.2s ease;
+}
+
+.dfx-tg-feed-message:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dfx-tg-feed-message:last-child {
+    margin-bottom: 0;
+}
+
+/* Media - Images appear BEFORE text */
+.dfx-tg-feed-media {
+    margin-bottom: 12px;
+    line-height: 0;
+}
+
+.dfx-tg-feed-media img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    display: block;
+}
+
+/* Feed-specific: Miniaturized/constrained images */
+.dfx-tg-feed .dfx-tg-feed-media {
+    max-height: 200px;
+    overflow: hidden;
+    position: relative;
+}
+
+.dfx-tg-feed .dfx-tg-feed-media img {
+    max-height: 200px;
+    width: auto;
+    max-width: 100%;
+    object-fit: cover;
+    margin: 0 auto;
+}
+
+/* Browser-specific: Full-size images */
+.dfx-tg-feed-browser .dfx-tg-feed-media-browser {
+    max-height: none;
+}
+
+.dfx-tg-feed-browser .dfx-tg-feed-media-browser img {
+    max-height: none;
+}
+
+/* Message Content */
+.dfx-tg-feed-content {
+    line-height: 1.6;
+}
+
+/* Meta Information */
+.dfx-tg-feed-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: #657786;
+}
+
+.dfx-tg-feed-date {
+    font-weight: 500;
+}
+
+.dfx-tg-feed-id {
+    color: #8899a6;
+    font-family: monospace;
+}
+
+/* Message Text */
+.dfx-tg-feed-text {
+    color: #14171a;
+    font-size: 15px;
+    line-height: 1.5;
+    word-wrap: break-word;
+}
+
+/* Browser Specific Styles */
+.dfx-tg-feed-browser .dfx-tg-feed-message-browser {
+    border-left: 4px solid #1da1f2;
+}
+
+/* Error and Info Messages */
+.dfx-tg-feed-error {
+    padding: 15px;
+    background: #f8d7da;
+    border: 1px solid #f5c2c7;
+    border-radius: 8px;
+    color: #842029;
+    margin: 16px 0;
+}
+
+.dfx-tg-feed-error strong {
+    font-weight: 600;
+}
+
+.dfx-tg-feed-info {
+    padding: 15px;
+    background: #cfe2ff;
+    border: 1px solid #b6d4fe;
+    border-radius: 8px;
+    color: #084298;
+    margin: 16px 0;
+}
+
+.dfx-tg-feed-info strong {
+    font-weight: 600;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .dfx-tg-feed-message {
+        padding: 12px;
+        margin-bottom: 16px;
+    }
+    
+    .dfx-tg-feed-text {
+        font-size: 14px;
+    }
+    
+    .dfx-tg-feed .dfx-tg-feed-media {
+        max-height: 150px;
+    }
+    
+    .dfx-tg-feed .dfx-tg-feed-media img {
+        max-height: 150px;
+    }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .dfx-tg-feed-message {
+        background: #15202b;
+        border-color: #38444d;
+    }
+    
+    .dfx-tg-feed-message:hover {
+        box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+    }
+    
+    .dfx-tg-feed-text {
+        color: #ffffff;
+    }
+    
+    .dfx-tg-feed-meta {
+        color: #8899a6;
+    }
+}
