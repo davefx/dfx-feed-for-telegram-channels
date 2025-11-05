@@ -164,83 +164,150 @@ class API {
      */
     public static function format_text_with_entities($text, $entities) {
         if (empty($text) || empty($entities)) {
-            return esc_html($text);
+            return nl2br(esc_html($text));
         }
         
-        // Sort entities by offset in reverse order to apply from end to start
+        // Convert text to UTF-16 units (Telegram uses UTF-16 for offsets)
+        $utf16_text = mb_convert_encoding($text, 'UTF-16LE', 'UTF-8');
+        $utf16_length = mb_strlen($utf16_text, 'UTF-16LE');
+        
+        // Sort entities by start position, then by length (longer first for nested)
         usort($entities, function($a, $b) {
-            return $b['offset'] - $a['offset'];
+            if ($a['offset'] !== $b['offset']) {
+                return $a['offset'] - $b['offset'];
+            }
+            // If same start, longer entities first (so nested ones are inside)
+            return $b['length'] - $a['length'];
         });
         
-        // Convert to UTF-16 for proper offset handling (Telegram uses UTF-16)
-        $text_utf16 = mb_convert_encoding($text, 'UTF-16LE', 'UTF-8');
+        // Create array of segments with their formatting
+        $segments = [];
+        $last_pos = 0;
         
+        // Track which entities are active at each position
+        $position_entities = [];
         foreach ($entities as $entity) {
-            $offset = $entity['offset'];
-            $length = $entity['length'];
-            $type = $entity['type'];
-            
-            // Extract the text portion (in UTF-16)
-            $start_byte = $offset * 2; // UTF-16LE uses 2 bytes per character
-            $length_byte = $length * 2;
-            $portion_utf16 = substr($text_utf16, $start_byte, $length_byte);
-            $portion = mb_convert_encoding($portion_utf16, 'UTF-8', 'UTF-16LE');
-            
-            // Apply formatting based on entity type
-            $formatted = '';
-            switch ($type) {
-                case 'bold':
-                    $formatted = '<strong>' . esc_html($portion) . '</strong>';
-                    break;
-                case 'italic':
-                    $formatted = '<em>' . esc_html($portion) . '</em>';
-                    break;
-                case 'underline':
-                    $formatted = '<u>' . esc_html($portion) . '</u>';
-                    break;
-                case 'strikethrough':
-                    $formatted = '<s>' . esc_html($portion) . '</s>';
-                    break;
-                case 'code':
-                    $formatted = '<code>' . esc_html($portion) . '</code>';
-                    break;
-                case 'pre':
-                    $language = $entity['language'] ?? '';
-                    $formatted = '<pre' . ($language ? ' class="language-' . esc_attr($language) . '"' : '') . '><code>' . esc_html($portion) . '</code></pre>';
-                    break;
-                case 'text_link':
-                    $url = $entity['url'] ?? '';
-                    $formatted = '<a href="' . esc_url($url) . '" target="_blank" rel="noopener noreferrer">' . esc_html($portion) . '</a>';
-                    break;
-                case 'url':
-                case 'email':
-                case 'phone_number':
-                    $formatted = '<a href="' . esc_url($portion) . '" target="_blank" rel="noopener noreferrer">' . esc_html($portion) . '</a>';
-                    break;
-                case 'mention':
-                case 'hashtag':
-                case 'cashtag':
-                case 'bot_command':
-                    $formatted = '<span class="tg-' . esc_attr($type) . '">' . esc_html($portion) . '</span>';
-                    break;
-                case 'blockquote':
-                    $formatted = '<blockquote>' . esc_html($portion) . '</blockquote>';
-                    break;
-                default:
-                    $formatted = esc_html($portion);
+            $start = $entity['offset'];
+            $end = $entity['offset'] + $entity['length'];
+            for ($i = $start; $i < $end; $i++) {
+                if (!isset($position_entities[$i])) {
+                    $position_entities[$i] = [];
+                }
+                $position_entities[$i][] = $entity;
             }
-            
-            // Replace in UTF-16 string
-            $before = substr($text_utf16, 0, $start_byte);
-            $after = substr($text_utf16, $start_byte + $length_byte);
-            $formatted_utf16 = mb_convert_encoding($formatted, 'UTF-16LE', 'UTF-8');
-            $text_utf16 = $before . $formatted_utf16 . $after;
         }
         
-        // Convert back to UTF-8
-        $result = mb_convert_encoding($text_utf16, 'UTF-8', 'UTF-16LE');
+        // Build formatted text character by character
+        $result = '';
+        $open_tags = [];
+        
+        for ($pos = 0; $pos < $utf16_length; $pos++) {
+            $current_entities = $position_entities[$pos] ?? [];
+            
+            // Determine which tags need to be closed
+            $tags_to_close = [];
+            foreach ($open_tags as $tag_info) {
+                $still_active = false;
+                foreach ($current_entities as $entity) {
+                    if ($tag_info['entity'] === $entity) {
+                        $still_active = true;
+                        break;
+                    }
+                }
+                if (!$still_active) {
+                    $tags_to_close[] = $tag_info;
+                }
+            }
+            
+            // Close tags in reverse order (LIFO)
+            foreach (array_reverse($tags_to_close) as $tag_info) {
+                $result .= $tag_info['close'];
+                $open_tags = array_filter($open_tags, function($t) use ($tag_info) {
+                    return $t !== $tag_info;
+                });
+            }
+            
+            // Determine which new tags need to be opened
+            $tags_to_open = [];
+            foreach ($current_entities as $entity) {
+                $already_open = false;
+                foreach ($open_tags as $tag_info) {
+                    if ($tag_info['entity'] === $entity) {
+                        $already_open = true;
+                        break;
+                    }
+                }
+                if (!$already_open) {
+                    $tags_to_open[] = $entity;
+                }
+            }
+            
+            // Open new tags
+            foreach ($tags_to_open as $entity) {
+                $tag_info = self::get_entity_tags($entity);
+                if ($tag_info) {
+                    $result .= $tag_info['open'];
+                    $open_tags[] = array_merge($tag_info, ['entity' => $entity]);
+                }
+            }
+            
+            // Add the character (escaped)
+            $char_utf16 = mb_substr($utf16_text, $pos, 1, 'UTF-16LE');
+            $char = mb_convert_encoding($char_utf16, 'UTF-8', 'UTF-16LE');
+            $result .= esc_html($char);
+        }
+        
+        // Close any remaining open tags
+        foreach (array_reverse($open_tags) as $tag_info) {
+            $result .= $tag_info['close'];
+        }
         
         // Handle line breaks
         return nl2br($result);
+    }
+    
+    /**
+     * Get opening and closing HTML tags for an entity
+     */
+    private static function get_entity_tags($entity) {
+        $type = $entity['type'];
+        
+        switch ($type) {
+            case 'bold':
+                return ['open' => '<strong>', 'close' => '</strong>'];
+            case 'italic':
+                return ['open' => '<em>', 'close' => '</em>'];
+            case 'underline':
+                return ['open' => '<u>', 'close' => '</u>'];
+            case 'strikethrough':
+                return ['open' => '<s>', 'close' => '</s>'];
+            case 'code':
+                return ['open' => '<code>', 'close' => '</code>'];
+            case 'pre':
+                $language = $entity['language'] ?? '';
+                $class = $language ? ' class="language-' . esc_attr($language) . '"' : '';
+                return ['open' => '<pre' . $class . '><code>', 'close' => '</code></pre>'];
+            case 'text_link':
+                $url = $entity['url'] ?? '';
+                return [
+                    'open' => '<a href="' . esc_url($url) . '" target="_blank" rel="noopener noreferrer">',
+                    'close' => '</a>'
+                ];
+            case 'url':
+            case 'email':
+            case 'phone_number':
+                // For these, we need the actual text, but we'll create a placeholder
+                // and fix it in a second pass
+                return ['open' => '<a href="#" class="tg-auto-link" data-type="' . esc_attr($type) . '">', 'close' => '</a>'];
+            case 'mention':
+            case 'hashtag':
+            case 'cashtag':
+            case 'bot_command':
+                return ['open' => '<span class="tg-' . esc_attr($type) . '">', 'close' => '</span>'];
+            case 'blockquote':
+                return ['open' => '<blockquote>', 'close' => '</blockquote>'];
+            default:
+                return null;
+        }
     }
 }
