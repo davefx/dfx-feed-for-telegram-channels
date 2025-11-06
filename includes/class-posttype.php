@@ -19,6 +19,7 @@ class PostType {
         add_action('restrict_manage_posts', [$this, 'add_channel_filter']);
         add_filter('parse_query', [$this, 'filter_by_channel']);
         add_filter('post_row_actions', [$this, 'modify_row_actions'], 10, 2);
+        add_action('admin_menu', [$this, 'remove_standalone_menu'], 999);
     }
     
     public function register_post_type() {
@@ -40,7 +41,7 @@ class PostType {
             'labels'              => $labels,
             'public'              => false,
             'show_ui'             => true,
-            'show_in_menu'        => false,
+            'show_in_menu'        => true,
             'menu_position'       => 25,
             'capability_type'     => 'post',
             'capabilities'        => [
@@ -170,6 +171,14 @@ class PostType {
         }
         
         return $actions;
+    }
+    
+    /**
+     * Remove the standalone menu item for the post type
+     * since we're adding it under a custom parent menu
+     */
+    public function remove_standalone_menu() {
+        remove_menu_page('edit.php?post_type=dfx_tg_message');
     }
     
     /**
