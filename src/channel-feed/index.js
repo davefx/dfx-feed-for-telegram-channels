@@ -1,11 +1,16 @@
 import { registerBlockType } from '@wordpress/blocks';
-import { InspectorControls, useBlockProps } from '@wordpress/block-editor';
+import {
+	InspectorControls,
+	useBlockProps,
+	ColorPalette,
+} from '@wordpress/block-editor';
 import {
 	PanelBody,
 	TextControl,
 	RangeControl,
 	TabPanel,
 	SelectControl,
+	BaseControl,
 	// eslint-disable-next-line @wordpress/no-unsafe-wp-apis
 	__experimentalUnitControl as UnitControl,
 	// eslint-disable-next-line @wordpress/no-unsafe-wp-apis
@@ -61,6 +66,10 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 			type: 'object',
 			default: {},
 		},
+		blockBoxShadow: {
+			type: 'string',
+			default: '',
+		},
 		// Message styles
 		messageBackground: {
 			type: 'string',
@@ -89,6 +98,10 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 		messageMargin: {
 			type: 'object',
 			default: {},
+		},
+		messageBoxShadow: {
+			type: 'string',
+			default: '',
 		},
 		// Typography
 		dateFontFamily: {
@@ -152,6 +165,31 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 			{ label: __( 'Dashed', 'dfx-tg-feed' ), value: 'dashed' },
 			{ label: __( 'Dotted', 'dfx-tg-feed' ), value: 'dotted' },
 			{ label: __( 'Double', 'dfx-tg-feed' ), value: 'double' },
+		];
+
+		const shadowPresets = [
+			{ label: __( 'None', 'dfx-tg-feed' ), value: '' },
+			{
+				label: __( 'Small', 'dfx-tg-feed' ),
+				value: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
+			},
+			{
+				label: __( 'Medium', 'dfx-tg-feed' ),
+				value: '0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)',
+			},
+			{
+				label: __( 'Large', 'dfx-tg-feed' ),
+				value: '0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)',
+			},
+			{
+				label: __( 'Extra Large', 'dfx-tg-feed' ),
+				value: '0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22)',
+			},
+			{
+				label: __( 'Inset', 'dfx-tg-feed' ),
+				value: 'inset 0 2px 4px rgba(0,0,0,0.15)',
+			},
+			{ label: __( 'Custom', 'dfx-tg-feed' ), value: 'custom' },
 		];
 
 		return (
@@ -232,24 +270,26 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 											) }
 											initialOpen={ true }
 										>
-											<TextControl
+											<BaseControl
+												id="block-background-color-control"
 												label={ __(
 													'Background Color',
 													'dfx-tg-feed'
 												) }
-												help={ __(
-													'e.g., #ffffff or transparent',
-													'dfx-tg-feed'
-												) }
-												value={
-													attributes.blockBackground
-												}
-												onChange={ ( value ) =>
-													setAttributes( {
-														blockBackground: value,
-													} )
-												}
-											/>
+											>
+												<ColorPalette
+													value={
+														attributes.blockBackground
+													}
+													onChange={ ( value ) =>
+														setAttributes( {
+															blockBackground:
+																value || '',
+														} )
+													}
+													clearable={ true }
+												/>
+											</BaseControl>
 											<SelectControl
 												label={ __(
 													'Border Style',
@@ -282,25 +322,29 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 															} )
 														}
 													/>
-													<TextControl
+													<BaseControl
+														id="block-background-color-control"
 														label={ __(
 															'Border Color',
 															'dfx-tg-feed'
 														) }
-														help={ __(
-															'e.g., #e1e8ed',
-															'dfx-tg-feed'
-														) }
-														value={
-															attributes.blockBorderColor
-														}
-														onChange={ ( value ) =>
-															setAttributes( {
-																blockBorderColor:
-																	value,
-															} )
-														}
-													/>
+													>
+														<ColorPalette
+															value={
+																attributes.blockBorderColor
+															}
+															onChange={ (
+																value
+															) =>
+																setAttributes( {
+																	blockBorderColor:
+																		value ||
+																		'',
+																} )
+															}
+															clearable={ true }
+														/>
+													</BaseControl>
 													<UnitControl
 														label={ __(
 															'Border Radius',
@@ -352,6 +396,73 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 													/>
 												</>
 											) }
+											<SelectControl
+												label={ __(
+													'Box Shadow',
+													'dfx-tg-feed'
+												) }
+												value={
+													shadowPresets.find(
+														( preset ) =>
+															preset.value ===
+																attributes.blockBoxShadow ||
+															( attributes.blockBoxShadow &&
+																preset.value ===
+																	'custom' )
+													)?.value || ''
+												}
+												options={ shadowPresets }
+												onChange={ ( value ) => {
+													if (
+														value === 'custom' &&
+														! attributes.blockBoxShadow
+													) {
+														setAttributes( {
+															blockBoxShadow:
+																'0 0 10px rgba(0,0,0,0.1)',
+														} );
+													} else if (
+														value !== 'custom'
+													) {
+														setAttributes( {
+															blockBoxShadow:
+																value,
+														} );
+													}
+												} }
+											/>
+											{ ( shadowPresets.find(
+												( preset ) =>
+													preset.value ===
+													attributes.blockBoxShadow
+											)?.value === 'custom' ||
+												( attributes.blockBoxShadow &&
+													! shadowPresets.find(
+														( preset ) =>
+															preset.value ===
+															attributes.blockBoxShadow
+													) ) ||
+												attributes.blockBoxShadow ) && (
+												<TextControl
+													label={ __(
+														'Custom Shadow (CSS)',
+														'dfx-tg-feed'
+													) }
+													help={ __(
+														'e.g., 0 4px 6px rgba(0,0,0,0.1)',
+														'dfx-tg-feed'
+													) }
+													value={
+														attributes.blockBoxShadow
+													}
+													onChange={ ( value ) =>
+														setAttributes( {
+															blockBoxShadow:
+																value,
+														} )
+													}
+												/>
+											) }
 										</PanelBody>
 									</>
 								);
@@ -365,25 +476,26 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 											) }
 											initialOpen={ true }
 										>
-											<TextControl
+											<BaseControl
+												id="block-background-color-control"
 												label={ __(
 													'Background Color',
 													'dfx-tg-feed'
 												) }
-												help={ __(
-													'e.g., #ffffff',
-													'dfx-tg-feed'
-												) }
-												value={
-													attributes.messageBackground
-												}
-												onChange={ ( value ) =>
-													setAttributes( {
-														messageBackground:
-															value,
-													} )
-												}
-											/>
+											>
+												<ColorPalette
+													value={
+														attributes.messageBackground
+													}
+													onChange={ ( value ) =>
+														setAttributes( {
+															messageBackground:
+																value || '',
+														} )
+													}
+													clearable={ true }
+												/>
+											</BaseControl>
 											<SelectControl
 												label={ __(
 													'Border Style',
@@ -417,25 +529,29 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 															} )
 														}
 													/>
-													<TextControl
+													<BaseControl
+														id="block-background-color-control"
 														label={ __(
 															'Border Color',
 															'dfx-tg-feed'
 														) }
-														help={ __(
-															'e.g., #e1e8ed',
-															'dfx-tg-feed'
-														) }
-														value={
-															attributes.messageBorderColor
-														}
-														onChange={ ( value ) =>
-															setAttributes( {
-																messageBorderColor:
-																	value,
-															} )
-														}
-													/>
+													>
+														<ColorPalette
+															value={
+																attributes.messageBorderColor
+															}
+															onChange={ (
+																value
+															) =>
+																setAttributes( {
+																	messageBorderColor:
+																		value ||
+																		'',
+																} )
+															}
+															clearable={ true }
+														/>
+													</BaseControl>
 													<UnitControl
 														label={ __(
 															'Border Radius',
@@ -487,6 +603,73 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 													/>
 												</>
 											) }
+											<SelectControl
+												label={ __(
+													'Box Shadow',
+													'dfx-tg-feed'
+												) }
+												value={
+													shadowPresets.find(
+														( preset ) =>
+															preset.value ===
+																attributes.messageBoxShadow ||
+															( attributes.messageBoxShadow &&
+																preset.value ===
+																	'custom' )
+													)?.value || ''
+												}
+												options={ shadowPresets }
+												onChange={ ( value ) => {
+													if (
+														value === 'custom' &&
+														! attributes.messageBoxShadow
+													) {
+														setAttributes( {
+															messageBoxShadow:
+																'0 0 10px rgba(0,0,0,0.1)',
+														} );
+													} else if (
+														value !== 'custom'
+													) {
+														setAttributes( {
+															messageBoxShadow:
+																value,
+														} );
+													}
+												} }
+											/>
+											{ ( shadowPresets.find(
+												( preset ) =>
+													preset.value ===
+													attributes.messageBoxShadow
+											)?.value === 'custom' ||
+												( attributes.messageBoxShadow &&
+													! shadowPresets.find(
+														( preset ) =>
+															preset.value ===
+															attributes.messageBoxShadow
+													) ) ||
+												attributes.messageBoxShadow ) && (
+												<TextControl
+													label={ __(
+														'Custom Shadow (CSS)',
+														'dfx-tg-feed'
+													) }
+													help={ __(
+														'e.g., 0 4px 6px rgba(0,0,0,0.1)',
+														'dfx-tg-feed'
+													) }
+													value={
+														attributes.messageBoxShadow
+													}
+													onChange={ ( value ) =>
+														setAttributes( {
+															messageBoxShadow:
+																value,
+														} )
+													}
+												/>
+											) }
 										</PanelBody>
 										<PanelBody
 											title={ __(
@@ -527,22 +710,26 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 													} )
 												}
 											/>
-											<TextControl
+											<BaseControl
+												id="block-background-color-control"
 												label={ __(
 													'Text Color',
 													'dfx-tg-feed'
 												) }
-												help={ __(
-													'e.g., #333333',
-													'dfx-tg-feed'
-												) }
-												value={ attributes.dateColor }
-												onChange={ ( value ) =>
-													setAttributes( {
-														dateColor: value,
-													} )
-												}
-											/>
+											>
+												<ColorPalette
+													value={
+														attributes.dateColor
+													}
+													onChange={ ( value ) =>
+														setAttributes( {
+															dateColor:
+																value || '',
+														} )
+													}
+													clearable={ true }
+												/>
+											</BaseControl>
 											<hr />
 											<h3>
 												{ __(
@@ -579,22 +766,26 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 													} )
 												}
 											/>
-											<TextControl
+											<BaseControl
+												id="block-background-color-control"
 												label={ __(
 													'Text Color',
 													'dfx-tg-feed'
 												) }
-												help={ __(
-													'e.g., #333333',
-													'dfx-tg-feed'
-												) }
-												value={ attributes.authorColor }
-												onChange={ ( value ) =>
-													setAttributes( {
-														authorColor: value,
-													} )
-												}
-											/>
+											>
+												<ColorPalette
+													value={
+														attributes.authorColor
+													}
+													onChange={ ( value ) =>
+														setAttributes( {
+															authorColor:
+																value || '',
+														} )
+													}
+													clearable={ true }
+												/>
+											</BaseControl>
 											<hr />
 											<h3>
 												{ __(
@@ -631,22 +822,26 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 													} )
 												}
 											/>
-											<TextControl
+											<BaseControl
+												id="block-background-color-control"
 												label={ __(
 													'Text Color',
 													'dfx-tg-feed'
 												) }
-												help={ __(
-													'e.g., #333333',
-													'dfx-tg-feed'
-												) }
-												value={ attributes.textColor }
-												onChange={ ( value ) =>
-													setAttributes( {
-														textColor: value,
-													} )
-												}
-											/>
+											>
+												<ColorPalette
+													value={
+														attributes.textColor
+													}
+													onChange={ ( value ) =>
+														setAttributes( {
+															textColor:
+																value || '',
+														} )
+													}
+													clearable={ true }
+												/>
+											</BaseControl>
 										</PanelBody>
 									</>
 								);

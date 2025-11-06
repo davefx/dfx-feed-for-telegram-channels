@@ -73,6 +73,10 @@ class Blocks {
                         'type' => 'object',
                         'default' => []
                     ],
+                    'blockBoxShadow' => [
+                        'type' => 'string',
+                        'default' => ''
+                    ],
                     // Message styles
                     'messageBackground' => [
                         'type' => 'string',
@@ -101,6 +105,10 @@ class Blocks {
                     'messageMargin' => [
                         'type' => 'object',
                         'default' => []
+                    ],
+                    'messageBoxShadow' => [
+                        'type' => 'string',
+                        'default' => ''
                     ],
                     // Typography
                     'dateFontFamily' => [
@@ -201,6 +209,10 @@ class Blocks {
                         'type' => 'object',
                         'default' => []
                     ],
+                    'blockBoxShadow' => [
+                        'type' => 'string',
+                        'default' => ''
+                    ],
                     // Message styles
                     'messageBackground' => [
                         'type' => 'string',
@@ -229,6 +241,10 @@ class Blocks {
                     'messageMargin' => [
                         'type' => 'object',
                         'default' => []
+                    ],
+                    'messageBoxShadow' => [
+                        'type' => 'string',
+                        'default' => ''
                     ],
                     // Typography
                     'dateFontFamily' => [
@@ -386,6 +402,10 @@ class Blocks {
             }
         }
         
+        if (!empty($attributes['blockBoxShadow'])) {
+            $block_styles[] = 'box-shadow: ' . esc_attr($attributes['blockBoxShadow']) . ';';
+        }
+        
         if (!empty($block_styles)) {
             $css .= '.' . $block_id . ' { ' . implode(' ', $block_styles) . ' }' . "\n";
         }
@@ -425,6 +445,10 @@ class Blocks {
             if ($margin) {
                 $message_styles[] = 'margin: ' . $margin . ';';
             }
+        }
+        
+        if (!empty($attributes['messageBoxShadow'])) {
+            $message_styles[] = 'box-shadow: ' . esc_attr($attributes['messageBoxShadow']) . ';';
         }
         
         if (!empty($message_styles)) {
