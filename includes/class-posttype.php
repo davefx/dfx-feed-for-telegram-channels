@@ -40,7 +40,7 @@ class PostType {
             'labels'              => $labels,
             'public'              => false,
             'show_ui'             => true,
-            'show_in_menu'        => true,
+            'show_in_menu'        => 'dfx-telegram-messages',
             'menu_position'       => 25,
             'capability_type'     => 'post',
             'capabilities'        => [

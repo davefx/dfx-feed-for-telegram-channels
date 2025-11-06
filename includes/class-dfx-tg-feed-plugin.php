@@ -59,9 +59,22 @@ final class Plugin {
     }
 
     public function settings_page() {
-        add_options_page(
-            __('DFX Telegram Channel Feed', 'dfx-tg-feed'),
-            __('DFX Telegram Feed', 'dfx-tg-feed'),
+        // Add top-level menu
+        add_menu_page(
+            __('Telegram Messages', 'dfx-tg-feed'),
+            __('Telegram Messages', 'dfx-tg-feed'),
+            'manage_options',
+            'dfx-telegram-messages',
+            '', // No callback for the main page - it will redirect to the first submenu
+            'dashicons-email-alt',
+            25
+        );
+        
+        // Add settings submenu under the top-level menu
+        add_submenu_page(
+            'dfx-telegram-messages',
+            __('Settings', 'dfx-tg-feed'),
+            __('Settings', 'dfx-tg-feed'),
             'manage_options',
             'dfx-tg-feed',
             [Settings::instance(), 'render_page']
