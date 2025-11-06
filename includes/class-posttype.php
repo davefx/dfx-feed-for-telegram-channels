@@ -22,6 +22,7 @@ class PostType {
         add_action('restrict_manage_posts', [$this, 'add_channel_filter']);
         add_action('restrict_manage_posts', [$this, 'add_refresh_button']);
         add_filter('parse_query', [$this, 'filter_by_channel']);
+        add_action('pre_get_posts', [$this, 'handle_custom_column_sorting']);
         add_filter('post_row_actions', [$this, 'modify_row_actions'], 10, 2);
         add_action('admin_menu', [$this, 'remove_standalone_menu'], 999);
         add_filter('parent_file', [$this, 'set_parent_file']);
@@ -192,6 +193,33 @@ class PostType {
         if ($pagenow === 'edit.php' && $typenow === 'dfx_tg_message' && isset($_GET['channel_filter']) && $_GET['channel_filter'] !== '') {
             $query->query_vars['meta_key'] = '_tg_channel';
             $query->query_vars['meta_value'] = sanitize_text_field($_GET['channel_filter']);
+        }
+    }
+    
+    /**
+     * Handle custom column sorting for the admin list table
+     */
+    public function handle_custom_column_sorting($query) {
+        // Only run on admin edit.php page for our post type
+        if (!is_admin() || !$query->is_main_query()) {
+            return;
+        }
+        
+        global $pagenow, $typenow;
+        if ($pagenow !== 'edit.php' || $typenow !== 'dfx_tg_message') {
+            return;
+        }
+        
+        // Get the orderby parameter
+        $orderby = $query->get('orderby');
+        
+        // Handle sorting by custom meta fields
+        if ($orderby === 'channel') {
+            $query->set('meta_key', '_tg_channel');
+            $query->set('orderby', 'meta_value');
+        } elseif ($orderby === 'message_id') {
+            $query->set('meta_key', '_tg_message_id');
+            $query->set('orderby', 'meta_value_num');
         }
     }
     
@@ -418,6 +446,7 @@ class PostType {
             'post_title' => $text_preview ?: __('(No text)', 'dfx-tg-feed'),
             'post_content' => $message_data['text'] ?? '',
             'post_status' => 'publish',
+            'post_date' => get_date_from_gmt(date('Y-m-d H:i:s', $message_data['date'])),
             'post_date_gmt' => date('Y-m-d H:i:s', $message_data['date']),
         ]);
         
