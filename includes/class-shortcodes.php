@@ -91,8 +91,6 @@ class Shortcodes {
             return $this->render_error(__('Telegram Bot Token not configured. Please configure it in Settings → DFX Telegram Feed.', 'dfx-tg-feed'));
         }
         
-        $ttl = intval(get_option('dfx_tg_feed_ttl', 300));
-        
         // Smart on-demand refresh: Check if last update is > 10 minutes old
         $channel_safe = sanitize_key($channel);
         $last_sync = get_transient("dfx_tg_last_sync_{$channel_safe}");
@@ -100,18 +98,16 @@ class Shortcodes {
             // Check if not already refreshing (lock)
             if (!get_transient("dfx_tg_refreshing_{$channel_safe}")) {
                 set_transient("dfx_tg_refreshing_{$channel_safe}", true, 30); // 30-second lock
-                $result = Cache::instance()->refresh_cache($channel, 100, $ttl);
+                PostType::instance()->refresh_messages($channel, 100);
                 set_transient("dfx_tg_last_sync_{$channel_safe}", time(), 3600);
                 delete_transient("dfx_tg_refreshing_{$channel_safe}");
             }
         }
 
-        $cache = Cache::instance()->get_cached_messages($channel, $limit);
-        if ($cache === false) {
-            $result = Cache::instance()->refresh_cache($channel, $limit, $ttl);
+        $messages = PostType::instance()->get_messages($channel, $limit);
+        if (empty($messages)) {
+            $result = PostType::instance()->refresh_messages($channel, $limit);
             $messages = $result['messages'];
-        } else {
-            $messages = $cache;
         }
         
         // Check if messages were retrieved
@@ -146,15 +142,12 @@ class Shortcodes {
             return $this->render_error(__('Telegram Bot Token not configured. Please configure it in Settings → DFX Telegram Feed.', 'dfx-tg-feed'));
         }
         
-        $ttl = intval(get_option('dfx_tg_feed_ttl', 300));
         // For browsing you might want to paginate, but for now show all
         $limit = 200;
-        $cache = Cache::instance()->get_cached_messages($channel, $limit);
-        if ($cache === false) {
-            $result = Cache::instance()->refresh_cache($channel, $limit, $ttl);
+        $messages = PostType::instance()->get_messages($channel, $limit);
+        if (empty($messages)) {
+            $result = PostType::instance()->refresh_messages($channel, $limit);
             $messages = $result['messages'];
-        } else {
-            $messages = $cache;
         }
         
         // Check if messages were retrieved

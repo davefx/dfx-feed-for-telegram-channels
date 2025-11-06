@@ -12,7 +12,6 @@ class Settings {
     public function register() {
         register_setting('dfx_tg_feed', 'dfx_tg_feed_bot_token');
         register_setting('dfx_tg_feed', 'dfx_tg_feed_default_count');
-        register_setting('dfx_tg_feed', 'dfx_tg_feed_ttl');
         register_setting('dfx_tg_feed', 'dfx_tg_feed_channel');
     }
 
@@ -49,10 +48,6 @@ class Settings {
                     <tr>
                         <th><?php _e('Default Message Count', 'dfx-tg-feed'); ?></th>
                         <td><input type="number" name="dfx_tg_feed_default_count" value="<?php echo esc_attr(get_option('dfx_tg_feed_default_count', 10)); ?>" min="1" max="100"/></td>
-                    </tr>
-                    <tr>
-                        <th><?php _e('Cache Time (Seconds)', 'dfx-tg-feed'); ?></th>
-                        <td><input type="number" name="dfx_tg_feed_ttl" value="<?php echo esc_attr(get_option('dfx_tg_feed_ttl', 300)); ?>" min="60" max="86400"/></td>
                     </tr>
                 </table>
                 <?php submit_button(__('Save Settings', 'dfx-tg-feed')); ?>
