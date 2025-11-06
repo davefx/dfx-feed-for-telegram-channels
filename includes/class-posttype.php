@@ -20,6 +20,8 @@ class PostType {
         add_filter('parse_query', [$this, 'filter_by_channel']);
         add_filter('post_row_actions', [$this, 'modify_row_actions'], 10, 2);
         add_action('admin_menu', [$this, 'remove_standalone_menu'], 999);
+        add_filter('parent_file', [$this, 'set_parent_file']);
+        add_filter('submenu_file', [$this, 'set_submenu_file']);
     }
     
     public function register_post_type() {
@@ -179,6 +181,32 @@ class PostType {
      */
     public function remove_standalone_menu() {
         remove_menu_page('edit.php?post_type=dfx_tg_message');
+    }
+    
+    /**
+     * Set the parent file for the post type to our custom menu
+     */
+    public function set_parent_file($parent_file) {
+        global $current_screen;
+        
+        if ($current_screen && $current_screen->post_type === 'dfx_tg_message') {
+            $parent_file = Plugin::MENU_SLUG;
+        }
+        
+        return $parent_file;
+    }
+    
+    /**
+     * Set the submenu file for the post type
+     */
+    public function set_submenu_file($submenu_file) {
+        global $current_screen;
+        
+        if ($current_screen && $current_screen->post_type === 'dfx_tg_message') {
+            $submenu_file = 'edit.php?post_type=dfx_tg_message';
+        }
+        
+        return $submenu_file;
     }
     
     /**
