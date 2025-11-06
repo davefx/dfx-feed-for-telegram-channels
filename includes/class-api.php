@@ -71,9 +71,13 @@ class API {
                         
                         // Get media URL (photo, video thumbnail, or sticker)
                         $media = null;
+                        $has_media_field = false;
+                        
                         if (isset($msg['photo'])) {
+                            $has_media_field = true;
                             $media = $this->get_attachment_url($bot_token, $msg['photo']);
                         } elseif (isset($msg['sticker'])) {
+                            $has_media_field = true;
                             // For stickers, get the file and determine type
                             $sticker_info = $this->get_sticker_info($bot_token, $msg['sticker']);
                             $media = $sticker_info['url'] ?? null;
@@ -83,15 +87,25 @@ class API {
                                 error_log('DFX Telegram Feed: Sticker emoji: ' . ($msg['sticker']['emoji'] ?? 'no emoji'));
                             }
                         } elseif (isset($msg['video'])) {
+                            $has_media_field = true;
                             // For videos, get thumbnail
                             if (isset($msg['video']['thumb'])) {
                                 $media = $this->get_file_url($bot_token, $msg['video']['thumb']['file_id']);
                             }
                         } elseif (isset($msg['animation'])) {
+                            $has_media_field = true;
                             // For GIFs/animations, get thumbnail
                             if (isset($msg['animation']['thumb'])) {
                                 $media = $this->get_file_url($bot_token, $msg['animation']['thumb']['file_id']);
                             }
+                        }
+                        
+                        // Skip messages that have media fields but inaccessible files (likely deleted)
+                        if ($has_media_field && empty($media)) {
+                            if (defined('WP_DEBUG') && WP_DEBUG) {
+                                error_log('DFX Telegram Feed: Skipping message ' . $msg['message_id'] . ' - has media field but file is inaccessible (likely deleted)');
+                            }
+                            continue;
                         }
                         
                         // Skip messages that have no text AND no media (empty messages)
