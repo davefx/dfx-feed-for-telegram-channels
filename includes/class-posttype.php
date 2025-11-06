@@ -209,6 +209,11 @@ class PostType {
             var statusSpan = $('#dfx-tg-refresh-status');
             var channelFilter = $('select[name=\"channel_filter\"]');
             
+            function setStatus(message, color) {
+                var span = $('<span>').css('color', color).text(message);
+                statusSpan.empty().append(span);
+            }
+            
             // Enable/disable button based on channel selection
             channelFilter.on('change', function() {
                 if ($(this).val()) {
@@ -229,7 +234,7 @@ class PostType {
                 
                 // Disable button and show loading status
                 refreshBtn.prop('disabled', true);
-                statusSpan.html('<span style=\"color: #0073aa;\"></span>').find('span').text(dfxTgFeedRefresh.i18n.refreshing);
+                setStatus(dfxTgFeedRefresh.i18n.refreshing, '#0073aa');
                 
                 $.ajax({
                     url: dfxTgFeedRefresh.ajaxUrl,
@@ -241,19 +246,19 @@ class PostType {
                     },
                     success: function(response) {
                         if (response.success) {
-                            statusSpan.html('<span style=\"color: #46b450;\"></span>').find('span').text(dfxTgFeedRefresh.i18n.success);
+                            setStatus(dfxTgFeedRefresh.i18n.success, '#46b450');
                             // Reload the page after a short delay to show updated messages
                             setTimeout(function() {
                                 window.location.reload();
                             }, 1000);
                         } else {
                             var errorMsg = response.data || dfxTgFeedRefresh.i18n.unknownError;
-                            statusSpan.html('<span style=\"color: #dc3232;\"></span>').find('span').text(dfxTgFeedRefresh.i18n.errorLabel + ' ' + errorMsg);
+                            setStatus(dfxTgFeedRefresh.i18n.errorLabel + ' ' + errorMsg, '#dc3232');
                             refreshBtn.prop('disabled', false);
                         }
                     },
                     error: function(xhr, status, error) {
-                        statusSpan.html('<span style=\"color: #dc3232;\"></span>').find('span').text(dfxTgFeedRefresh.i18n.requestFailed + ' ' + error);
+                        setStatus(dfxTgFeedRefresh.i18n.requestFailed + ' ' + error, '#dc3232');
                         refreshBtn.prop('disabled', false);
                     }
                 });
