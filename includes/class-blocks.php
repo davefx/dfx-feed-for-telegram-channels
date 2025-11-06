@@ -411,7 +411,10 @@ class Blocks {
         if (!empty($attributes['dateFontFamily']) || !empty($attributes['dateFontSize'])) {
             $date_styles = [];
             if (!empty($attributes['dateFontFamily'])) {
-                $date_styles[] = 'font-family: ' . esc_attr($attributes['dateFontFamily']) . ';';
+                $font_family = $this->sanitize_font_family($attributes['dateFontFamily']);
+                if ($font_family) {
+                    $date_styles[] = 'font-family: ' . $font_family . ';';
+                }
             }
             if (!empty($attributes['dateFontSize'])) {
                 $date_styles[] = 'font-size: ' . esc_attr($attributes['dateFontSize']) . ';';
@@ -424,7 +427,10 @@ class Blocks {
         if (!empty($attributes['authorFontFamily']) || !empty($attributes['authorFontSize'])) {
             $author_styles = [];
             if (!empty($attributes['authorFontFamily'])) {
-                $author_styles[] = 'font-family: ' . esc_attr($attributes['authorFontFamily']) . ';';
+                $font_family = $this->sanitize_font_family($attributes['authorFontFamily']);
+                if ($font_family) {
+                    $author_styles[] = 'font-family: ' . $font_family . ';';
+                }
             }
             if (!empty($attributes['authorFontSize'])) {
                 $author_styles[] = 'font-size: ' . esc_attr($attributes['authorFontSize']) . ';';
@@ -437,7 +443,10 @@ class Blocks {
         if (!empty($attributes['textFontFamily']) || !empty($attributes['textFontSize'])) {
             $text_styles = [];
             if (!empty($attributes['textFontFamily'])) {
-                $text_styles[] = 'font-family: ' . esc_attr($attributes['textFontFamily']) . ';';
+                $font_family = $this->sanitize_font_family($attributes['textFontFamily']);
+                if ($font_family) {
+                    $text_styles[] = 'font-family: ' . $font_family . ';';
+                }
             }
             if (!empty($attributes['textFontSize'])) {
                 $text_styles[] = 'font-size: ' . esc_attr($attributes['textFontSize']) . ';';
@@ -448,6 +457,30 @@ class Blocks {
         }
         
         return $css;
+    }
+    
+    /**
+     * Sanitize a CSS font-family value
+     * Preserves quotes around font names but prevents CSS injection
+     */
+    private function sanitize_font_family($font_family) {
+        if (empty($font_family)) {
+            return '';
+        }
+        
+        // Remove any potentially dangerous content while preserving valid CSS
+        // Allow: alphanumeric, spaces, hyphens, commas, quotes, and common font fallbacks
+        $sanitized = preg_replace('/[^a-zA-Z0-9\s,\-"\']/', '', $font_family);
+        
+        // Validate that quotes are balanced and properly placed
+        // This prevents CSS injection while allowing valid font names with spaces
+        $quote_count = substr_count($sanitized, '"');
+        if ($quote_count % 2 !== 0) {
+            // Unbalanced quotes - invalid, return empty
+            return '';
+        }
+        
+        return $sanitized;
     }
     
     /**
