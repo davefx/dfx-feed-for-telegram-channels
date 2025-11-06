@@ -252,8 +252,9 @@ class Blocks {
         // Ensure frontend assets are enqueued
         $this->enqueue_frontend_assets();
         
-        // Generate and enqueue inline styles
+        // Generate inline styles and block ID
         $block_id = $this->enqueue_block_styles($attributes, 'feed');
+        $styles = $this->generate_block_styles($attributes, $block_id);
         
         // Add the block ID to the wrapper via one-time filter
         $filter = function($classes) use ($block_id, &$filter) {
@@ -262,15 +263,25 @@ class Blocks {
         };
         add_filter('dfx_tg_feed_wrapper_class', $filter);
         
-        return Shortcodes::instance()->shortcode_channel_feed($attributes);
+        $output = '';
+        
+        // Add inline styles directly in the output for better compatibility with ServerSideRender
+        if (!empty($styles)) {
+            $output .= '<style>' . $styles . '</style>';
+        }
+        
+        $output .= Shortcodes::instance()->shortcode_channel_feed($attributes);
+        
+        return $output;
     }
     
     public function render_channel_browser($attributes) {
         // Ensure frontend assets are enqueued
         $this->enqueue_frontend_assets();
         
-        // Generate and enqueue inline styles
+        // Generate inline styles and block ID
         $block_id = $this->enqueue_block_styles($attributes, 'browser');
+        $styles = $this->generate_block_styles($attributes, $block_id);
         
         // Add the block ID to the wrapper via one-time filter
         $filter = function($classes) use ($block_id, &$filter) {
@@ -279,7 +290,16 @@ class Blocks {
         };
         add_filter('dfx_tg_feed_wrapper_class', $filter);
         
-        return Shortcodes::instance()->shortcode_channel_browser($attributes);
+        $output = '';
+        
+        // Add inline styles directly in the output for better compatibility with ServerSideRender
+        if (!empty($styles)) {
+            $output .= '<style>' . $styles . '</style>';
+        }
+        
+        $output .= Shortcodes::instance()->shortcode_channel_browser($attributes);
+        
+        return $output;
     }
     
     /**
