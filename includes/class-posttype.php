@@ -388,9 +388,10 @@ class PostType {
      * Store a message in the database
      */
     public function store_message($channel, $message_data) {
-        // Check if message already exists
+        // Check if message already exists (only among published posts)
         $existing = get_posts([
             'post_type' => 'dfx_tg_message',
+            'post_status' => 'publish',
             'meta_query' => [
                 'relation' => 'AND',
                 [
