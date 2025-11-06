@@ -305,6 +305,10 @@ class PostType {
         }
         
         $channel = sanitize_text_field($_POST['channel'] ?? '');
+        if (empty($channel)) {
+            wp_send_json_error('Channel parameter is required.');
+        }
+        
         $limit = intval(get_option('dfx_tg_feed_default_count', 10));
         $result = $this->refresh_messages($channel, $limit);
         
