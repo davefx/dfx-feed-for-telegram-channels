@@ -789,6 +789,9 @@ class PostType {
      * transitions from draft/pending to published. For Telegram messages, we must
      * preserve the original date from Telegram, so we prevent this behavior.
      * 
+     * This filter ensures that post_date and post_date_gmt are ALWAYS set from
+     * the original Telegram message timestamp stored in the _tg_date meta field.
+     * 
      * @param array $data    An array of slashed post data
      * @param array $postarr An array of sanitized post data
      * @return array Modified post data with preserved dates
@@ -799,16 +802,18 @@ class PostType {
             return $data;
         }
         
-        // If this is an update (not a new post), preserve the original dates
+        // If this is an update (not a new post), get the original Telegram timestamp
         if (!empty($postarr['ID'])) {
-            $original_post = get_post($postarr['ID']);
+            $telegram_timestamp = get_post_meta($postarr['ID'], '_tg_date', true);
             
-            if ($original_post) {
-                // Always preserve the original post dates from the database
-                $data['post_date'] = $original_post->post_date;
-                $data['post_date_gmt'] = $original_post->post_date_gmt;
-                $data['post_modified'] = current_time('mysql');
-                $data['post_modified_gmt'] = current_time('mysql', 1);
+            if ($telegram_timestamp) {
+                // Convert Telegram timestamp to WordPress date format
+                $post_date_gmt = gmdate('Y-m-d H:i:s', $telegram_timestamp);
+                $post_date = get_date_from_gmt($post_date_gmt);
+                
+                // Force the dates to be from the original Telegram message
+                $data['post_date'] = $post_date;
+                $data['post_date_gmt'] = $post_date_gmt;
             }
         }
         
