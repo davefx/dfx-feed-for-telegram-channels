@@ -206,7 +206,7 @@ class PostType {
             'post_title' => $text_preview ?: __('(No text)', 'dfx-tg-feed'),
             'post_content' => $message_data['text'] ?? '',
             'post_status' => 'publish',
-            'post_date' => date('Y-m-d H:i:s', $message_data['date']),
+            'post_date_gmt' => date('Y-m-d H:i:s', $message_data['date']),
         ]);
         
         if ($post_id) {
