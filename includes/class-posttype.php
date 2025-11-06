@@ -191,8 +191,14 @@ class PostType {
         global $pagenow, $typenow;
         
         if ($pagenow === 'edit.php' && $typenow === 'dfx_tg_message' && isset($_GET['channel_filter']) && $_GET['channel_filter'] !== '') {
-            $query->query_vars['meta_key'] = '_tg_channel';
-            $query->query_vars['meta_value'] = sanitize_text_field($_GET['channel_filter']);
+            // Use meta_query instead of meta_key/meta_value to avoid conflicts with sorting
+            $meta_query = $query->get('meta_query') ?: [];
+            $meta_query[] = [
+                'key' => '_tg_channel',
+                'value' => sanitize_text_field($_GET['channel_filter']),
+                'compare' => '='
+            ];
+            $query->set('meta_query', $meta_query);
         }
     }
     
@@ -215,9 +221,11 @@ class PostType {
         
         // Handle sorting by custom meta fields
         if ($orderby === 'channel') {
+            // Sort by channel meta field (alphabetically)
             $query->set('meta_key', '_tg_channel');
             $query->set('orderby', 'meta_value');
         } elseif ($orderby === 'message_id') {
+            // Sort by message_id meta field (numerically)
             $query->set('meta_key', '_tg_message_id');
             $query->set('orderby', 'meta_value_num');
         }
