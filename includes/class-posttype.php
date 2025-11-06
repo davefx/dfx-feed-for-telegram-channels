@@ -509,12 +509,28 @@ class PostType {
         $messages = API::instance()->fetch_channel_messages($channel, $limit);
         
         // Detect deleted messages by comparing with stored messages
+        // Only check messages that should be in the fetched range
         $old = $this->get_all_messages($channel, 200);
         $deleted_ids = [];
-        if (!empty($old)) {
-            $old_ids = array_column($old, 'id');
+        if (!empty($old) && !empty($messages)) {
             $new_ids = array_column($messages, 'id');
-            $deleted_ids = array_diff($old_ids, $new_ids);
+            
+            // Find the minimum message ID in the newly fetched messages
+            // Telegram message IDs are sequential and chronological within a channel,
+            // so the minimum ID represents the oldest message we just fetched
+            $min_fetched_id = min($new_ids);
+            
+            // Only consider stored messages that are >= the oldest fetched message
+            // Messages older than this are beyond our fetch limit and should be ignored
+            $old_ids_in_range = array_column(
+                array_filter($old, function($msg) use ($min_fetched_id) {
+                    return $msg['id'] >= $min_fetched_id;
+                }),
+                'id'
+            );
+            
+            // Find messages that should be in the fetched range but are not present
+            $deleted_ids = array_diff($old_ids_in_range, $new_ids);
             
             // Mark deleted messages by moving them to trash
             if (!empty($deleted_ids)) {
