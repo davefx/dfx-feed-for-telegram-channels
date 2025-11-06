@@ -126,6 +126,18 @@ class Blocks {
                     'textFontSize' => [
                         'type' => 'string',
                         'default' => ''
+                    ],
+                    'dateColor' => [
+                        'type' => 'string',
+                        'default' => ''
+                    ],
+                    'authorColor' => [
+                        'type' => 'string',
+                        'default' => ''
+                    ],
+                    'textColor' => [
+                        'type' => 'string',
+                        'default' => ''
                     ]
                 ]
             ]);
@@ -240,6 +252,18 @@ class Blocks {
                         'default' => ''
                     ],
                     'textFontSize' => [
+                        'type' => 'string',
+                        'default' => ''
+                    ],
+                    'dateColor' => [
+                        'type' => 'string',
+                        'default' => ''
+                    ],
+                    'authorColor' => [
+                        'type' => 'string',
+                        'default' => ''
+                    ],
+                    'textColor' => [
                         'type' => 'string',
                         'default' => ''
                     ]
@@ -408,7 +432,7 @@ class Blocks {
         }
         
         // Typography styles
-        if (!empty($attributes['dateFontFamily']) || !empty($attributes['dateFontSize'])) {
+        if (!empty($attributes['dateFontFamily']) || !empty($attributes['dateFontSize']) || !empty($attributes['dateColor'])) {
             $date_styles = [];
             if (!empty($attributes['dateFontFamily'])) {
                 $font_family = $this->sanitize_font_family($attributes['dateFontFamily']);
@@ -419,12 +443,18 @@ class Blocks {
             if (!empty($attributes['dateFontSize'])) {
                 $date_styles[] = 'font-size: ' . esc_attr($attributes['dateFontSize']) . ';';
             }
+            if (!empty($attributes['dateColor'])) {
+                $color = $this->sanitize_color($attributes['dateColor']);
+                if ($color) {
+                    $date_styles[] = 'color: ' . $color . ';';
+                }
+            }
             if (!empty($date_styles)) {
                 $css .= '.' . $block_id . ' .dfx-tg-feed-date { ' . implode(' ', $date_styles) . ' }' . "\n";
             }
         }
         
-        if (!empty($attributes['authorFontFamily']) || !empty($attributes['authorFontSize'])) {
+        if (!empty($attributes['authorFontFamily']) || !empty($attributes['authorFontSize']) || !empty($attributes['authorColor'])) {
             $author_styles = [];
             if (!empty($attributes['authorFontFamily'])) {
                 $font_family = $this->sanitize_font_family($attributes['authorFontFamily']);
@@ -435,12 +465,18 @@ class Blocks {
             if (!empty($attributes['authorFontSize'])) {
                 $author_styles[] = 'font-size: ' . esc_attr($attributes['authorFontSize']) . ';';
             }
+            if (!empty($attributes['authorColor'])) {
+                $color = $this->sanitize_color($attributes['authorColor']);
+                if ($color) {
+                    $author_styles[] = 'color: ' . $color . ';';
+                }
+            }
             if (!empty($author_styles)) {
                 $css .= '.' . $block_id . ' .dfx-tg-feed-author { ' . implode(' ', $author_styles) . ' }' . "\n";
             }
         }
         
-        if (!empty($attributes['textFontFamily']) || !empty($attributes['textFontSize'])) {
+        if (!empty($attributes['textFontFamily']) || !empty($attributes['textFontSize']) || !empty($attributes['textColor'])) {
             $text_styles = [];
             if (!empty($attributes['textFontFamily'])) {
                 $font_family = $this->sanitize_font_family($attributes['textFontFamily']);
@@ -450,6 +486,12 @@ class Blocks {
             }
             if (!empty($attributes['textFontSize'])) {
                 $text_styles[] = 'font-size: ' . esc_attr($attributes['textFontSize']) . ';';
+            }
+            if (!empty($attributes['textColor'])) {
+                $color = $this->sanitize_color($attributes['textColor']);
+                if ($color) {
+                    $text_styles[] = 'color: ' . $color . ';';
+                }
             }
             if (!empty($text_styles)) {
                 $css .= '.' . $block_id . ' .dfx-tg-feed-text { ' . implode(' ', $text_styles) . ' }' . "\n";
@@ -481,6 +523,69 @@ class Blocks {
         }
         
         return $sanitized;
+    }
+    
+    /**
+     * Sanitize a CSS color value
+     * Validates hex colors, rgb/rgba, hsl/hsla, and named colors
+     */
+    private function sanitize_color($color) {
+        if (empty($color)) {
+            return '';
+        }
+        
+        $color = trim($color);
+        
+        // Allow hex colors (#fff, #ffffff, #ffffff00)
+        if (preg_match('/^#([a-fA-F0-9]{3}|[a-fA-F0-9]{6}|[a-fA-F0-9]{8})$/', $color)) {
+            return strtolower($color);
+        }
+        
+        // Allow rgb/rgba with proper value ranges
+        // RGB: 0-255 for each component, alpha: 0-1
+        $rgb_pattern = '/^rgba?\(\s*(' .
+            '\d{1,2}|1\d{2}|2[0-4]\d|25[0-5]' . // Red: 0-255
+            ')\s*,\s*(' .
+            '\d{1,2}|1\d{2}|2[0-4]\d|25[0-5]' . // Green: 0-255
+            ')\s*,\s*(' .
+            '\d{1,2}|1\d{2}|2[0-4]\d|25[0-5]' . // Blue: 0-255
+            ')' .
+            '(\s*,\s*(0|0?\.\d+|1(\.0+)?))?' . // Alpha: 0-1 (optional)
+            '\s*\)$/i';
+        
+        if (preg_match($rgb_pattern, $color)) {
+            return strtolower($color);
+        }
+        
+        // Allow hsl/hsla with proper value ranges
+        // Hue: 0-360, Saturation: 0-100%, Lightness: 0-100%, Alpha: 0-1
+        $hsl_pattern = '/^hsla?\(\s*(' .
+            '\d{1,2}|[12]\d{2}|3[0-5]\d|360' . // Hue: 0-360
+            ')\s*,\s*(' .
+            '\d{1,2}|100' . // Saturation: 0-100
+            ')%\s*,\s*(' .
+            '\d{1,2}|100' . // Lightness: 0-100
+            ')%' .
+            '(\s*,\s*(0|0?\.\d+|1(\.0+)?))?' . // Alpha: 0-1 (optional)
+            '\s*\)$/i';
+        
+        if (preg_match($hsl_pattern, $color)) {
+            return strtolower($color);
+        }
+        
+        // Allow common CSS named colors
+        $named_colors = [
+            'transparent', 'black', 'white', 'red', 'green', 'blue', 'yellow', 'orange',
+            'purple', 'pink', 'brown', 'gray', 'grey', 'cyan', 'magenta', 'lime', 'navy',
+            'teal', 'aqua', 'maroon', 'olive', 'silver', 'fuchsia'
+        ];
+        
+        if (in_array(strtolower($color), $named_colors)) {
+            return strtolower($color);
+        }
+        
+        // Invalid color, return empty
+        return '';
     }
     
     /**
