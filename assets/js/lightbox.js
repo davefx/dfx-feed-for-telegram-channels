@@ -8,6 +8,11 @@
 ( function () {
 	'use strict';
 
+	// Configuration constants
+	const MAX_ZOOM_LEVEL = 5;
+	const MIN_ZOOM_LEVEL = 1;
+	const ZOOM_INCREMENT = 0.5;
+
 	// Lightbox state
 	let lightboxOpen = false;
 	let zoomLevel = 1;
@@ -146,11 +151,13 @@
 	 * Open lightbox with specified image
 	 *
 	 * @param {string} imgSrc - The image URL to display
+	 * @param {string} imgAlt - The alt text for the image
 	 */
-	function openLightbox( imgSrc ) {
+	function openLightbox( imgSrc, imgAlt ) {
 		createLightbox();
 
 		lightboxImg.src = imgSrc;
+		lightboxImg.alt = imgAlt || 'Lightbox image';
 		lightbox.classList.add( 'dfx-tg-lightbox-active' );
 		lightboxOpen = true;
 
@@ -180,7 +187,7 @@
 	 * Zoom in
 	 */
 	function zoomIn() {
-		zoomLevel = Math.min( zoomLevel + 0.5, 5 );
+		zoomLevel = Math.min( zoomLevel + ZOOM_INCREMENT, MAX_ZOOM_LEVEL );
 		updateImageTransform();
 	}
 
@@ -188,8 +195,8 @@
 	 * Zoom out
 	 */
 	function zoomOut() {
-		zoomLevel = Math.max( zoomLevel - 0.5, 1 );
-		if ( zoomLevel === 1 ) {
+		zoomLevel = Math.max( zoomLevel - ZOOM_INCREMENT, MIN_ZOOM_LEVEL );
+		if ( zoomLevel === MIN_ZOOM_LEVEL ) {
 			translateX = 0;
 			translateY = 0;
 		}
@@ -328,6 +335,34 @@
 	}
 
 	/**
+	 * Check if image is displayed smaller than its natural size
+	 *
+	 * @param {HTMLImageElement} img - The image element to check
+	 * @return {boolean} True if image is constrained, false otherwise
+	 */
+	function isImageConstrained( img ) {
+		// Wait for image to load if not yet loaded
+		if ( ! img.complete ) {
+			return false;
+		}
+
+		// Get natural (actual) dimensions
+		const naturalWidth = img.naturalWidth;
+		const naturalHeight = img.naturalHeight;
+
+		// Get displayed dimensions
+		const displayedWidth = img.offsetWidth;
+		const displayedHeight = img.offsetHeight;
+
+		// Image is constrained if displayed size is smaller than natural size
+		// We add a small tolerance (5px) to account for rounding
+		return (
+			naturalWidth > displayedWidth + 5 ||
+			naturalHeight > displayedHeight + 5
+		);
+	}
+
+	/**
 	 * Initialize lightbox for all images
 	 */
 	function initLightbox() {
@@ -345,19 +380,40 @@
 			// Mark as initialized
 			img.dataset.lightboxInitialized = 'true';
 
-			// Make clickable
-			img.style.cursor = 'pointer';
+			// Function to check and enable lightbox if needed
+			const checkAndEnableLightbox = function () {
+				if ( isImageConstrained( img ) ) {
+					// Make clickable only if image is constrained
+					img.style.cursor = 'pointer';
 
-			// Add click handler
-			img.addEventListener( 'click', function ( e ) {
-				e.preventDefault();
-				openLightbox( img.src );
-			} );
+					// Add click handler (only once)
+					if ( ! img.dataset.lightboxClickAdded ) {
+						img.dataset.lightboxClickAdded = 'true';
+						img.addEventListener( 'click', function ( e ) {
+							e.preventDefault();
+							openLightbox( img.src, img.alt );
+						} );
+					}
+				} else {
+					// Remove pointer cursor if not constrained
+					img.style.cursor = 'default';
+				}
+			};
+
+			// Check when image loads
+			if ( img.complete ) {
+				checkAndEnableLightbox();
+			} else {
+				img.addEventListener( 'load', checkAndEnableLightbox );
+			}
 		} );
 	}
 
 	// Initialize when DOM is ready
-	if ( document.readyState === 'loading' ) {
+	if (
+		document.readyState !== 'complete' &&
+		document.readyState !== 'interactive'
+	) {
 		document.addEventListener( 'DOMContentLoaded', initLightbox );
 	} else {
 		initLightbox();
