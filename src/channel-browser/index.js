@@ -12,6 +12,7 @@ import {
 } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import ServerSideRender from '@wordpress/server-side-render';
+import './editor.css';
 
 registerBlockType( 'dfx-tg-feed/channel-browser', {
 	title: __( 'Telegram Channel Browser', 'dfx-tg-feed' ),

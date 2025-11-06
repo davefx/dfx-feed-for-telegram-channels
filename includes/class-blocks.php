@@ -23,8 +23,17 @@ class Blocks {
                 $channel_feed_asset['version']
             );
             
+            // Register editor styles
+            wp_register_style(
+                'dfx-tg-feed-channel-feed-block-editor',
+                DFX_TG_FEED_URL . 'build/channel-feed/style-index.css',
+                [],
+                DFX_TG_FEED_VER
+            );
+            
             register_block_type('dfx-tg-feed/channel-feed', [
                 'editor_script' => 'dfx-tg-feed-channel-feed-block',
+                'editor_style' => 'dfx-tg-feed-channel-feed-block-editor',
                 'render_callback' => [$this, 'render_channel_feed'],
                 'attributes' => [
                     'channel' => [
@@ -134,8 +143,17 @@ class Blocks {
                 $channel_browser_asset['version']
             );
             
+            // Register editor styles - use same frontend styles
+            wp_register_style(
+                'dfx-tg-feed-channel-browser-block-editor',
+                DFX_TG_FEED_URL . 'assets/css/style.css',
+                [],
+                DFX_TG_FEED_VER
+            );
+            
             register_block_type('dfx-tg-feed/channel-browser', [
                 'editor_script' => 'dfx-tg-feed-channel-browser-block',
+                'editor_style' => 'dfx-tg-feed-channel-browser-block-editor',
                 'render_callback' => [$this, 'render_channel_browser'],
                 'attributes' => [
                     'channel' => [
