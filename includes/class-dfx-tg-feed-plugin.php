@@ -73,6 +73,15 @@ final class Plugin {
             25
         );
         
+        // Add submenu for viewing all messages (custom post type listing)
+        add_submenu_page(
+            self::MENU_SLUG,
+            __('All Messages', 'dfx-tg-feed'),
+            __('All Messages', 'dfx-tg-feed'),
+            'edit_posts',
+            'edit.php?post_type=dfx_tg_message'
+        );
+        
         // Add settings submenu under the top-level menu
         add_submenu_page(
             self::MENU_SLUG,

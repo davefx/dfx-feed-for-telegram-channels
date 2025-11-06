@@ -40,7 +40,7 @@ class PostType {
             'labels'              => $labels,
             'public'              => false,
             'show_ui'             => true,
-            'show_in_menu'        => Plugin::MENU_SLUG,
+            'show_in_menu'        => false,
             'menu_position'       => 25,
             'capability_type'     => 'post',
             'capabilities'        => [
