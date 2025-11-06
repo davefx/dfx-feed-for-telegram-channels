@@ -596,7 +596,7 @@ class PostType {
         }
         
         if (!empty($_REQUEST['bulk_hidden_messages'])) {
-            $count = intval($_REQUEST['bulk_hidden_messages']);
+            $count = absint($_REQUEST['bulk_hidden_messages']);
             printf(
                 '<div class="notice notice-success is-dismissible"><p>' .
                 _n('%s message hidden from frontend.', '%s messages hidden from frontend.', $count, 'dfx-tg-feed') .
@@ -606,7 +606,7 @@ class PostType {
         }
         
         if (!empty($_REQUEST['bulk_unhidden_messages'])) {
-            $count = intval($_REQUEST['bulk_unhidden_messages']);
+            $count = absint($_REQUEST['bulk_unhidden_messages']);
             printf(
                 '<div class="notice notice-success is-dismissible"><p>' .
                 _n('%s message is now visible in frontend.', '%s messages are now visible in frontend.', $count, 'dfx-tg-feed') .
