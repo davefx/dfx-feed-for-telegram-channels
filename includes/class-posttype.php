@@ -33,6 +33,8 @@ class PostType {
         add_filter('bulk_actions-edit-dfx_tg_message', [$this, 'register_bulk_actions']);
         add_filter('handle_bulk_actions-edit-dfx_tg_message', [$this, 'handle_bulk_actions'], 10, 3);
         add_action('admin_notices', [$this, 'bulk_action_notices']);
+        // Prevent WordPress from changing post dates when status changes
+        add_filter('wp_insert_post_data', [$this, 'preserve_post_dates'], 10, 2);
     }
     
     public function register_post_type() {
@@ -778,5 +780,38 @@ class PostType {
                 number_format_i18n($count)
             );
         }
+    }
+    
+    /**
+     * Preserve post dates when status changes
+     * 
+     * WordPress has a default behavior where it updates post_date when a post
+     * transitions from draft/pending to published. For Telegram messages, we must
+     * preserve the original date from Telegram, so we prevent this behavior.
+     * 
+     * @param array $data    An array of slashed post data
+     * @param array $postarr An array of sanitized post data
+     * @return array Modified post data with preserved dates
+     */
+    public function preserve_post_dates($data, $postarr) {
+        // Only apply to our custom post type
+        if ($data['post_type'] !== 'dfx_tg_message') {
+            return $data;
+        }
+        
+        // If this is an update (not a new post), preserve the original dates
+        if (!empty($postarr['ID'])) {
+            $original_post = get_post($postarr['ID']);
+            
+            if ($original_post) {
+                // Always preserve the original post dates from the database
+                $data['post_date'] = $original_post->post_date;
+                $data['post_date_gmt'] = $original_post->post_date_gmt;
+                $data['post_modified'] = current_time('mysql');
+                $data['post_modified_gmt'] = current_time('mysql', 1);
+            }
+        }
+        
+        return $data;
     }
 }
