@@ -203,7 +203,12 @@ class API {
      */
     public function reset_update_offset() {
         $bot_token = get_option('dfx_tg_feed_bot_token');
-        if (!$bot_token) return false;
+        if (!$bot_token) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('DFX Telegram Feed: Cannot reset offset - bot token not configured');
+            }
+            return false;
+        }
         
         $offset_option_key = 'dfx_tg_feed_update_offset_' . md5($bot_token);
         delete_option($offset_option_key);
