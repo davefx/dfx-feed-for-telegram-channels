@@ -440,33 +440,10 @@ class Blocks {
     }
     
     /**
-     * Enqueue frontend assets (CSS and JS for stickers)
+     * Enqueue frontend assets (CSS and JS for stickers and lightbox)
      */
     private function enqueue_frontend_assets() {
-        // Enqueue CSS
-        wp_enqueue_style(
-            'dfx-tg-feed',
-            DFX_TG_FEED_URL . 'assets/css/style.css',
-            [],
-            DFX_TG_FEED_VER
-        );
-        
-        // Enqueue Lottie library for TGS stickers
-        wp_enqueue_script(
-            'lottie-player',
-            'https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js',
-            [],
-            '5.12.2',
-            true
-        );
-        
-        // Enqueue our sticker initialization script
-        wp_enqueue_script(
-            'dfx-tg-stickers',
-            DFX_TG_FEED_URL . 'assets/js/stickers.js',
-            ['lottie-player'],
-            DFX_TG_FEED_VER,
-            true
-        );
+        // Use the same enqueue method from Shortcodes to avoid duplication
+        Shortcodes::instance()->enqueue_styles();
     }
 }
