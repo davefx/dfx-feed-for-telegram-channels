@@ -155,7 +155,7 @@ class PostType {
         }
         
         // Get current channel filter if set
-        $current_channel = isset($_GET['channel_filter']) ? $_GET['channel_filter'] : '';
+        $current_channel = isset($_GET['channel_filter']) ? sanitize_text_field($_GET['channel_filter']) : '';
         
         // Display refresh button
         ?>
@@ -183,9 +183,24 @@ class PostType {
     
     public function enqueue_admin_scripts($hook) {
         // Only enqueue on the post type list page
-        if ($hook !== 'edit.php' || (isset($_GET['post_type']) ? $_GET['post_type'] : 'post') !== 'dfx_tg_message') {
+        $post_type = isset($_GET['post_type']) ? sanitize_text_field($_GET['post_type']) : 'post';
+        if ($hook !== 'edit.php' || $post_type !== 'dfx_tg_message') {
             return;
         }
+        
+        // Localize script data for AJAX
+        wp_localize_script('jquery', 'dfxTgFeedRefresh', [
+            'ajaxUrl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('dfx_tg_feed_refresh'),
+            'i18n' => [
+                'selectChannel' => __('Please select a channel first', 'dfx-tg-feed'),
+                'refreshing' => __('Refreshing messages...', 'dfx-tg-feed'),
+                'success' => __('Messages refreshed successfully! Reloading...', 'dfx-tg-feed'),
+                'errorLabel' => __('Error:', 'dfx-tg-feed'),
+                'requestFailed' => __('Request failed:', 'dfx-tg-feed'),
+                'unknownError' => __('Unknown error', 'dfx-tg-feed'),
+            ],
+        ]);
         
         // Enqueue inline script for refresh functionality
         wp_add_inline_script('jquery', "
@@ -208,36 +223,37 @@ class PostType {
                 
                 var channel = channelFilter.val();
                 if (!channel) {
-                    alert('" . esc_js(__('Please select a channel first', 'dfx-tg-feed')) . "');
+                    alert(dfxTgFeedRefresh.i18n.selectChannel);
                     return;
                 }
                 
                 // Disable button and show loading status
                 refreshBtn.prop('disabled', true);
-                statusSpan.html('<span style=\"color: #0073aa;\">" . esc_js(__('Refreshing messages...', 'dfx-tg-feed')) . "</span>');
+                statusSpan.html('<span style=\"color: #0073aa;\"></span>').find('span').text(dfxTgFeedRefresh.i18n.refreshing);
                 
                 $.ajax({
-                    url: ajaxurl,
+                    url: dfxTgFeedRefresh.ajaxUrl,
                     type: 'POST',
                     data: {
                         action: 'dfx_tg_feed_refresh',
                         channel: channel,
-                        _ajax_nonce: '" . wp_create_nonce('dfx_tg_feed_refresh') . "'
+                        _ajax_nonce: dfxTgFeedRefresh.nonce
                     },
                     success: function(response) {
                         if (response.success) {
-                            statusSpan.html('<span style=\"color: #46b450;\">" . esc_js(__('Messages refreshed successfully! Reloading...', 'dfx-tg-feed')) . "</span>');
+                            statusSpan.html('<span style=\"color: #46b450;\"></span>').find('span').text(dfxTgFeedRefresh.i18n.success);
                             // Reload the page after a short delay to show updated messages
                             setTimeout(function() {
                                 window.location.reload();
                             }, 1000);
                         } else {
-                            statusSpan.html('<span style=\"color: #dc3232;\">" . esc_js(__('Error:', 'dfx-tg-feed')) . " ' + (response.data || 'Unknown error') + '</span>');
+                            var errorMsg = response.data || dfxTgFeedRefresh.i18n.unknownError;
+                            statusSpan.html('<span style=\"color: #dc3232;\"></span>').find('span').text(dfxTgFeedRefresh.i18n.errorLabel + ' ' + errorMsg);
                             refreshBtn.prop('disabled', false);
                         }
                     },
                     error: function(xhr, status, error) {
-                        statusSpan.html('<span style=\"color: #dc3232;\">" . esc_js(__('Request failed:', 'dfx-tg-feed')) . " ' + error + '</span>');
+                        statusSpan.html('<span style=\"color: #dc3232;\"></span>').find('span').text(dfxTgFeedRefresh.i18n.requestFailed + ' ' + error);
                         refreshBtn.prop('disabled', false);
                     }
                 });
