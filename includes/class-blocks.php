@@ -235,7 +235,14 @@ class Blocks {
         $this->enqueue_frontend_assets();
         
         // Generate and enqueue inline styles
-        $this->enqueue_block_styles($attributes, 'feed');
+        $block_id = $this->enqueue_block_styles($attributes, 'feed');
+        
+        // Add the block ID to the wrapper via one-time filter
+        $filter = function($classes) use ($block_id, &$filter) {
+            remove_filter('dfx_tg_feed_wrapper_class', $filter);
+            return $classes . ' ' . $block_id;
+        };
+        add_filter('dfx_tg_feed_wrapper_class', $filter);
         
         return Shortcodes::instance()->shortcode_channel_feed($attributes);
     }
@@ -245,7 +252,14 @@ class Blocks {
         $this->enqueue_frontend_assets();
         
         // Generate and enqueue inline styles
-        $this->enqueue_block_styles($attributes, 'browser');
+        $block_id = $this->enqueue_block_styles($attributes, 'browser');
+        
+        // Add the block ID to the wrapper via one-time filter
+        $filter = function($classes) use ($block_id, &$filter) {
+            remove_filter('dfx_tg_feed_wrapper_class', $filter);
+            return $classes . ' ' . $block_id;
+        };
+        add_filter('dfx_tg_feed_wrapper_class', $filter);
         
         return Shortcodes::instance()->shortcode_channel_browser($attributes);
     }
@@ -263,12 +277,6 @@ class Blocks {
         if (!empty($styles)) {
             wp_add_inline_style('dfx-tg-feed', $styles);
         }
-        
-        // Add the block ID to the wrapper via filter
-        add_filter('dfx_tg_feed_wrapper_class', function($classes) use ($block_id) {
-            $classes .= ' ' . $block_id;
-            return $classes;
-        });
         
         return $block_id;
     }

@@ -261,7 +261,12 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         // Add inline style for block background if set
         $wrapper_style = '';
         if (!empty($settings['block_background'])) {
-            $wrapper_style = 'style="background-color: ' . esc_attr($settings['block_background']) . ';"';
+            // Sanitize color value - only allow safe CSS color values
+            $color = sanitize_text_field($settings['block_background']);
+            // Validate it's a safe CSS color (hex, rgb, rgba, or named color)
+            if ($this->is_valid_css_color($color)) {
+                $wrapper_style = 'style="background-color: ' . esc_attr($color) . ';"';
+            }
         }
         
         echo '<div ' . $wrapper_style . '>';
@@ -271,5 +276,33 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
             'count' => $settings['count']
         ]);
         echo '</div>';
+    }
+    
+    /**
+     * Validate if a string is a safe CSS color value
+     */
+    private function is_valid_css_color($color) {
+        // Allow hex colors (#RGB, #RRGGBB, #RRGGBBAA)
+        if (preg_match('/^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6}|[A-Fa-f0-9]{8})$/', $color)) {
+            return true;
+        }
+        
+        // Allow rgb/rgba
+        if (preg_match('/^rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(,\s*[\d.]+\s*)?\)$/', $color)) {
+            return true;
+        }
+        
+        // Allow hsl/hsla
+        if (preg_match('/^hsla?\(\s*\d+\s*,\s*\d+%\s*,\s*\d+%\s*(,\s*[\d.]+\s*)?\)$/', $color)) {
+            return true;
+        }
+        
+        // Allow CSS named colors and special keywords
+        $safe_keywords = ['transparent', 'currentcolor', 'inherit', 'initial', 'unset'];
+        if (in_array(strtolower($color), $safe_keywords)) {
+            return true;
+        }
+        
+        return false;
     }
 }

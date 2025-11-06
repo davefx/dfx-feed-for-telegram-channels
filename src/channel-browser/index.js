@@ -112,7 +112,7 @@ registerBlockType( 'dfx-tg-feed/channel-browser', {
 	},
 	edit: ( props ) => {
 		const { attributes, setAttributes } = props;
-		// eslint-disable-next-line react-hooks/rules-of-hooks
+		// eslint-disable-next-line react-hooks/rules-of-hooks -- WordPress block edit is a valid component function
 		const blockProps = useBlockProps();
 
 		const fontFamilies = [
