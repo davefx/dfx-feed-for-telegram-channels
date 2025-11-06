@@ -20,6 +20,7 @@ class PostType {
         add_action('manage_dfx_tg_message_posts_custom_column', [$this, 'custom_column_content'], 10, 2);
         add_filter('manage_edit-dfx_tg_message_sortable_columns', [$this, 'set_sortable_columns']);
         add_action('restrict_manage_posts', [$this, 'add_channel_filter']);
+        add_action('restrict_manage_posts', [$this, 'add_refresh_button']);
         add_filter('parse_query', [$this, 'filter_by_channel']);
         add_filter('post_row_actions', [$this, 'modify_row_actions'], 10, 2);
         add_action('admin_menu', [$this, 'remove_standalone_menu'], 999);
@@ -157,6 +158,31 @@ class PostType {
         echo '</select>';
     }
     
+    public function add_refresh_button() {
+        global $typenow;
+        
+        if ($typenow !== 'dfx_tg_message') {
+            return;
+        }
+        
+        // Get current channel filter if set
+        $current_channel = isset($_GET['channel_filter']) ? sanitize_text_field($_GET['channel_filter']) : '';
+        
+        // Display refresh button
+        ?>
+        <button type="button" class="button" id="dfx-tg-refresh-messages" <?php echo empty($current_channel) ? 'disabled' : ''; ?>>
+            <span class="dashicons dashicons-update" style="vertical-align: middle; margin-top: 2px;"></span>
+            <?php _e('Refresh Messages', 'dfx-tg-feed'); ?>
+        </button>
+        <?php if (empty($current_channel)): ?>
+            <p class="description" style="display:inline; margin-left: 5px;">
+                <?php _e('Select a channel to enable refresh', 'dfx-tg-feed'); ?>
+            </p>
+        <?php endif; ?>
+        <span id="dfx-tg-refresh-status" style="margin-left: 10px;"></span>
+        <?php
+    }
+    
     public function filter_by_channel($query) {
         global $pagenow, $typenow;
         
@@ -164,6 +190,102 @@ class PostType {
             $query->query_vars['meta_key'] = '_tg_channel';
             $query->query_vars['meta_value'] = sanitize_text_field($_GET['channel_filter']);
         }
+    }
+    
+    public function enqueue_admin_scripts($hook) {
+        // Only enqueue on the post type list page
+        $post_type = isset($_GET['post_type']) ? sanitize_text_field($_GET['post_type']) : 'post';
+        if ($hook !== 'edit.php' || $post_type !== 'dfx_tg_message') {
+            return;
+        }
+        
+        // Enqueue jQuery as dependency
+        wp_enqueue_script('jquery');
+        
+        // Localize script data for AJAX
+        wp_localize_script('jquery', 'dfxTgFeedRefresh', [
+            'ajaxUrl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('dfx_tg_feed_refresh'),
+            'i18n' => [
+                'selectChannel' => __('Please select a channel first', 'dfx-tg-feed'),
+                'refreshing' => __('Refreshing messages...', 'dfx-tg-feed'),
+                'success' => __('Messages refreshed successfully! Reloading...', 'dfx-tg-feed'),
+                'errorLabel' => __('Error:', 'dfx-tg-feed'),
+                'requestFailed' => __('Request failed:', 'dfx-tg-feed'),
+                'unknownError' => __('Unknown error', 'dfx-tg-feed'),
+            ],
+        ]);
+        
+        // Add inline CSS for status messages
+        wp_add_inline_style('common', '
+            .dfx-tg-status-loading { color: #0073aa; }
+            .dfx-tg-status-success { color: #46b450; }
+            .dfx-tg-status-error { color: #dc3232; }
+        ');
+        
+        // Add inline script for refresh functionality
+        wp_add_inline_script('jquery', "
+        jQuery(document).ready(function($) {
+            var refreshBtn = $('#dfx-tg-refresh-messages');
+            var statusSpan = $('#dfx-tg-refresh-status');
+            var channelFilter = $('select[name=\"channel_filter\"]');
+            
+            function setStatus(message, statusClass) {
+                var span = $('<span>').addClass(statusClass).text(message);
+                statusSpan.empty().append(span);
+            }
+            
+            // Enable/disable button based on channel selection
+            channelFilter.on('change', function() {
+                if ($(this).val()) {
+                    refreshBtn.prop('disabled', false);
+                } else {
+                    refreshBtn.prop('disabled', true);
+                }
+            });
+            
+            refreshBtn.on('click', function(e) {
+                e.preventDefault();
+                
+                var channel = channelFilter.val();
+                if (!channel) {
+                    alert(dfxTgFeedRefresh.i18n.selectChannel);
+                    return;
+                }
+                
+                // Disable button and show loading status
+                refreshBtn.prop('disabled', true);
+                setStatus(dfxTgFeedRefresh.i18n.refreshing, 'dfx-tg-status-loading');
+                
+                $.ajax({
+                    url: dfxTgFeedRefresh.ajaxUrl,
+                    type: 'POST',
+                    data: {
+                        action: 'dfx_tg_feed_refresh',
+                        channel: channel,
+                        _ajax_nonce: dfxTgFeedRefresh.nonce
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            setStatus(dfxTgFeedRefresh.i18n.success, 'dfx-tg-status-success');
+                            // Reload the page after a short delay to show updated messages
+                            setTimeout(function() {
+                                window.location.reload();
+                            }, 1000);
+                        } else {
+                            var errorMsg = response.data || dfxTgFeedRefresh.i18n.unknownError;
+                            setStatus(dfxTgFeedRefresh.i18n.errorLabel + ' ' + errorMsg, 'dfx-tg-status-error');
+                            refreshBtn.prop('disabled', false);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        setStatus(dfxTgFeedRefresh.i18n.requestFailed + ' ' + error, 'dfx-tg-status-error');
+                        refreshBtn.prop('disabled', false);
+                    }
+                });
+            });
+        });
+        ");
     }
     
     public function modify_row_actions($actions, $post) {
