@@ -497,7 +497,8 @@ class PostType {
         $posts = get_posts([
             'post_type' => 'dfx_tg_message',
             'posts_per_page' => $limit,
-            'orderby' => 'date',
+            'meta_key' => '_tg_message_id',
+            'orderby' => 'meta_value_num',
             'order' => 'DESC',
             'meta_query' => [
                 'relation' => 'AND',
