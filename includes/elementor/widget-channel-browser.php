@@ -61,6 +61,10 @@ class Widget_Channel_Browser extends \Elementor\Widget_Base {
             [
                 'label' => __('Background Color', 'dfx-tg-feed'),
                 'type' => \Elementor\Controls_Manager::COLOR,
+                'scheme' => [
+                    'type' => \Elementor\Core\Schemes\Color::get_type(),
+                    'value' => \Elementor\Core\Schemes\Color::COLOR_1,
+                ],
             ]
         );
         
@@ -108,6 +112,14 @@ class Widget_Channel_Browser extends \Elementor\Widget_Base {
             ]
         );
         
+        $this->add_group_control(
+            \Elementor\Group_Control_Box_Shadow::get_type(),
+            [
+                'name' => 'block_box_shadow',
+                'selector' => '{{WRAPPER}} .dfx-tg-feed-layout',
+            ]
+        );
+        
         $this->end_controls_section();
         
         // Message Styles
@@ -124,6 +136,10 @@ class Widget_Channel_Browser extends \Elementor\Widget_Base {
             [
                 'label' => __('Background Color', 'dfx-tg-feed'),
                 'type' => \Elementor\Controls_Manager::COLOR,
+                'scheme' => [
+                    'type' => \Elementor\Core\Schemes\Color::get_type(),
+                    'value' => \Elementor\Core\Schemes\Color::COLOR_1,
+                ],
                 'selectors' => [
                     '{{WRAPPER}} .dfx-tg-feed-message' => 'background-color: {{VALUE}};',
                 ],
@@ -171,6 +187,14 @@ class Widget_Channel_Browser extends \Elementor\Widget_Base {
                 'selectors' => [
                     '{{WRAPPER}} .dfx-tg-feed-message' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
+            ]
+        );
+        
+        $this->add_group_control(
+            \Elementor\Group_Control_Box_Shadow::get_type(),
+            [
+                'name' => 'message_box_shadow',
+                'selector' => '{{WRAPPER}} .dfx-tg-feed-message',
             ]
         );
         
