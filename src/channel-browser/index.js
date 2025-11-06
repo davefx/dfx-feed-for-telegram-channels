@@ -1,5 +1,9 @@
 import { registerBlockType } from '@wordpress/blocks';
-import { InspectorControls, useBlockProps, ColorPalette } from '@wordpress/block-editor';
+import {
+	InspectorControls,
+	useBlockProps,
+	ColorPalette,
+} from '@wordpress/block-editor';
 import {
 	PanelBody,
 	TextControl,
@@ -160,11 +164,26 @@ registerBlockType( 'dfx-tg-feed/channel-browser', {
 
 		const shadowPresets = [
 			{ label: __( 'None', 'dfx-tg-feed' ), value: '' },
-			{ label: __( 'Small', 'dfx-tg-feed' ), value: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)' },
-			{ label: __( 'Medium', 'dfx-tg-feed' ), value: '0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)' },
-			{ label: __( 'Large', 'dfx-tg-feed' ), value: '0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)' },
-			{ label: __( 'Extra Large', 'dfx-tg-feed' ), value: '0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22)' },
-			{ label: __( 'Inset', 'dfx-tg-feed' ), value: 'inset 0 2px 4px rgba(0,0,0,0.15)' },
+			{
+				label: __( 'Small', 'dfx-tg-feed' ),
+				value: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
+			},
+			{
+				label: __( 'Medium', 'dfx-tg-feed' ),
+				value: '0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)',
+			},
+			{
+				label: __( 'Large', 'dfx-tg-feed' ),
+				value: '0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)',
+			},
+			{
+				label: __( 'Extra Large', 'dfx-tg-feed' ),
+				value: '0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22)',
+			},
+			{
+				label: __( 'Inset', 'dfx-tg-feed' ),
+				value: 'inset 0 2px 4px rgba(0,0,0,0.15)',
+			},
 			{ label: __( 'Custom', 'dfx-tg-feed' ), value: 'custom' },
 		];
 
@@ -233,24 +252,25 @@ registerBlockType( 'dfx-tg-feed/channel-browser', {
 											initialOpen={ true }
 										>
 											<BaseControl
-label={ __(
-'Background Color',
-'dfx-tg-feed'
-) }
->
-<ColorPalette
-value={
-attributes.blockBackground
-}
-onChange={ ( value ) =>
-setAttributes( {
-blockBackground:
-value || '',
-} )
-}
-clearable={ true }
-/>
-</BaseControl>
+												id="block-background-color"
+												label={ __(
+													'Background Color',
+													'dfx-tg-feed'
+												) }
+											>
+												<ColorPalette
+													value={
+														attributes.blockBackground
+													}
+													onChange={ ( value ) =>
+														setAttributes( {
+															blockBackground:
+																value || '',
+														} )
+													}
+													clearable={ true }
+												/>
+											</BaseControl>
 											<SelectControl
 												label={ __(
 													'Border Style',
@@ -284,6 +304,7 @@ clearable={ true }
 														}
 													/>
 													<BaseControl
+														id="block-border-color"
 														label={ __(
 															'Border Color',
 															'dfx-tg-feed'
@@ -385,12 +406,13 @@ clearable={ true }
 														value !== 'custom'
 													) {
 														setAttributes( {
-															blockBoxShadow: value,
+															blockBoxShadow:
+																value,
 														} );
 													}
 												} }
 											/>
-											{ ( ( shadowPresets.find(
+											{ ( shadowPresets.find(
 												( preset ) =>
 													preset.value ===
 													attributes.blockBoxShadow
@@ -400,7 +422,7 @@ clearable={ true }
 														( preset ) =>
 															preset.value ===
 															attributes.blockBoxShadow
-													) ) ) ||
+													) ) ||
 												attributes.blockBoxShadow ) && (
 												<TextControl
 													label={ __(
@@ -416,7 +438,8 @@ clearable={ true }
 													}
 													onChange={ ( value ) =>
 														setAttributes( {
-															blockBoxShadow: value,
+															blockBoxShadow:
+																value,
 														} )
 													}
 												/>
@@ -435,6 +458,7 @@ clearable={ true }
 											initialOpen={ true }
 										>
 											<BaseControl
+												id="message-background-color"
 												label={ __(
 													'Background Color',
 													'dfx-tg-feed'
@@ -487,6 +511,7 @@ clearable={ true }
 														}
 													/>
 													<BaseControl
+														id="message-border-color"
 														label={ __(
 															'Border Color',
 															'dfx-tg-feed'
@@ -588,12 +613,13 @@ clearable={ true }
 														value !== 'custom'
 													) {
 														setAttributes( {
-															messageBoxShadow: value,
+															messageBoxShadow:
+																value,
 														} );
 													}
 												} }
 											/>
-											{ ( ( shadowPresets.find(
+											{ ( shadowPresets.find(
 												( preset ) =>
 													preset.value ===
 													attributes.messageBoxShadow
@@ -603,7 +629,7 @@ clearable={ true }
 														( preset ) =>
 															preset.value ===
 															attributes.messageBoxShadow
-													) ) ) ||
+													) ) ||
 												attributes.messageBoxShadow ) && (
 												<TextControl
 													label={ __(
@@ -619,7 +645,8 @@ clearable={ true }
 													}
 													onChange={ ( value ) =>
 														setAttributes( {
-															messageBoxShadow: value,
+															messageBoxShadow:
+																value,
 														} )
 													}
 												/>
@@ -665,16 +692,20 @@ clearable={ true }
 												}
 											/>
 											<BaseControl
+												id="date-text-color"
 												label={ __(
 													'Text Color',
 													'dfx-tg-feed'
 												) }
 											>
 												<ColorPalette
-													value={ attributes.dateColor }
+													value={
+														attributes.dateColor
+													}
 													onChange={ ( value ) =>
 														setAttributes( {
-															dateColor: value || '',
+															dateColor:
+																value || '',
 														} )
 													}
 													clearable={ true }
@@ -717,6 +748,7 @@ clearable={ true }
 												}
 											/>
 											<BaseControl
+												id="author-text-color"
 												label={ __(
 													'Text Color',
 													'dfx-tg-feed'
@@ -772,16 +804,20 @@ clearable={ true }
 												}
 											/>
 											<BaseControl
+												id="text-color"
 												label={ __(
 													'Text Color',
 													'dfx-tg-feed'
 												) }
 											>
 												<ColorPalette
-													value={ attributes.textColor }
+													value={
+														attributes.textColor
+													}
 													onChange={ ( value ) =>
 														setAttributes( {
-															textColor: value || '',
+															textColor:
+																value || '',
 														} )
 													}
 													clearable={ true }
