@@ -1,0 +1,13 @@
+/**
+ * Editor styles for Channel Feed block
+ * Imports the frontend styles to ensure editor preview matches frontend
+ */
+
+/* Import frontend styles */
+@import "../../assets/css/style.css";
+
+/* Editor-specific adjustments if needed */
+.editor-styles-wrapper .dfx-tg-feed-layout,
+.editor-styles-wrapper .dfx-tg-browser-layout {
+    /* Ensure the styles apply in the editor */
+}
