@@ -105,5 +105,20 @@ class Blocks {
             DFX_TG_FEED_VER,
             true
         );
+        
+        // Localize script with AJAX URL and nonce for sticker proxy
+        wp_localize_script('dfx-tg-stickers', 'dfxTgFeedStickers', [
+            'ajaxUrl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('dfx_tg_sticker_proxy')
+        ]);
+        
+        // Enqueue lightbox script for image viewing
+        wp_enqueue_script(
+            'dfx-tg-lightbox',
+            DFX_TG_FEED_URL . 'assets/js/lightbox.js',
+            [],
+            DFX_TG_FEED_VER,
+            true
+        );
     }
 }
