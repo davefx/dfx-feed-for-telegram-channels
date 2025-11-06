@@ -25,6 +25,9 @@ class PostType {
         add_action('admin_menu', [$this, 'remove_standalone_menu'], 999);
         add_filter('parent_file', [$this, 'set_parent_file']);
         add_filter('submenu_file', [$this, 'set_submenu_file']);
+        add_action('wp_ajax_dfx_tg_hide_message', [$this, 'ajax_hide_message']);
+        add_action('wp_ajax_dfx_tg_unhide_message', [$this, 'ajax_unhide_message']);
+        add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_scripts']);
     }
     
     public function register_post_type() {
@@ -69,6 +72,7 @@ class PostType {
         $new_columns['author'] = __('Author', 'dfx-tg-feed');
         $new_columns['media'] = __('Media', 'dfx-tg-feed');
         $new_columns['message_id'] = __('Message ID', 'dfx-tg-feed');
+        $new_columns['visibility'] = __('Visibility', 'dfx-tg-feed');
         $new_columns['date'] = __('Posted Date', 'dfx-tg-feed');
         return $new_columns;
     }
@@ -103,6 +107,14 @@ class PostType {
                     echo esc_html($display);
                 } else {
                     echo '—';
+                }
+                break;
+            case 'visibility':
+                $is_hidden = get_post_meta($post_id, '_tg_hidden', true);
+                if ($is_hidden) {
+                    echo '<span style="color: #d63638;"><span class="dashicons dashicons-hidden"></span> ' . __('Hidden', 'dfx-tg-feed') . '</span>';
+                } else {
+                    echo '<span style="color: #00a32a;"><span class="dashicons dashicons-visibility"></span> ' . __('Visible', 'dfx-tg-feed') . '</span>';
                 }
                 break;
         }
@@ -171,6 +183,26 @@ class PostType {
                     esc_attr($channel_clean),
                     esc_attr($message_id),
                     __('View in Telegram', 'dfx-tg-feed')
+                );
+            }
+            
+            // Add hide/unhide action
+            $is_hidden = get_post_meta($post->ID, '_tg_hidden', true);
+            $nonce = wp_create_nonce('dfx_tg_hide_message_' . $post->ID);
+            
+            if ($is_hidden) {
+                $actions['unhide'] = sprintf(
+                    '<a href="#" class="dfx-tg-unhide-message" data-post-id="%d" data-nonce="%s">%s</a>',
+                    $post->ID,
+                    $nonce,
+                    __('Unhide', 'dfx-tg-feed')
+                );
+            } else {
+                $actions['hide'] = sprintf(
+                    '<a href="#" class="dfx-tg-hide-message" data-post-id="%d" data-nonce="%s">%s</a>',
+                    $post->ID,
+                    $nonce,
+                    __('Hide', 'dfx-tg-feed')
                 );
             }
         }
@@ -289,9 +321,22 @@ class PostType {
             'orderby' => 'date',
             'order' => 'DESC',
             'meta_query' => [
+                'relation' => 'AND',
                 [
                     'key' => '_tg_channel',
                     'value' => $channel,
+                ],
+                [
+                    'relation' => 'OR',
+                    [
+                        'key' => '_tg_hidden',
+                        'compare' => 'NOT EXISTS',
+                    ],
+                    [
+                        'key' => '_tg_hidden',
+                        'value' => '1',
+                        'compare' => '!=',
+                    ],
                 ],
             ],
         ]);
@@ -324,15 +369,101 @@ class PostType {
         $messages = API::instance()->fetch_channel_messages($channel, $limit);
         
         // Detect deleted messages by comparing with stored messages
-        $old = $this->get_messages($channel, 200);
+        $old = $this->get_all_messages($channel, 200);
         $deleted_ids = [];
         if (!empty($old)) {
             $old_ids = array_column($old, 'id');
             $new_ids = array_column($messages, 'id');
             $deleted_ids = array_diff($old_ids, $new_ids);
+            
+            // Mark deleted messages by moving them to trash
+            if (!empty($deleted_ids)) {
+                foreach ($deleted_ids as $deleted_id) {
+                    // Find the post with this message ID
+                    $posts = get_posts([
+                        'post_type' => 'dfx_tg_message',
+                        'meta_query' => [
+                            'relation' => 'AND',
+                            [
+                                'key' => '_tg_channel',
+                                'value' => $channel,
+                            ],
+                            [
+                                'key' => '_tg_message_id',
+                                'value' => $deleted_id,
+                            ],
+                        ],
+                        'posts_per_page' => 1,
+                    ]);
+                    
+                    if (!empty($posts)) {
+                        // Move to trash instead of permanently deleting
+                        wp_trash_post($posts[0]->ID);
+                    }
+                }
+            }
         }
         
         return ['messages' => $messages, 'deleted_ids' => $deleted_ids];
+    }
+    
+    /**
+     * Get all messages from database (including hidden ones, for admin purposes)
+     */
+    private function get_all_messages($channel, $limit = 200) {
+        $posts = get_posts([
+            'post_type' => 'dfx_tg_message',
+            'posts_per_page' => $limit,
+            'orderby' => 'date',
+            'order' => 'DESC',
+            'post_status' => 'publish',
+            'meta_query' => [
+                [
+                    'key' => '_tg_channel',
+                    'value' => $channel,
+                ],
+            ],
+        ]);
+        
+        $messages = [];
+        foreach ($posts as $post) {
+            $messages[] = [
+                'id' => get_post_meta($post->ID, '_tg_message_id', true),
+                'date' => get_post_meta($post->ID, '_tg_date', true),
+            ];
+        }
+        
+        return $messages;
+    }
+    
+    /**
+     * Enqueue admin scripts and styles
+     */
+    public function enqueue_admin_scripts($hook) {
+        // Only load on the messages list page
+        if ($hook !== 'edit.php' || (isset($_GET['post_type']) && $_GET['post_type'] !== 'dfx_tg_message')) {
+            if (!isset($_GET['post_type']) && $hook !== 'edit.php') {
+                return;
+            }
+        }
+        
+        global $typenow;
+        if ($typenow !== 'dfx_tg_message') {
+            return;
+        }
+        
+        wp_enqueue_script(
+            'dfx-tg-admin',
+            DFX_TG_FEED_URL . 'assets/js/admin.js',
+            ['jquery'],
+            DFX_TG_FEED_VER,
+            true
+        );
+        
+        wp_localize_script('dfx-tg-admin', 'dfxTgAdmin', [
+            'hideConfirm' => __('Are you sure you want to hide this message from the frontend?', 'dfx-tg-feed'),
+            'error' => __('An error occurred. Please try again.', 'dfx-tg-feed'),
+        ]);
     }
     
     /**
@@ -353,5 +484,53 @@ class PostType {
         $result = $this->refresh_messages($channel, $limit);
         
         wp_send_json_success($result);
+    }
+    
+    /**
+     * AJAX handler to hide a message
+     */
+    public function ajax_hide_message() {
+        $post_id = intval($_POST['post_id'] ?? 0);
+        $nonce = sanitize_text_field($_POST['nonce'] ?? '');
+        
+        if (!$post_id || !wp_verify_nonce($nonce, 'dfx_tg_hide_message_' . $post_id)) {
+            wp_send_json_error(__('Invalid request.', 'dfx-tg-feed'));
+        }
+        
+        if (!current_user_can('edit_post', $post_id)) {
+            wp_send_json_error(__('No permission.', 'dfx-tg-feed'));
+        }
+        
+        $post = get_post($post_id);
+        if (!$post || $post->post_type !== 'dfx_tg_message') {
+            wp_send_json_error(__('Invalid post.', 'dfx-tg-feed'));
+        }
+        
+        update_post_meta($post_id, '_tg_hidden', '1');
+        wp_send_json_success(__('Message hidden from frontend.', 'dfx-tg-feed'));
+    }
+    
+    /**
+     * AJAX handler to unhide a message
+     */
+    public function ajax_unhide_message() {
+        $post_id = intval($_POST['post_id'] ?? 0);
+        $nonce = sanitize_text_field($_POST['nonce'] ?? '');
+        
+        if (!$post_id || !wp_verify_nonce($nonce, 'dfx_tg_hide_message_' . $post_id)) {
+            wp_send_json_error(__('Invalid request.', 'dfx-tg-feed'));
+        }
+        
+        if (!current_user_can('edit_post', $post_id)) {
+            wp_send_json_error(__('No permission.', 'dfx-tg-feed'));
+        }
+        
+        $post = get_post($post_id);
+        if (!$post || $post->post_type !== 'dfx_tg_message') {
+            wp_send_json_error(__('Invalid post.', 'dfx-tg-feed'));
+        }
+        
+        delete_post_meta($post_id, '_tg_hidden');
+        wp_send_json_success(__('Message is now visible in frontend.', 'dfx-tg-feed'));
     }
 }
