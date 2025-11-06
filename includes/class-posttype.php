@@ -22,6 +22,7 @@ class PostType {
         add_action('restrict_manage_posts', [$this, 'add_channel_filter']);
         add_action('restrict_manage_posts', [$this, 'add_refresh_button']);
         add_filter('parse_query', [$this, 'filter_by_channel']);
+        add_action('pre_get_posts', [$this, 'handle_custom_column_sorting']);
         add_filter('post_row_actions', [$this, 'modify_row_actions'], 10, 2);
         add_action('admin_menu', [$this, 'remove_standalone_menu'], 999);
         add_filter('parent_file', [$this, 'set_parent_file']);
@@ -32,6 +33,8 @@ class PostType {
         add_filter('bulk_actions-edit-dfx_tg_message', [$this, 'register_bulk_actions']);
         add_filter('handle_bulk_actions-edit-dfx_tg_message', [$this, 'handle_bulk_actions'], 10, 3);
         add_action('admin_notices', [$this, 'bulk_action_notices']);
+        // Prevent WordPress from changing post dates when status changes
+        add_filter('wp_insert_post_data', [$this, 'preserve_post_dates'], 10, 2);
     }
     
     public function register_post_type() {
@@ -190,8 +193,39 @@ class PostType {
         global $pagenow, $typenow;
         
         if ($pagenow === 'edit.php' && $typenow === 'dfx_tg_message' && isset($_GET['channel_filter']) && $_GET['channel_filter'] !== '') {
-            $query->query_vars['meta_key'] = '_tg_channel';
-            $query->query_vars['meta_value'] = sanitize_text_field($_GET['channel_filter']);
+            // Use meta_query instead of meta_key/meta_value to avoid conflicts with sorting
+            $meta_query = $query->get('meta_query') ?: [];
+            $meta_query[] = [
+                'key' => '_tg_channel',
+                'value' => sanitize_text_field($_GET['channel_filter']),
+                'compare' => '='
+            ];
+            $query->set('meta_query', $meta_query);
+        }
+    }
+    
+    /**
+     * Handle custom column sorting for the admin list table
+     */
+    public function handle_custom_column_sorting($query) {
+        // Only run on admin edit.php page for our post type
+        global $pagenow, $typenow;
+        if (!is_admin() || !$query->is_main_query() || $pagenow !== 'edit.php' || $typenow !== 'dfx_tg_message') {
+            return;
+        }
+        
+        // Get the orderby parameter
+        $orderby = $query->get('orderby');
+        
+        // Handle sorting by custom meta fields
+        if ($orderby === 'channel') {
+            // Sort by channel meta field (alphabetically)
+            $query->set('meta_key', '_tg_channel');
+            $query->set('orderby', 'meta_value');
+        } elseif ($orderby === 'message_id') {
+            // Sort by message_id meta field (numerically)
+            $query->set('meta_key', '_tg_message_id');
+            $query->set('orderby', 'meta_value_num');
         }
     }
     
@@ -413,12 +447,17 @@ class PostType {
         $text_preview = mb_substr($message_data['text'] ?? '', 0, 100);
         if (strlen($message_data['text'] ?? '') > 100) $text_preview .= '...';
         
+        // Convert Telegram timestamp to WordPress date format
+        $post_date_gmt = gmdate('Y-m-d H:i:s', $message_data['date']);
+        $post_date = get_date_from_gmt($post_date_gmt);
+        
         $post_id = wp_insert_post([
             'post_type' => 'dfx_tg_message',
             'post_title' => $text_preview ?: __('(No text)', 'dfx-tg-feed'),
             'post_content' => $message_data['text'] ?? '',
             'post_status' => 'publish',
-            'post_date_gmt' => date('Y-m-d H:i:s', $message_data['date']),
+            'post_date' => $post_date,
+            'post_date_gmt' => $post_date_gmt,
         ]);
         
         if ($post_id) {
@@ -458,7 +497,8 @@ class PostType {
         $posts = get_posts([
             'post_type' => 'dfx_tg_message',
             'posts_per_page' => $limit,
-            'orderby' => 'date',
+            'meta_key' => '_tg_message_id',
+            'orderby' => 'meta_value_num',
             'order' => 'DESC',
             'meta_query' => [
                 'relation' => 'AND',
@@ -741,5 +781,43 @@ class PostType {
                 number_format_i18n($count)
             );
         }
+    }
+    
+    /**
+     * Preserve post dates when status changes
+     * 
+     * WordPress has a default behavior where it updates post_date when a post
+     * transitions from draft/pending to published. For Telegram messages, we must
+     * preserve the original date from Telegram, so we prevent this behavior.
+     * 
+     * This filter ensures that post_date and post_date_gmt are ALWAYS set from
+     * the original Telegram message timestamp stored in the _tg_date meta field.
+     * 
+     * @param array $data    An array of slashed post data
+     * @param array $postarr An array of sanitized post data
+     * @return array Modified post data with preserved dates
+     */
+    public function preserve_post_dates($data, $postarr) {
+        // Only apply to our custom post type
+        if ($data['post_type'] !== 'dfx_tg_message') {
+            return $data;
+        }
+        
+        // If this is an update (not a new post), get the original Telegram timestamp
+        if (!empty($postarr['ID'])) {
+            $telegram_timestamp = get_post_meta($postarr['ID'], '_tg_date', true);
+            
+            if ($telegram_timestamp) {
+                // Convert Telegram timestamp to WordPress date format
+                $post_date_gmt = gmdate('Y-m-d H:i:s', $telegram_timestamp);
+                $post_date = get_date_from_gmt($post_date_gmt);
+                
+                // Force the dates to be from the original Telegram message
+                $data['post_date'] = $post_date;
+                $data['post_date_gmt'] = $post_date_gmt;
+            }
+        }
+        
+        return $data;
     }
 }
