@@ -188,17 +188,11 @@ class PostType {
             return;
         }
         
-        // Register and enqueue our custom admin script
-        wp_enqueue_script(
-            'dfx-tg-feed-admin',
-            '', // No external file needed, using inline script only
-            ['jquery'], // Depends on jQuery
-            DFX_TG_FEED_VER,
-            true // Load in footer
-        );
+        // Enqueue jQuery as dependency
+        wp_enqueue_script('jquery');
         
         // Localize script data for AJAX
-        wp_localize_script('dfx-tg-feed-admin', 'dfxTgFeedRefresh', [
+        wp_localize_script('jquery', 'dfxTgFeedRefresh', [
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('dfx_tg_feed_refresh'),
             'i18n' => [
@@ -211,15 +205,22 @@ class PostType {
             ],
         ]);
         
-        // Enqueue inline script for refresh functionality
-        wp_add_inline_script('dfx-tg-feed-admin', "
+        // Add inline CSS for status messages
+        wp_add_inline_style('common', '
+            .dfx-tg-status-loading { color: #0073aa; }
+            .dfx-tg-status-success { color: #46b450; }
+            .dfx-tg-status-error { color: #dc3232; }
+        ');
+        
+        // Add inline script for refresh functionality
+        wp_add_inline_script('jquery', "
         jQuery(document).ready(function($) {
             var refreshBtn = $('#dfx-tg-refresh-messages');
             var statusSpan = $('#dfx-tg-refresh-status');
             var channelFilter = $('select[name=\"channel_filter\"]');
             
-            function setStatus(message, color) {
-                var span = $('<span>').css('color', color).text(message);
+            function setStatus(message, statusClass) {
+                var span = $('<span>').addClass(statusClass).text(message);
                 statusSpan.empty().append(span);
             }
             
@@ -243,7 +244,7 @@ class PostType {
                 
                 // Disable button and show loading status
                 refreshBtn.prop('disabled', true);
-                setStatus(dfxTgFeedRefresh.i18n.refreshing, '#0073aa');
+                setStatus(dfxTgFeedRefresh.i18n.refreshing, 'dfx-tg-status-loading');
                 
                 $.ajax({
                     url: dfxTgFeedRefresh.ajaxUrl,
@@ -255,19 +256,19 @@ class PostType {
                     },
                     success: function(response) {
                         if (response.success) {
-                            setStatus(dfxTgFeedRefresh.i18n.success, '#46b450');
+                            setStatus(dfxTgFeedRefresh.i18n.success, 'dfx-tg-status-success');
                             // Reload the page after a short delay to show updated messages
                             setTimeout(function() {
                                 window.location.reload();
                             }, 1000);
                         } else {
                             var errorMsg = response.data || dfxTgFeedRefresh.i18n.unknownError;
-                            setStatus(dfxTgFeedRefresh.i18n.errorLabel + ' ' + errorMsg, '#dc3232');
+                            setStatus(dfxTgFeedRefresh.i18n.errorLabel + ' ' + errorMsg, 'dfx-tg-status-error');
                             refreshBtn.prop('disabled', false);
                         }
                     },
                     error: function(xhr, status, error) {
-                        setStatus(dfxTgFeedRefresh.i18n.requestFailed + ' ' + error, '#dc3232');
+                        setStatus(dfxTgFeedRefresh.i18n.requestFailed + ' ' + error, 'dfx-tg-status-error');
                         refreshBtn.prop('disabled', false);
                     }
                 });
