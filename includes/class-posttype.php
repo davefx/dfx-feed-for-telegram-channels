@@ -289,6 +289,21 @@ class PostType {
             });
         });
         ");
+
+        
+        wp_enqueue_script(
+            'dfx-tg-admin',
+            DFX_TG_FEED_URL . 'assets/js/admin.js',
+            ['jquery'],
+            DFX_TG_FEED_VER,
+            true
+        );
+        
+        wp_localize_script('dfx-tg-admin', 'dfxTgAdmin', [
+            'ajaxUrl' => admin_url('admin-ajax.php'),
+            'hideConfirm' => __('Are you sure you want to hide this message from the frontend?', 'dfx-tg-feed'),
+            'error' => __('An error occurred. Please try again.', 'dfx-tg-feed'),
+        ]);
     }
     
     public function modify_row_actions($actions, $post) {
@@ -559,32 +574,6 @@ class PostType {
         }
         
         return $messages;
-    }
-    
-    /**
-     * Enqueue admin scripts and styles
-     */
-    public function enqueue_admin_scripts($hook) {
-        // Only load on the messages list page
-        global $typenow;
-        
-        if ($hook !== 'edit.php' || $typenow !== 'dfx_tg_message') {
-            return;
-        }
-        
-        wp_enqueue_script(
-            'dfx-tg-admin',
-            DFX_TG_FEED_URL . 'assets/js/admin.js',
-            ['jquery'],
-            DFX_TG_FEED_VER,
-            true
-        );
-        
-        wp_localize_script('dfx-tg-admin', 'dfxTgAdmin', [
-            'ajaxUrl' => admin_url('admin-ajax.php'),
-            'hideConfirm' => __('Are you sure you want to hide this message from the frontend?', 'dfx-tg-feed'),
-            'error' => __('An error occurred. Please try again.', 'dfx-tg-feed'),
-        ]);
     }
     
     /**
