@@ -28,6 +28,9 @@ class PostType {
         add_action('wp_ajax_dfx_tg_hide_message', [$this, 'ajax_hide_message']);
         add_action('wp_ajax_dfx_tg_unhide_message', [$this, 'ajax_unhide_message']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_scripts']);
+        add_filter('bulk_actions-edit-dfx_tg_message', [$this, 'register_bulk_actions']);
+        add_filter('handle_bulk_actions-edit-dfx_tg_message', [$this, 'handle_bulk_actions'], 10, 3);
+        add_action('admin_notices', [$this, 'bulk_action_notices']);
     }
     
     public function register_post_type() {
@@ -538,5 +541,78 @@ class PostType {
         
         delete_post_meta($post_id, '_tg_hidden');
         wp_send_json_success(__('Message is now visible in frontend.', 'dfx-tg-feed'));
+    }
+    
+    /**
+     * Register bulk actions for the post type
+     */
+    public function register_bulk_actions($bulk_actions) {
+        $bulk_actions['hide_messages'] = __('Hide', 'dfx-tg-feed');
+        $bulk_actions['unhide_messages'] = __('Unhide', 'dfx-tg-feed');
+        return $bulk_actions;
+    }
+    
+    /**
+     * Handle bulk actions
+     */
+    public function handle_bulk_actions($redirect_to, $action, $post_ids) {
+        if ($action === 'hide_messages') {
+            $count = 0;
+            foreach ($post_ids as $post_id) {
+                if (current_user_can('edit_post', $post_id)) {
+                    $post = get_post($post_id);
+                    if ($post && $post->post_type === 'dfx_tg_message') {
+                        update_post_meta($post_id, '_tg_hidden', '1');
+                        $count++;
+                    }
+                }
+            }
+            $redirect_to = add_query_arg('bulk_hidden_messages', $count, $redirect_to);
+        } elseif ($action === 'unhide_messages') {
+            $count = 0;
+            foreach ($post_ids as $post_id) {
+                if (current_user_can('edit_post', $post_id)) {
+                    $post = get_post($post_id);
+                    if ($post && $post->post_type === 'dfx_tg_message') {
+                        delete_post_meta($post_id, '_tg_hidden');
+                        $count++;
+                    }
+                }
+            }
+            $redirect_to = add_query_arg('bulk_unhidden_messages', $count, $redirect_to);
+        }
+        
+        return $redirect_to;
+    }
+    
+    /**
+     * Display admin notices for bulk actions
+     */
+    public function bulk_action_notices() {
+        global $typenow;
+        
+        if ($typenow !== 'dfx_tg_message') {
+            return;
+        }
+        
+        if (!empty($_REQUEST['bulk_hidden_messages'])) {
+            $count = intval($_REQUEST['bulk_hidden_messages']);
+            printf(
+                '<div class="notice notice-success is-dismissible"><p>' .
+                _n('%s message hidden from frontend.', '%s messages hidden from frontend.', $count, 'dfx-tg-feed') .
+                '</p></div>',
+                number_format_i18n($count)
+            );
+        }
+        
+        if (!empty($_REQUEST['bulk_unhidden_messages'])) {
+            $count = intval($_REQUEST['bulk_unhidden_messages']);
+            printf(
+                '<div class="notice notice-success is-dismissible"><p>' .
+                _n('%s message is now visible in frontend.', '%s messages are now visible in frontend.', $count, 'dfx-tg-feed') .
+                '</p></div>',
+                number_format_i18n($count)
+            );
+        }
     }
 }
