@@ -12,7 +12,10 @@ class PostType {
     }
     
     public function register() {
-        add_action('init', [$this, 'register_post_type']);
+        // Register the post type immediately when this method is called
+        $this->register_post_type();
+        
+        // Add filters and actions for post type management
         add_filter('manage_dfx_tg_message_posts_columns', [$this, 'set_custom_columns']);
         add_action('manage_dfx_tg_message_posts_custom_column', [$this, 'custom_column_content'], 10, 2);
         add_filter('manage_edit-dfx_tg_message_sortable_columns', [$this, 'set_sortable_columns']);
