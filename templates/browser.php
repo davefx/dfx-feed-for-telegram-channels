@@ -24,7 +24,11 @@ if (!defined('ABSPATH')) exit;
             <!-- 1. Date (first) -->
             <div class="dfx-tg-feed-meta">
                 <time class="dfx-tg-feed-date" datetime="<?php echo esc_attr(date('c', $msg['date'])); ?>">
-                    <?php echo esc_html(date_i18n(get_option('date_format') . ' ' . get_option('time_format'), $msg['date'])); ?>
+                    <?php 
+                    // Convert UTC timestamp to local timezone
+                    $local_timestamp = get_date_from_gmt(date('Y-m-d H:i:s', $msg['date']), 'U');
+                    echo esc_html(date_i18n(get_option('date_format') . ' ' . get_option('time_format'), $local_timestamp)); 
+                    ?>
                 </time>
                 <span class="dfx-tg-feed-id">#<?php echo esc_html($msg['id']); ?></span>
             </div>
