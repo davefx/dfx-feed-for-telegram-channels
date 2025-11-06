@@ -373,12 +373,12 @@
 
 		images.forEach( function ( img ) {
 			// Skip if already initialized
-			if ( img.dataset.lightboxInitialized === 'true' ) {
+			if ( img.dataset.dfxTgLightboxInitialized === 'true' ) {
 				return;
 			}
 
 			// Mark as initialized
-			img.dataset.lightboxInitialized = 'true';
+			img.dataset.dfxTgLightboxInitialized = 'true';
 
 			// Function to check and enable lightbox if needed
 			const checkAndEnableLightbox = function () {
@@ -387,8 +387,8 @@
 					img.style.cursor = 'pointer';
 
 					// Add click handler (only once)
-					if ( ! img.dataset.lightboxClickAdded ) {
-						img.dataset.lightboxClickAdded = 'true';
+					if ( ! img.dataset.dfxTgLightboxClickAdded ) {
+						img.dataset.dfxTgLightboxClickAdded = 'true';
 						img.addEventListener( 'click', function ( e ) {
 							e.preventDefault();
 							openLightbox( img.src, img.alt );
