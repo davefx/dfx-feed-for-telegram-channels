@@ -378,28 +378,28 @@ class PostType {
             
             // Mark deleted messages by moving them to trash
             if (!empty($deleted_ids)) {
-                foreach ($deleted_ids as $deleted_id) {
-                    // Find the post with this message ID
-                    $posts = get_posts([
-                        'post_type' => 'dfx_tg_message',
-                        'meta_query' => [
-                            'relation' => 'AND',
-                            [
-                                'key' => '_tg_channel',
-                                'value' => $channel,
-                            ],
-                            [
-                                'key' => '_tg_message_id',
-                                'value' => $deleted_id,
-                            ],
+                // Fetch all posts with deleted message IDs in a single query
+                $posts_to_trash = get_posts([
+                    'post_type' => 'dfx_tg_message',
+                    'posts_per_page' => -1,
+                    'fields' => 'ids',
+                    'meta_query' => [
+                        'relation' => 'AND',
+                        [
+                            'key' => '_tg_channel',
+                            'value' => $channel,
                         ],
-                        'posts_per_page' => 1,
-                    ]);
-                    
-                    if (!empty($posts)) {
-                        // Move to trash instead of permanently deleting
-                        wp_trash_post($posts[0]->ID);
-                    }
+                        [
+                            'key' => '_tg_message_id',
+                            'value' => $deleted_ids,
+                            'compare' => 'IN',
+                        ],
+                    ],
+                ]);
+                
+                // Move all found posts to trash
+                foreach ($posts_to_trash as $post_id) {
+                    wp_trash_post($post_id);
                 }
             }
         }
