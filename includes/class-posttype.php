@@ -485,10 +485,15 @@ class PostType {
      * AJAX handler to hide a message
      */
     public function ajax_hide_message() {
+        // Verify nonce first
         $post_id = intval($_POST['post_id'] ?? 0);
         $nonce = sanitize_text_field($_POST['nonce'] ?? '');
         
-        if (!$post_id || !wp_verify_nonce($nonce, 'dfx_tg_hide_message_' . $post_id)) {
+        if (!wp_verify_nonce($nonce, 'dfx_tg_hide_message_' . $post_id)) {
+            wp_send_json_error(__('Invalid security token.', 'dfx-tg-feed'));
+        }
+        
+        if (!$post_id) {
             wp_send_json_error(__('Invalid request.', 'dfx-tg-feed'));
         }
         
@@ -509,10 +514,15 @@ class PostType {
      * AJAX handler to unhide a message
      */
     public function ajax_unhide_message() {
+        // Verify nonce first
         $post_id = intval($_POST['post_id'] ?? 0);
         $nonce = sanitize_text_field($_POST['nonce'] ?? '');
         
-        if (!$post_id || !wp_verify_nonce($nonce, 'dfx_tg_hide_message_' . $post_id)) {
+        if (!wp_verify_nonce($nonce, 'dfx_tg_hide_message_' . $post_id)) {
+            wp_send_json_error(__('Invalid security token.', 'dfx-tg-feed'));
+        }
+        
+        if (!$post_id) {
             wp_send_json_error(__('Invalid request.', 'dfx-tg-feed'));
         }
         

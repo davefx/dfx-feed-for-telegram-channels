@@ -13,7 +13,6 @@
             var $link = $(this);
             var postId = $link.data('post-id');
             var nonce = $link.data('nonce');
-            var $row = $link.closest('tr');
             
             if (!confirm(dfxTgAdmin.hideConfirm)) {
                 return;
@@ -53,7 +52,6 @@
             var $link = $(this);
             var postId = $link.data('post-id');
             var nonce = $link.data('nonce');
-            var $row = $link.closest('tr');
             
             // Disable the link during request
             $link.css('opacity', '0.5').css('pointer-events', 'none');
