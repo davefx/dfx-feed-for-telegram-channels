@@ -26,17 +26,34 @@ class API {
             $channel_id = substr($channel_username, 1);
         }
 
+        // Get the last processed update_id for this bot to use as offset
+        // This ensures we don't process the same updates repeatedly
+        $offset_option_key = 'dfx_tg_feed_update_offset_' . md5($bot_token);
+        $last_update_id = get_option($offset_option_key, 0);
+        $offset = $last_update_id > 0 ? $last_update_id + 1 : 0;
+
         // Bot API: getUpdates returns both messages and channel_post updates
+        // Use offset parameter to acknowledge previously processed updates
         $api_url = "https://api.telegram.org/bot" . $bot_token . "/getUpdates";
+        if ($offset > 0) {
+            $api_url .= "?offset=" . $offset;
+        }
+        
         $response = wp_remote_get($api_url);
         if (is_wp_error($response)) {
             return [];
         }
         $body = json_decode(wp_remote_retrieve_body($response), true);
         $messages = [];
+        $highest_update_id = $last_update_id;
         
         if (isset($body['ok']) && $body['ok']) {
             foreach (array_reverse($body['result']) as $update) {
+                // Track the highest update_id to acknowledge later
+                if (isset($update['update_id']) && $update['update_id'] > $highest_update_id) {
+                    $highest_update_id = $update['update_id'];
+                }
+                
                 $msg = null;
                 $chat_identifier = null;
                 
@@ -165,8 +182,37 @@ class API {
                     }
                 }
             }
+            
+            // Update the offset to acknowledge all processed updates
+            // This prevents these updates from being returned in future calls
+            if ($highest_update_id > $last_update_id) {
+                update_option($offset_option_key, $highest_update_id);
+                
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('DFX Telegram Feed: Updated offset from ' . $last_update_id . ' to ' . $highest_update_id);
+                }
+            }
         }
         return $messages;
+    }
+
+    /**
+     * Reset the update offset for the bot.
+     * This will cause getUpdates to return all available updates again.
+     * Useful for troubleshooting or if something goes wrong with offset tracking.
+     */
+    public function reset_update_offset() {
+        $bot_token = get_option('dfx_tg_feed_bot_token');
+        if (!$bot_token) return false;
+        
+        $offset_option_key = 'dfx_tg_feed_update_offset_' . md5($bot_token);
+        delete_option($offset_option_key);
+        
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('DFX Telegram Feed: Update offset reset');
+        }
+        
+        return true;
     }
 
     private function get_attachment_url($bot_token, $photo) {
