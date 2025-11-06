@@ -19,3 +19,14 @@ require_once DFX_TG_FEED_PATH . 'includes/class-dfx-tg-feed-plugin.php';
 add_action( 'plugins_loaded', function() {
     \DFX\TelegramChannelFeed\Plugin::instance();
 } );
+
+// Flush rewrite rules on plugin activation
+register_activation_hook( __FILE__, function() {
+    \DFX\TelegramChannelFeed\Plugin::instance();
+    flush_rewrite_rules();
+} );
+
+// Flush rewrite rules on plugin deactivation
+register_deactivation_hook( __FILE__, function() {
+    flush_rewrite_rules();
+} );

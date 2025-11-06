@@ -7,6 +7,9 @@ final class Plugin {
 
     /** @var Plugin */
     private static $instance = null;
+    
+    /** @var string Menu slug for the top-level admin menu */
+    const MENU_SLUG = 'dfx-telegram-messages';
 
     /** Return the singleton instance */
     public static function instance() {
@@ -59,13 +62,43 @@ final class Plugin {
     }
 
     public function settings_page() {
-        add_options_page(
-            __('DFX Telegram Channel Feed', 'dfx-tg-feed'),
-            __('DFX Telegram Feed', 'dfx-tg-feed'),
+        // Add top-level menu
+        add_menu_page(
+            __('Telegram Messages', 'dfx-tg-feed'),
+            __('Telegram Messages', 'dfx-tg-feed'),
+            'manage_options',
+            self::MENU_SLUG,
+            [$this, 'redirect_to_messages'],
+            'dashicons-email-alt',
+            25
+        );
+        
+        // Add submenu for viewing all messages (custom post type listing)
+        add_submenu_page(
+            self::MENU_SLUG,
+            __('All Messages', 'dfx-tg-feed'),
+            __('All Messages', 'dfx-tg-feed'),
+            'edit_posts',
+            'edit.php?post_type=dfx_tg_message'
+        );
+        
+        // Add settings submenu under the top-level menu
+        add_submenu_page(
+            self::MENU_SLUG,
+            __('Settings', 'dfx-tg-feed'),
+            __('Settings', 'dfx-tg-feed'),
             'manage_options',
             'dfx-tg-feed',
             [Settings::instance(), 'render_page']
         );
+    }
+    
+    /**
+     * Redirect to the messages listing page when main menu is clicked
+     */
+    public function redirect_to_messages() {
+        wp_redirect(admin_url('edit.php?post_type=dfx_tg_message'));
+        exit;
     }
 
     public function register_settings() {
