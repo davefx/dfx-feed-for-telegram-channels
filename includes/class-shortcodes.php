@@ -118,9 +118,13 @@ class Shortcodes {
             ));
         }
 
+        // Get additional wrapper classes from filter (for blocks)
+        $wrapper_class = apply_filters('dfx_tg_feed_wrapper_class', '');
+
         return $this->load_template('feed', [
             'messages' => $messages,
             'channel' => $channel,
+            'wrapper_class' => $wrapper_class,
         ]);
     }
     
@@ -158,9 +162,13 @@ class Shortcodes {
             ));
         }
         
+        // Get additional wrapper classes from filter (for blocks)
+        $wrapper_class = apply_filters('dfx_tg_feed_wrapper_class', '');
+        
         return $this->load_template('browser', [
             'messages' => $messages,
             'channel' => $channel,
+            'wrapper_class' => $wrapper_class,
         ]);
     }
     

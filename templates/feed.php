@@ -5,11 +5,11 @@
  * Available variables:
  * @var array $messages Array of message objects
  * @var string $channel Channel username/ID
+ * @var string $wrapper_class Additional wrapper classes (optional)
  */
 if (!defined('ABSPATH')) exit;
 ?>
-<div class="dfx-tg-feed dfx-tg-feed-layout">
-    <?php foreach ($messages as $msg): ?>
+<div class="dfx-tg-feed dfx-tg-feed-layout<?php echo !empty($wrapper_class) ? ' ' . esc_attr($wrapper_class) : ''; ?>"><?php foreach ($messages as $msg): ?>
         <?php
         // Skip empty messages (no text and no media)
         if (empty($msg['text']) && empty($msg['media'])) {
