@@ -207,12 +207,8 @@ class PostType {
      */
     public function handle_custom_column_sorting($query) {
         // Only run on admin edit.php page for our post type
-        if (!is_admin() || !$query->is_main_query()) {
-            return;
-        }
-        
         global $pagenow, $typenow;
-        if ($pagenow !== 'edit.php' || $typenow !== 'dfx_tg_message') {
+        if (!is_admin() || !$query->is_main_query() || $pagenow !== 'edit.php' || $typenow !== 'dfx_tg_message') {
             return;
         }
         
@@ -449,13 +445,17 @@ class PostType {
         $text_preview = mb_substr($message_data['text'] ?? '', 0, 100);
         if (strlen($message_data['text'] ?? '') > 100) $text_preview .= '...';
         
+        // Convert Telegram timestamp to WordPress date format
+        $post_date_gmt = gmdate('Y-m-d H:i:s', $message_data['date']);
+        $post_date = get_date_from_gmt($post_date_gmt);
+        
         $post_id = wp_insert_post([
             'post_type' => 'dfx_tg_message',
             'post_title' => $text_preview ?: __('(No text)', 'dfx-tg-feed'),
             'post_content' => $message_data['text'] ?? '',
             'post_status' => 'publish',
-            'post_date' => get_date_from_gmt(date('Y-m-d H:i:s', $message_data['date'])),
-            'post_date_gmt' => date('Y-m-d H:i:s', $message_data['date']),
+            'post_date' => $post_date,
+            'post_date_gmt' => $post_date_gmt,
         ]);
         
         if ($post_id) {
