@@ -28,8 +28,8 @@ class Settings {
                 <li>Open Telegram and chat with <a href="https://t.me/botfather" target="_blank">@BotFather</a></li>
                 <li>Send <code>/newbot</code>, follow instructions, and copy your bot token.</li>
                 <li>Paste the bot token below and click "Save Settings".</li>
-                <li>In your Telegram channel: add your bot as an <strong>admin</strong> or <strong>member</strong> (navigate: channel &rarr; Administrators &rarr; Add Admin &rarr; [YOUR BOT USERNAME]).</li>
-                <li>Enter your channel username below, including the <code>@</code> (e.g., <code>@yourchannel</code>).</li>
+                <li>Add your bot as an <strong>admin</strong> to each Telegram channel you want to display (channel &rarr; Administrators &rarr; Add Admin &rarr; [YOUR BOT USERNAME]).</li>
+                <li>Use any channel with your bot by specifying the channel username in the shortcode or block (e.g., <code>[dfx_tg_channel_feed channel="@yourchannel"]</code>).</li>
             </ol>
 
             <form method="post" action="options.php">
@@ -40,8 +40,11 @@ class Settings {
                         <td><input type="text" name="dfx_tg_feed_bot_token" value="<?php echo $bot_token; ?>" size="50" autocomplete="off"/></td>
                     </tr>
                     <tr>
-                        <th><?php _e('Telegram Channel Username (with @)', 'dfx-tg-feed'); ?></th>
-                        <td><input type="text" name="dfx_tg_feed_channel" value="<?php echo $channel; ?>" size="32" autocomplete="off" placeholder="@yourchannel"/></td>
+                        <th><?php _e('Test Channel Username (optional)', 'dfx-tg-feed'); ?></th>
+                        <td>
+                            <input type="text" name="dfx_tg_feed_channel" value="<?php echo $channel; ?>" size="32" autocomplete="off" placeholder="@yourchannel"/>
+                            <p class="description"><?php _e('This field is only used for connection testing below. You can specify any channel directly in your shortcodes or blocks.', 'dfx-tg-feed'); ?></p>
+                        </td>
                     </tr>
                     <tr>
                         <th><?php _e('Default Message Count', 'dfx-tg-feed'); ?></th>
@@ -60,13 +63,16 @@ class Settings {
             <button class="button" id="dfx-tg-feed-test-btn"><?php _e('Test Connection', 'dfx-tg-feed'); ?></button>
             <div id="dfx-tg-feed-test-result"></div>
 
-            <form id="dfx-tg-feed-refresh-form" method="post">
-                <h3><?php _e('Force cache refresh', 'dfx-tg-feed'); ?></h3>
-                <input type="text" name="channel" value="<?php echo $channel;?>" placeholder="@channelusername" />
-                <button class="button" id="dfx-tg-feed-refresh-btn"><?php _e('Refresh Now', 'dfx-tg-feed'); ?></button>
-                <?php wp_nonce_field('dfx_tg_feed_refresh'); ?>
+            <hr />
+            <h3><?php _e('Reload Messages from Telegram', 'dfx-tg-feed'); ?></h3>
+            <p><?php _e('Fetch all available messages from the channel and save them to the database. This will sync new messages and update existing ones.', 'dfx-tg-feed'); ?></p>
+            <form id="dfx-tg-feed-reload-form" method="post">
+                <input type="text" name="channel" value="<?php echo $channel;?>" placeholder="@channelusername" style="width: 300px;" />
+                <button class="button button-primary" id="dfx-tg-feed-reload-btn"><?php _e('Reload All Messages', 'dfx-tg-feed'); ?></button>
+                <?php wp_nonce_field('dfx_tg_feed_reload', 'dfx_tg_feed_reload_nonce'); ?>
             </form>
-            <div id="dfx-tg-feed-refresh-result"></div>
+            <div id="dfx-tg-feed-reload-result"></div>
+
             <script>
             document.getElementById('dfx-tg-feed-test-btn').addEventListener('click', function(e){
                 e.preventDefault();
@@ -78,13 +84,25 @@ class Settings {
                   });
             });
 
-            document.getElementById('dfx-tg-feed-refresh-form').addEventListener('submit', function(e){
+            document.getElementById('dfx-tg-feed-reload-form').addEventListener('submit', function(e){
                 e.preventDefault();
+                let resultDiv = document.getElementById('dfx-tg-feed-reload-result');
+                let btn = document.getElementById('dfx-tg-feed-reload-btn');
+                btn.disabled = true;
+                resultDiv.innerHTML = '<span style="color:blue;">Reloading messages... This may take a moment.</span>';
+                
                 let data = new FormData(this);
+                data.append('action', 'dfx_tg_feed_reload');
+                
                 fetch(ajaxurl, { method: "POST", body: data })
                 .then(r=>r.json())
                 .then(resp=>{
-                    document.getElementById('dfx-tg-feed-refresh-result').textContent = resp.success ? "Refreshed!" : "Failed: "+resp.data
+                    btn.disabled = false;
+                    resultDiv.innerHTML = resp.success ? '<span style="color:green;">'+resp.data+'</span>' : '<span style="color:red;">Failed: '+resp.data+'</span>';
+                })
+                .catch(err => {
+                    btn.disabled = false;
+                    resultDiv.innerHTML = '<span style="color:red;">Error: '+err.message+'</span>';
                 });
             });
             </script>
@@ -104,16 +122,134 @@ class Settings {
         if (!$bot_token || !$channel) {
             wp_send_json_error('Please set both Bot Token and Channel.');
         }
+        
+        $results = [];
+        
         // Try to fetch channel info
         $url = "https://api.telegram.org/bot" . urlencode($bot_token) . "/getChat?chat_id=" . urlencode($channel);
         $resp = wp_remote_get($url);
         if (is_wp_error($resp)) {
-            wp_send_json_error('Network error.');
+            wp_send_json_error('Network error: ' . $resp->get_error_message());
         }
         $body = json_decode(wp_remote_retrieve_body($resp), true);
         if (!isset($body['ok']) || !$body['ok']) {
             wp_send_json_error('Telegram returned error: ' . (isset($body['description']) ? $body['description'] : 'Unknown error.'));
         }
-        wp_send_json_success('Success! Bot can access channel: <strong>' . esc_html($body['result']['title'] ?? $channel) . '</strong>');
+        
+        $channel_title = $body['result']['title'] ?? $channel;
+        $channel_type = $body['result']['type'] ?? 'unknown';
+        $results[] = '<strong>✓ Channel Found:</strong> ' . esc_html($channel_title) . ' (Type: ' . esc_html($channel_type) . ')';
+        
+        // Check if bot is an administrator
+        $bot_info_url = "https://api.telegram.org/bot" . urlencode($bot_token) . "/getMe";
+        $bot_resp = wp_remote_get($bot_info_url);
+        if (!is_wp_error($bot_resp)) {
+            $bot_body = json_decode(wp_remote_retrieve_body($bot_resp), true);
+            if (isset($bot_body['ok']) && $bot_body['ok']) {
+                $bot_id = $bot_body['result']['id'];
+                $bot_username = $bot_body['result']['username'] ?? 'Unknown';
+                
+                // Check bot's status in the channel
+                $member_url = "https://api.telegram.org/bot" . urlencode($bot_token) . "/getChatMember?chat_id=" . urlencode($channel) . "&user_id=" . $bot_id;
+                $member_resp = wp_remote_get($member_url);
+                if (!is_wp_error($member_resp)) {
+                    $member_body = json_decode(wp_remote_retrieve_body($member_resp), true);
+                    if (isset($member_body['ok']) && $member_body['ok']) {
+                        $status = $member_body['result']['status'] ?? 'unknown';
+                        if ($status === 'administrator' || $status === 'creator') {
+                            $results[] = '<strong>✓ Bot is Administrator:</strong> @' . esc_html($bot_username) . ' has admin privileges';
+                        } else {
+                            $results[] = '<strong>⚠ Bot Status:</strong> @' . esc_html($bot_username) . ' is ' . esc_html($status) . ' (should be administrator for full access)';
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Fetch and count accessible messages
+        $messages = API::instance()->fetch_channel_messages($channel, 100);
+        $message_count = count($messages);
+        
+        if ($message_count > 0) {
+            $results[] = '<strong>✓ Accessible Messages:</strong> ' . $message_count . ' message(s) currently available';
+            
+            // Show info about the most recent message
+            if (isset($messages[0])) {
+                $latest = $messages[0];
+                $date = date('Y-m-d H:i:s', $latest['date']);
+                $preview = mb_substr($latest['text'] ?? '', 0, 50);
+                if (strlen($latest['text'] ?? '') > 50) $preview .= '...';
+                $results[] = '<strong>Latest Message:</strong> ' . esc_html($date) . ' - "' . esc_html($preview) . '"';
+            }
+        } else {
+            $results[] = '<strong>⚠ No Messages:</strong> No messages currently accessible. Make sure:
+                <ul style="margin-top:5px;">
+                    <li>The bot was added to the channel</li>
+                    <li>Messages have been posted AFTER the bot was added</li>
+                    <li>The bot has the necessary permissions</li>
+                </ul>';
+        }
+        
+        wp_send_json_success(implode('<br>', $results));
+    }
+    
+    public function ajax_reload_messages() {
+        check_ajax_referer('dfx_tg_feed_reload', 'dfx_tg_feed_reload_nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Permission denied.');
+        }
+        
+        $bot_token = get_option('dfx_tg_feed_bot_token', '');
+        $channel = sanitize_text_field($_POST['channel'] ?? '');
+        
+        if (!$bot_token || !$channel) {
+            wp_send_json_error('Please set both Bot Token and Channel.');
+        }
+        
+        // Fetch all available messages (limit to 100 for safety)
+        $messages = API::instance()->fetch_channel_messages($channel, 100);
+        
+        if (empty($messages)) {
+            wp_send_json_error('No messages found. Make sure the bot is admin and messages have been posted after the bot was added.');
+        }
+        
+        $count = count($messages);
+        $new_count = 0;
+        $updated_count = 0;
+        
+        // Messages are already stored by the API, but let's count them
+        foreach ($messages as $msg) {
+            // Check if message already exists
+            $existing = get_posts([
+                'post_type' => 'dfx_tg_message',
+                'meta_query' => [
+                    'relation' => 'AND',
+                    [
+                        'key' => '_tg_channel',
+                        'value' => $channel,
+                    ],
+                    [
+                        'key' => '_tg_message_id',
+                        'value' => $msg['id'],
+                    ],
+                ],
+                'posts_per_page' => 1,
+            ]);
+            
+            if (empty($existing)) {
+                $new_count++;
+            } else {
+                $updated_count++;
+            }
+        }
+        
+        wp_send_json_success(sprintf(
+            __('Successfully reloaded %d messages from channel %s. New: %d, Updated: %d', 'dfx-tg-feed'),
+            $count,
+            '<strong>' . esc_html($channel) . '</strong>',
+            $new_count,
+            $updated_count
+        ));
     }
 }

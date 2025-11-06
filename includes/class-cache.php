@@ -17,6 +17,13 @@ class Cache {
     }
 
     public function get_cached_messages($channel, $limit) {
+        // First, try to get from database (persistent storage)
+        $db_messages = PostType::instance()->get_messages($channel, $limit);
+        if (!empty($db_messages)) {
+            return $db_messages;
+        }
+        
+        // Fallback to transient cache for backward compatibility
         $key = $this->get_transient_key($channel);
         $cache = get_transient($key);
         if ($cache !== false) {
