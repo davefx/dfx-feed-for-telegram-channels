@@ -68,7 +68,7 @@ final class Plugin {
             __('Telegram Messages', 'dfx-tg-feed'),
             'manage_options',
             self::MENU_SLUG,
-            '', // Empty callback - WordPress will display the first submenu item by default
+            [$this, 'redirect_to_messages'],
             'dashicons-email-alt',
             25
         );
@@ -82,6 +82,14 @@ final class Plugin {
             'dfx-tg-feed',
             [Settings::instance(), 'render_page']
         );
+    }
+    
+    /**
+     * Redirect to the messages listing page when main menu is clicked
+     */
+    public function redirect_to_messages() {
+        wp_redirect(admin_url('edit.php?post_type=dfx_tg_message'));
+        exit;
     }
 
     public function register_settings() {
