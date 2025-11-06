@@ -7,6 +7,9 @@ final class Plugin {
 
     /** @var Plugin */
     private static $instance = null;
+    
+    /** @var string Menu slug for the top-level admin menu */
+    const MENU_SLUG = 'dfx-telegram-messages';
 
     /** Return the singleton instance */
     public static function instance() {
@@ -64,15 +67,15 @@ final class Plugin {
             __('Telegram Messages', 'dfx-tg-feed'),
             __('Telegram Messages', 'dfx-tg-feed'),
             'manage_options',
-            'dfx-telegram-messages',
-            '', // No callback for the main page - it will redirect to the first submenu
+            self::MENU_SLUG,
+            '', // Empty callback - WordPress will display the first submenu item by default
             'dashicons-email-alt',
             25
         );
         
         // Add settings submenu under the top-level menu
         add_submenu_page(
-            'dfx-telegram-messages',
+            self::MENU_SLUG,
             __('Settings', 'dfx-tg-feed'),
             __('Settings', 'dfx-tg-feed'),
             'manage_options',
