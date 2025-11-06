@@ -126,6 +126,18 @@ class Blocks {
                     'textFontSize' => [
                         'type' => 'string',
                         'default' => ''
+                    ],
+                    'dateColor' => [
+                        'type' => 'string',
+                        'default' => ''
+                    ],
+                    'authorColor' => [
+                        'type' => 'string',
+                        'default' => ''
+                    ],
+                    'textColor' => [
+                        'type' => 'string',
+                        'default' => ''
                     ]
                 ]
             ]);
@@ -240,6 +252,18 @@ class Blocks {
                         'default' => ''
                     ],
                     'textFontSize' => [
+                        'type' => 'string',
+                        'default' => ''
+                    ],
+                    'dateColor' => [
+                        'type' => 'string',
+                        'default' => ''
+                    ],
+                    'authorColor' => [
+                        'type' => 'string',
+                        'default' => ''
+                    ],
+                    'textColor' => [
                         'type' => 'string',
                         'default' => ''
                     ]
@@ -408,7 +432,7 @@ class Blocks {
         }
         
         // Typography styles
-        if (!empty($attributes['dateFontFamily']) || !empty($attributes['dateFontSize'])) {
+        if (!empty($attributes['dateFontFamily']) || !empty($attributes['dateFontSize']) || !empty($attributes['dateColor'])) {
             $date_styles = [];
             if (!empty($attributes['dateFontFamily'])) {
                 $font_family = $this->sanitize_font_family($attributes['dateFontFamily']);
@@ -419,12 +443,15 @@ class Blocks {
             if (!empty($attributes['dateFontSize'])) {
                 $date_styles[] = 'font-size: ' . esc_attr($attributes['dateFontSize']) . ';';
             }
+            if (!empty($attributes['dateColor'])) {
+                $date_styles[] = 'color: ' . esc_attr($attributes['dateColor']) . ';';
+            }
             if (!empty($date_styles)) {
                 $css .= '.' . $block_id . ' .dfx-tg-feed-date { ' . implode(' ', $date_styles) . ' }' . "\n";
             }
         }
         
-        if (!empty($attributes['authorFontFamily']) || !empty($attributes['authorFontSize'])) {
+        if (!empty($attributes['authorFontFamily']) || !empty($attributes['authorFontSize']) || !empty($attributes['authorColor'])) {
             $author_styles = [];
             if (!empty($attributes['authorFontFamily'])) {
                 $font_family = $this->sanitize_font_family($attributes['authorFontFamily']);
@@ -435,12 +462,15 @@ class Blocks {
             if (!empty($attributes['authorFontSize'])) {
                 $author_styles[] = 'font-size: ' . esc_attr($attributes['authorFontSize']) . ';';
             }
+            if (!empty($attributes['authorColor'])) {
+                $author_styles[] = 'color: ' . esc_attr($attributes['authorColor']) . ';';
+            }
             if (!empty($author_styles)) {
                 $css .= '.' . $block_id . ' .dfx-tg-feed-author { ' . implode(' ', $author_styles) . ' }' . "\n";
             }
         }
         
-        if (!empty($attributes['textFontFamily']) || !empty($attributes['textFontSize'])) {
+        if (!empty($attributes['textFontFamily']) || !empty($attributes['textFontSize']) || !empty($attributes['textColor'])) {
             $text_styles = [];
             if (!empty($attributes['textFontFamily'])) {
                 $font_family = $this->sanitize_font_family($attributes['textFontFamily']);
@@ -450,6 +480,9 @@ class Blocks {
             }
             if (!empty($attributes['textFontSize'])) {
                 $text_styles[] = 'font-size: ' . esc_attr($attributes['textFontSize']) . ';';
+            }
+            if (!empty($attributes['textColor'])) {
+                $text_styles[] = 'color: ' . esc_attr($attributes['textColor']) . ';';
             }
             if (!empty($text_styles)) {
                 $css .= '.' . $block_id . ' .dfx-tg-feed-text { ' . implode(' ', $text_styles) . ' }' . "\n";

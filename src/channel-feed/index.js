@@ -115,6 +115,18 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 			type: 'string',
 			default: '',
 		},
+		dateColor: {
+			type: 'string',
+			default: '',
+		},
+		authorColor: {
+			type: 'string',
+			default: '',
+		},
+		textColor: {
+			type: 'string',
+			default: '',
+		},
 	},
 	edit: ( props ) => {
 		const { attributes, setAttributes } = props;
@@ -515,6 +527,22 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 													} )
 												}
 											/>
+											<TextControl
+												label={ __(
+													'Text Color',
+													'dfx-tg-feed'
+												) }
+												help={ __(
+													'e.g., #333333',
+													'dfx-tg-feed'
+												) }
+												value={ attributes.dateColor }
+												onChange={ ( value ) =>
+													setAttributes( {
+														dateColor: value,
+													} )
+												}
+											/>
 											<hr />
 											<h3>
 												{ __(
@@ -551,6 +579,22 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 													} )
 												}
 											/>
+											<TextControl
+												label={ __(
+													'Text Color',
+													'dfx-tg-feed'
+												) }
+												help={ __(
+													'e.g., #333333',
+													'dfx-tg-feed'
+												) }
+												value={ attributes.authorColor }
+												onChange={ ( value ) =>
+													setAttributes( {
+														authorColor: value,
+													} )
+												}
+											/>
 											<hr />
 											<h3>
 												{ __(
@@ -584,6 +628,22 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 												onChange={ ( value ) =>
 													setAttributes( {
 														textFontSize: value,
+													} )
+												}
+											/>
+											<TextControl
+												label={ __(
+													'Text Color',
+													'dfx-tg-feed'
+												) }
+												help={ __(
+													'e.g., #333333',
+													'dfx-tg-feed'
+												) }
+												value={ attributes.textColor }
+												onChange={ ( value ) =>
+													setAttributes( {
+														textColor: value,
 													} )
 												}
 											/>
