@@ -27,10 +27,9 @@ if (!defined('ABSPATH')) exit;
                     <?php 
                     // Convert UTC timestamp to local timezone
                     $local_timestamp = get_date_from_gmt(date('Y-m-d H:i:s', $msg['date']), 'U');
-                    echo esc_html(date_i18n(get_option('date_format') . ' ' . get_option('time_format'), $local_timestamp)); 
+                    echo esc_html(wp_date(get_option('date_format') . ' ' . get_option('time_format'), $local_timestamp)); 
                     ?>
                 </time>
-                <span class="dfx-tg-feed-id">#<?php echo esc_html($msg['id']); ?></span>
             </div>
             
             <!-- 2. Author (if exists) -->

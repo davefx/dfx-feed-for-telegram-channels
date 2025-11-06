@@ -275,4 +275,43 @@ class PostType {
         
         return $messages;
     }
+    
+    /**
+     * Refresh messages from Telegram API and detect deleted messages
+     */
+    public function refresh_messages($channel, $limit) {
+        // Fetch new messages from API (this will also store them)
+        $messages = API::instance()->fetch_channel_messages($channel, $limit);
+        
+        // Detect deleted messages by comparing with stored messages
+        $old = $this->get_messages($channel, 200);
+        $deleted_ids = [];
+        if (!empty($old)) {
+            $old_ids = array_column($old, 'id');
+            $new_ids = array_column($messages, 'id');
+            $deleted_ids = array_diff($old_ids, $new_ids);
+        }
+        
+        return ['messages' => $messages, 'deleted_ids' => $deleted_ids];
+    }
+    
+    /**
+     * AJAX handler to refresh messages for admin panel
+     */
+    public function ajax_refresh_messages() {
+        check_ajax_referer('dfx_tg_feed_refresh');
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('No permission.');
+        }
+        
+        $channel = sanitize_text_field($_POST['channel'] ?? '');
+        if (empty($channel)) {
+            wp_send_json_error('Channel parameter is required.');
+        }
+        
+        $limit = intval(get_option('dfx_tg_feed_default_count', 10));
+        $result = $this->refresh_messages($channel, $limit);
+        
+        wp_send_json_success($result);
+    }
 }
