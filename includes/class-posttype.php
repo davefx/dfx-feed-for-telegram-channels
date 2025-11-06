@@ -188,8 +188,17 @@ class PostType {
             return;
         }
         
+        // Register and enqueue our custom admin script
+        wp_enqueue_script(
+            'dfx-tg-feed-admin',
+            '', // No external file needed, using inline script only
+            ['jquery'], // Depends on jQuery
+            DFX_TG_FEED_VER,
+            true // Load in footer
+        );
+        
         // Localize script data for AJAX
-        wp_localize_script('jquery', 'dfxTgFeedRefresh', [
+        wp_localize_script('dfx-tg-feed-admin', 'dfxTgFeedRefresh', [
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('dfx_tg_feed_refresh'),
             'i18n' => [
@@ -203,7 +212,7 @@ class PostType {
         ]);
         
         // Enqueue inline script for refresh functionality
-        wp_add_inline_script('jquery', "
+        wp_add_inline_script('dfx-tg-feed-admin', "
         jQuery(document).ready(function($) {
             var refreshBtn = $('#dfx-tg-refresh-messages');
             var statusSpan = $('#dfx-tg-refresh-status');
