@@ -441,14 +441,9 @@ class PostType {
      */
     public function enqueue_admin_scripts($hook) {
         // Only load on the messages list page
-        if ($hook !== 'edit.php' || (isset($_GET['post_type']) && $_GET['post_type'] !== 'dfx_tg_message')) {
-            if (!isset($_GET['post_type']) && $hook !== 'edit.php') {
-                return;
-            }
-        }
-        
         global $typenow;
-        if ($typenow !== 'dfx_tg_message') {
+        
+        if ($hook !== 'edit.php' || $typenow !== 'dfx_tg_message') {
             return;
         }
         
