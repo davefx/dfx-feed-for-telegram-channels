@@ -444,7 +444,10 @@ class Blocks {
                 $date_styles[] = 'font-size: ' . esc_attr($attributes['dateFontSize']) . ';';
             }
             if (!empty($attributes['dateColor'])) {
-                $date_styles[] = 'color: ' . esc_attr($attributes['dateColor']) . ';';
+                $color = $this->sanitize_color($attributes['dateColor']);
+                if ($color) {
+                    $date_styles[] = 'color: ' . $color . ';';
+                }
             }
             if (!empty($date_styles)) {
                 $css .= '.' . $block_id . ' .dfx-tg-feed-date { ' . implode(' ', $date_styles) . ' }' . "\n";
@@ -463,7 +466,10 @@ class Blocks {
                 $author_styles[] = 'font-size: ' . esc_attr($attributes['authorFontSize']) . ';';
             }
             if (!empty($attributes['authorColor'])) {
-                $author_styles[] = 'color: ' . esc_attr($attributes['authorColor']) . ';';
+                $color = $this->sanitize_color($attributes['authorColor']);
+                if ($color) {
+                    $author_styles[] = 'color: ' . $color . ';';
+                }
             }
             if (!empty($author_styles)) {
                 $css .= '.' . $block_id . ' .dfx-tg-feed-author { ' . implode(' ', $author_styles) . ' }' . "\n";
@@ -482,7 +488,10 @@ class Blocks {
                 $text_styles[] = 'font-size: ' . esc_attr($attributes['textFontSize']) . ';';
             }
             if (!empty($attributes['textColor'])) {
-                $text_styles[] = 'color: ' . esc_attr($attributes['textColor']) . ';';
+                $color = $this->sanitize_color($attributes['textColor']);
+                if ($color) {
+                    $text_styles[] = 'color: ' . $color . ';';
+                }
             }
             if (!empty($text_styles)) {
                 $css .= '.' . $block_id . ' .dfx-tg-feed-text { ' . implode(' ', $text_styles) . ' }' . "\n";
@@ -514,6 +523,47 @@ class Blocks {
         }
         
         return $sanitized;
+    }
+    
+    /**
+     * Sanitize a CSS color value
+     * Validates hex colors, rgb/rgba, hsl/hsla, and named colors
+     */
+    private function sanitize_color($color) {
+        if (empty($color)) {
+            return '';
+        }
+        
+        $color = trim($color);
+        
+        // Allow hex colors (#fff, #ffffff, #ffffff00)
+        if (preg_match('/^#([a-fA-F0-9]{3}|[a-fA-F0-9]{6}|[a-fA-F0-9]{8})$/', $color)) {
+            return strtolower($color);
+        }
+        
+        // Allow rgb/rgba
+        if (preg_match('/^rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*(,\s*[\d.]+\s*)?\)$/i', $color)) {
+            return strtolower($color);
+        }
+        
+        // Allow hsl/hsla
+        if (preg_match('/^hsla?\(\s*\d{1,3}\s*,\s*\d{1,3}%\s*,\s*\d{1,3}%\s*(,\s*[\d.]+\s*)?\)$/i', $color)) {
+            return strtolower($color);
+        }
+        
+        // Allow common CSS named colors
+        $named_colors = [
+            'transparent', 'black', 'white', 'red', 'green', 'blue', 'yellow', 'orange',
+            'purple', 'pink', 'brown', 'gray', 'grey', 'cyan', 'magenta', 'lime', 'navy',
+            'teal', 'aqua', 'maroon', 'olive', 'silver', 'fuchsia'
+        ];
+        
+        if (in_array(strtolower($color), $named_colors)) {
+            return strtolower($color);
+        }
+        
+        // Invalid color, return empty
+        return '';
     }
     
     /**
