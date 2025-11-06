@@ -22,7 +22,7 @@
             $link.css('opacity', '0.5').css('pointer-events', 'none');
             
             $.ajax({
-                url: ajaxurl,
+                url: dfxTgAdmin.ajaxUrl,
                 type: 'POST',
                 data: {
                     action: 'dfx_tg_hide_message',
@@ -57,7 +57,7 @@
             $link.css('opacity', '0.5').css('pointer-events', 'none');
             
             $.ajax({
-                url: ajaxurl,
+                url: dfxTgAdmin.ajaxUrl,
                 type: 'POST',
                 data: {
                     action: 'dfx_tg_unhide_message',

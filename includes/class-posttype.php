@@ -456,6 +456,7 @@ class PostType {
         );
         
         wp_localize_script('dfx-tg-admin', 'dfxTgAdmin', [
+            'ajaxUrl' => admin_url('admin-ajax.php'),
             'hideConfirm' => __('Are you sure you want to hide this message from the frontend?', 'dfx-tg-feed'),
             'error' => __('An error occurred. Please try again.', 'dfx-tg-feed'),
         ]);
