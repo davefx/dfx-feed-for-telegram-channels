@@ -101,7 +101,7 @@ class API {
                         }
                         
                         // Skip messages that have media fields but inaccessible files (likely deleted)
-                        if ($has_media_field && empty($media)) {
+                        if ($has_media_field && $media === null) {
                             if (defined('WP_DEBUG') && WP_DEBUG) {
                                 error_log('DFX Telegram Feed: Skipping message ' . $msg['message_id'] . ' - has media field but file is inaccessible (likely deleted)');
                             }
