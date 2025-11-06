@@ -541,13 +541,35 @@ class Blocks {
             return strtolower($color);
         }
         
-        // Allow rgb/rgba
-        if (preg_match('/^rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*(,\s*[\d.]+\s*)?\)$/i', $color)) {
+        // Allow rgb/rgba with proper value ranges
+        // RGB: 0-255 for each component, alpha: 0-1
+        $rgb_pattern = '/^rgba?\(\s*(' .
+            '\d{1,2}|1\d{2}|2[0-4]\d|25[0-5]' . // Red: 0-255
+            ')\s*,\s*(' .
+            '\d{1,2}|1\d{2}|2[0-4]\d|25[0-5]' . // Green: 0-255
+            ')\s*,\s*(' .
+            '\d{1,2}|1\d{2}|2[0-4]\d|25[0-5]' . // Blue: 0-255
+            ')' .
+            '(\s*,\s*(0|0?\.\d+|1(\.0+)?))?' . // Alpha: 0-1 (optional)
+            '\s*\)$/i';
+        
+        if (preg_match($rgb_pattern, $color)) {
             return strtolower($color);
         }
         
-        // Allow hsl/hsla
-        if (preg_match('/^hsla?\(\s*\d{1,3}\s*,\s*\d{1,3}%\s*,\s*\d{1,3}%\s*(,\s*[\d.]+\s*)?\)$/i', $color)) {
+        // Allow hsl/hsla with proper value ranges
+        // Hue: 0-360, Saturation: 0-100%, Lightness: 0-100%, Alpha: 0-1
+        $hsl_pattern = '/^hsla?\(\s*(' .
+            '\d{1,2}|[12]\d{2}|3[0-5]\d|360' . // Hue: 0-360
+            ')\s*,\s*(' .
+            '\d{1,2}|100' . // Saturation: 0-100
+            ')%\s*,\s*(' .
+            '\d{1,2}|100' . // Lightness: 0-100
+            ')%' .
+            '(\s*,\s*(0|0?\.\d+|1(\.0+)?))?' . // Alpha: 0-1 (optional)
+            '\s*\)$/i';
+        
+        if (preg_match($hsl_pattern, $color)) {
             return strtolower($color);
         }
         
