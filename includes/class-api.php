@@ -63,14 +63,23 @@ class API {
                 if (!empty($update['channel_post'])) {
                     $msg = $update['channel_post'];
                     $chat_identifier = $msg['chat']['username'] ?? $msg['chat']['id'] ?? null;
-                    // Store the actual channel identifier for later use
-                    $update_channel = '@' . ($msg['chat']['username'] ?? $msg['chat']['id']);
+                    // Store the actual channel identifier for later use (with @ prefix for usernames)
+                    if (!empty($msg['chat']['username'])) {
+                        $update_channel = '@' . $msg['chat']['username'];
+                    } else {
+                        $update_channel = $msg['chat']['id'];
+                    }
                 }
                 // Check for regular message (if bot receives direct messages)
                 elseif (!empty($update['message']) && isset($update['message']['chat'])) {
                     $msg = $update['message'];
                     $chat_identifier = $msg['chat']['username'] ?? $msg['chat']['id'] ?? null;
-                    $update_channel = '@' . ($msg['chat']['username'] ?? $msg['chat']['id']);
+                    // Store the actual channel identifier for later use (with @ prefix for usernames)
+                    if (!empty($msg['chat']['username'])) {
+                        $update_channel = '@' . $msg['chat']['username'];
+                    } else {
+                        $update_channel = $msg['chat']['id'];
+                    }
                 }
                 
                 if ($msg && $chat_identifier) {
