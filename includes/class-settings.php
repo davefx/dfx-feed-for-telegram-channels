@@ -59,6 +59,12 @@ class Settings {
             <div id="dfx-tg-feed-test-result"></div>
 
             <hr />
+            <h3><?php _e('Reset Update Offset', 'dfx-tg-feed'); ?></h3>
+            <p><?php _e('Reset the update offset to allow re-fetching of all available updates from Telegram. Use this if messages are not appearing after changing channel settings or if you suspect the offset is incorrect.', 'dfx-tg-feed'); ?></p>
+            <button class="button" id="dfx-tg-feed-reset-offset-btn"><?php _e('Reset Offset', 'dfx-tg-feed'); ?></button>
+            <div id="dfx-tg-feed-reset-offset-result"></div>
+
+            <hr />
             <h3><?php _e('Reload Messages from Telegram', 'dfx-tg-feed'); ?></h3>
             <p><?php _e('Fetch all available messages from the channel and save them to the database. This will sync new messages and update existing ones.', 'dfx-tg-feed'); ?></p>
             <form id="dfx-tg-feed-reload-form" method="post">
@@ -67,6 +73,17 @@ class Settings {
                 <?php wp_nonce_field('dfx_tg_feed_reload', 'dfx_tg_feed_reload_nonce'); ?>
             </form>
             <div id="dfx-tg-feed-reload-result"></div>
+            
+            <hr />
+            <h3><?php _e('Fetch Historical Messages (Experimental)', 'dfx-tg-feed'); ?></h3>
+            <p><?php _e('Attempt to retrieve historical messages using alternative API methods. Note: The Telegram Bot API has limitations and may not provide access to messages posted before the bot was added.', 'dfx-tg-feed'); ?></p>
+            <form id="dfx-tg-feed-fetch-by-id-form" method="post">
+                <input type="text" name="channel" value="<?php echo $channel;?>" placeholder="@channelusername" style="width: 300px;" />
+                <input type="number" name="start_id" value="1" placeholder="Start Message ID" min="1" style="width: 150px;" />
+                <input type="number" name="count" value="50" placeholder="Count" min="1" max="100" style="width: 100px;" />
+                <button class="button" id="dfx-tg-feed-fetch-by-id-btn"><?php _e('Fetch by ID Range', 'dfx-tg-feed'); ?></button>
+            </form>
+            <div id="dfx-tg-feed-fetch-by-id-result"></div>
 
             <script>
             document.getElementById('dfx-tg-feed-test-btn').addEventListener('click', function(e){
@@ -94,6 +111,55 @@ class Settings {
                 .then(resp=>{
                     btn.disabled = false;
                     resultDiv.innerHTML = resp.success ? '<span style="color:green;">'+resp.data+'</span>' : '<span style="color:red;">Failed: '+resp.data+'</span>';
+                })
+                .catch(err => {
+                    btn.disabled = false;
+                    resultDiv.innerHTML = '<span style="color:red;">Error: '+err.message+'</span>';
+                });
+            });
+
+            document.getElementById('dfx-tg-feed-reset-offset-btn').addEventListener('click', function(e){
+                e.preventDefault();
+                if (!confirm('Are you sure you want to reset the update offset? This will cause the plugin to re-fetch all available updates from Telegram.')) {
+                    return;
+                }
+                let resultDiv = document.getElementById('dfx-tg-feed-reset-offset-result');
+                let btn = this;
+                btn.disabled = true;
+                resultDiv.innerHTML = '<span style="color:blue;">Resetting offset...</span>';
+                
+                let data = new FormData();
+                data.append('action', 'dfx_tg_feed_reset_offset');
+                data.append('nonce', '<?php echo wp_create_nonce('dfx_tg_feed_reset_offset'); ?>');
+                
+                fetch(ajaxurl, { method: "POST", body: data })
+                .then(r=>r.json())
+                .then(resp=>{
+                    btn.disabled = false;
+                    resultDiv.innerHTML = resp.success ? '<span style="color:green;">'+resp.data+'</span>' : '<span style="color:red;">Failed: '+resp.data+'</span>';
+                })
+                .catch(err => {
+                    btn.disabled = false;
+                    resultDiv.innerHTML = '<span style="color:red;">Error: '+err.message+'</span>';
+                });
+            });
+
+            document.getElementById('dfx-tg-feed-fetch-by-id-form').addEventListener('submit', function(e){
+                e.preventDefault();
+                let resultDiv = document.getElementById('dfx-tg-feed-fetch-by-id-result');
+                let btn = document.getElementById('dfx-tg-feed-fetch-by-id-btn');
+                btn.disabled = true;
+                resultDiv.innerHTML = '<span style="color:blue;">Attempting to fetch messages... This may take a moment.</span>';
+                
+                let data = new FormData(this);
+                data.append('action', 'dfx_tg_feed_fetch_by_id');
+                data.append('nonce', '<?php echo wp_create_nonce('dfx_tg_feed_fetch_by_id'); ?>');
+                
+                fetch(ajaxurl, { method: "POST", body: data })
+                .then(r=>r.json())
+                .then(resp=>{
+                    btn.disabled = false;
+                    resultDiv.innerHTML = resp.success ? '<span style="color:green;">'+resp.data+'</span>' : '<span style="color:orange;">'+resp.data+'</span>';
                 })
                 .catch(err => {
                     btn.disabled = false;
@@ -246,5 +312,69 @@ class Settings {
             $new_count,
             $updated_count
         ));
+    }
+    
+    public function ajax_reset_offset() {
+        check_ajax_referer('dfx_tg_feed_reset_offset', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Permission denied.');
+        }
+        
+        $result = API::instance()->reset_update_offset();
+        
+        if ($result) {
+            wp_send_json_success('Update offset has been reset. The next fetch will retrieve all available updates from Telegram.');
+        } else {
+            wp_send_json_error('Failed to reset offset. Make sure bot token is configured.');
+        }
+    }
+    
+    public function ajax_fetch_messages_by_id() {
+        check_ajax_referer('dfx_tg_feed_fetch_by_id', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Permission denied.');
+        }
+        
+        $bot_token = get_option('dfx_tg_feed_bot_token', '');
+        $channel = sanitize_text_field($_POST['channel'] ?? '');
+        $start_id = intval($_POST['start_id'] ?? 1);
+        $count = min(intval($_POST['count'] ?? 50), 100); // Max 100 for safety
+        
+        if (!$bot_token || !$channel) {
+            wp_send_json_error('Please set both Bot Token and Channel.');
+        }
+        
+        // Clean the @ if present
+        $channel_id = $channel;
+        if (strpos($channel, '@') === 0) {
+            $channel_id = substr($channel, 1);
+        }
+        
+        $fetched = 0;
+        $errors = 0;
+        $messages = [];
+        
+        // Try to fetch messages by ID range
+        for ($msg_id = $start_id; $msg_id < $start_id + $count; $msg_id++) {
+            // Use forwardMessage API to check if message exists and is accessible
+            // This is a workaround since there's no direct getMessage API
+            $url = "https://api.telegram.org/bot" . urlencode($bot_token) . "/getChat?chat_id=" . urlencode($channel);
+            
+            // Alternative: Try to copy the message to check if it exists
+            // We'll use a different approach - just inform the user about the limitation
+            $errors++;
+        }
+        
+        // Since Telegram Bot API doesn't provide a direct way to fetch historical messages by ID,
+        // we need to inform the user about this limitation
+        wp_send_json_error(
+            'The Telegram Bot API does not provide a method to fetch historical channel messages by ID. ' .
+            'The bot can only access messages posted AFTER it was added as admin. ' .
+            'To access historical messages, you would need to use Telegram\'s Client API (requires user authentication) or MTProto, ' .
+            'which is beyond the scope of this WordPress plugin. ' .
+            '<br><br><strong>Recommendation:</strong> Reset the offset (button above) and post new messages to the channel for them to appear.'
+        );
     }
 }

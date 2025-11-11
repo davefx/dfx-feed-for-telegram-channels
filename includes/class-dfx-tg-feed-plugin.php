@@ -41,6 +41,8 @@ final class Plugin {
         add_action('wp_ajax_dfx_tg_feed_test', [Settings::instance(), 'ajax_test_bot_channel']);
         add_action('wp_ajax_dfx_tg_feed_reload', [Settings::instance(), 'ajax_reload_messages']);
         add_action('wp_ajax_dfx_tg_feed_refresh', [PostType::instance(), 'ajax_refresh_messages']);
+        add_action('wp_ajax_dfx_tg_feed_reset_offset', [Settings::instance(), 'ajax_reset_offset']);
+        add_action('wp_ajax_dfx_tg_feed_fetch_by_id', [Settings::instance(), 'ajax_fetch_messages_by_id']);
         add_action('wp_ajax_dfx_tg_proxy_sticker', [$this, 'ajax_proxy_sticker']);
         add_action('wp_ajax_nopriv_dfx_tg_proxy_sticker', [$this, 'ajax_proxy_sticker']);
     }
