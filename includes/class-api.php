@@ -26,213 +26,133 @@ class API {
             $channel_id = substr($channel_username, 1);
         }
 
-        // Get the last processed update_id for this bot to use as offset
-        // This ensures we don't process the same updates repeatedly
-        $offset_option_key = 'dfx_tg_feed_update_offset_' . md5($bot_token);
-        $last_update_id = get_option($offset_option_key, 0);
-        $offset = $last_update_id > 0 ? $last_update_id + 1 : 0;
-
         // Bot API: getUpdates returns both messages and channel_post updates
-        // Use offset parameter to acknowledge previously processed updates
         $api_url = "https://api.telegram.org/bot" . $bot_token . "/getUpdates";
-        if ($offset > 0) {
-            $api_url .= "?offset=" . $offset;
-        }
-        
         $response = wp_remote_get($api_url);
         if (is_wp_error($response)) {
             return [];
         }
         $body = json_decode(wp_remote_retrieve_body($response), true);
         $messages = [];
-        $highest_update_id = $last_update_id;
         
         if (isset($body['ok']) && $body['ok']) {
             foreach (array_reverse($body['result']) as $update) {
-                // Always track the highest update_id from ALL updates to properly acknowledge them
-                // The offset is global per bot, not per channel
-                if (isset($update['update_id']) && $update['update_id'] > $highest_update_id) {
-                    $highest_update_id = $update['update_id'];
-                }
-                
                 $msg = null;
                 $chat_identifier = null;
-                $update_channel = null;
                 
                 // Check for channel_post (channel messages)
                 if (!empty($update['channel_post'])) {
                     $msg = $update['channel_post'];
                     $chat_identifier = $msg['chat']['username'] ?? $msg['chat']['id'] ?? null;
-                    // Store the actual channel identifier for later use (with @ prefix for usernames)
-                    if (!empty($msg['chat']['username'])) {
-                        $update_channel = '@' . $msg['chat']['username'];
-                    } else {
-                        $update_channel = $msg['chat']['id'];
-                    }
                 }
                 // Check for regular message (if bot receives direct messages)
                 elseif (!empty($update['message']) && isset($update['message']['chat'])) {
                     $msg = $update['message'];
                     $chat_identifier = $msg['chat']['username'] ?? $msg['chat']['id'] ?? null;
-                    // Store the actual channel identifier for later use (with @ prefix for usernames)
-                    if (!empty($msg['chat']['username'])) {
-                        $update_channel = '@' . $msg['chat']['username'];
-                    } else {
-                        $update_channel = $msg['chat']['id'];
-                    }
                 }
                 
                 if ($msg && $chat_identifier) {
-                    // Determine if this message matches the requested channel
-                    $matches_requested_channel = false;
+                    // Match by username or channel ID
+                    $matches = false;
                     if (is_numeric($channel_id)) {
                         // Channel ID match (e.g., -1001234567890)
-                        $matches_requested_channel = ($chat_identifier == $channel_id);
+                        $matches = ($chat_identifier == $channel_id);
                     } else {
                         // Username match
-                        $matches_requested_channel = (strtolower($chat_identifier) == strtolower($channel_id));
+                        $matches = (strtolower($chat_identifier) == strtolower($channel_id));
                     }
                     
-                    // Extract text content
-                    $text = $msg['text'] ?? $msg['caption'] ?? '';
+                    if ($matches) {
+                        // Extract text content
+                        $text = $msg['text'] ?? $msg['caption'] ?? '';
                         
-                    // Get entities for formatting
-                    $entities = $msg['entities'] ?? $msg['caption_entities'] ?? [];
-                    
-                    // Get media URL (photo, video thumbnail, or sticker)
-                    $media = null;
-                    $has_media_field = false;
-                    
-                    if (isset($msg['photo'])) {
-                        $has_media_field = true;
-                        $media = $this->get_attachment_url($bot_token, $msg['photo']);
-                    } elseif (isset($msg['sticker'])) {
-                        $has_media_field = true;
-                        // For stickers, get the file and determine type
-                        $sticker_info = $this->get_sticker_info($bot_token, $msg['sticker']);
-                        $media = $sticker_info['url'] ?? null;
-                        if (defined('WP_DEBUG') && WP_DEBUG) {
-                            error_log('DFX Telegram Feed: Processing sticker message. Media URL: ' . ($media ? $media : 'NULL'));
-                            error_log('DFX Telegram Feed: Sticker type: ' . ($sticker_info['type'] ?? 'unknown'));
-                            error_log('DFX Telegram Feed: Sticker emoji: ' . ($msg['sticker']['emoji'] ?? 'no emoji'));
-                        }
-                    } elseif (isset($msg['video'])) {
-                        $has_media_field = true;
-                        // For videos, get thumbnail
-                        if (isset($msg['video']['thumb'])) {
-                            $media = $this->get_file_url($bot_token, $msg['video']['thumb']['file_id']);
-                        }
-                    } elseif (isset($msg['animation'])) {
-                        $has_media_field = true;
-                        // For GIFs/animations, get thumbnail
-                        if (isset($msg['animation']['thumb'])) {
-                            $media = $this->get_file_url($bot_token, $msg['animation']['thumb']['file_id']);
-                        }
-                    }
-                    
-                    // Skip messages that have media fields but inaccessible files (likely deleted)
-                    if ($has_media_field && $media === null) {
-                        if (defined('WP_DEBUG') && WP_DEBUG) {
-                            error_log('DFX Telegram Feed: Skipping message ' . $msg['message_id'] . ' - has media field but file is inaccessible (likely deleted)');
-                        }
-                        continue;
-                    }
-                    
-                    // Skip messages that have no text AND no media (empty messages)
-                    if (empty($text) && empty($media)) {
-                        continue;
-                    }
+                        // Get entities for formatting
+                        $entities = $msg['entities'] ?? $msg['caption_entities'] ?? [];
                         
-                    // Get author information if available
-                    $author = null;
-                    if (isset($msg['from'])) {
-                        $author = [
-                            'first_name' => $msg['from']['first_name'] ?? '',
-                            'last_name' => $msg['from']['last_name'] ?? '',
-                            'username' => $msg['from']['username'] ?? '',
+                        // Get media URL (photo, video thumbnail, or sticker)
+                        $media = null;
+                        if (isset($msg['photo'])) {
+                            $media = $this->get_attachment_url($bot_token, $msg['photo']);
+                        } elseif (isset($msg['sticker'])) {
+                            // For stickers, get the file and determine type
+                            $sticker_info = $this->get_sticker_info($bot_token, $msg['sticker']);
+                            $media = $sticker_info['url'] ?? null;
+                            if (defined('WP_DEBUG') && WP_DEBUG) {
+                                error_log('DFX Telegram Feed: Processing sticker message. Media URL: ' . ($media ? $media : 'NULL'));
+                                error_log('DFX Telegram Feed: Sticker type: ' . ($sticker_info['type'] ?? 'unknown'));
+                                error_log('DFX Telegram Feed: Sticker emoji: ' . ($msg['sticker']['emoji'] ?? 'no emoji'));
+                            }
+                        } elseif (isset($msg['video'])) {
+                            // For videos, get thumbnail
+                            if (isset($msg['video']['thumb'])) {
+                                $media = $this->get_file_url($bot_token, $msg['video']['thumb']['file_id']);
+                            }
+                        } elseif (isset($msg['animation'])) {
+                            // For GIFs/animations, get thumbnail
+                            if (isset($msg['animation']['thumb'])) {
+                                $media = $this->get_file_url($bot_token, $msg['animation']['thumb']['file_id']);
+                            }
+                        }
+                        
+                        // Skip messages that have no text AND no media (empty messages)
+                        if (empty($text) && empty($media)) {
+                            continue;
+                        }
+                        
+                        // Get author information if available
+                        $author = null;
+                        if (isset($msg['from'])) {
+                            $author = [
+                                'first_name' => $msg['from']['first_name'] ?? '',
+                                'last_name' => $msg['from']['last_name'] ?? '',
+                                'username' => $msg['from']['username'] ?? '',
+                            ];
+                        } elseif (isset($msg['author_signature'])) {
+                            $author = [
+                                'signature' => $msg['author_signature'],
+                            ];
+                        }
+                        
+                        $sticker_info = isset($msg['sticker']) ? ['type' => null] : [];
+                        if (isset($msg['sticker']) && !empty($media)) {
+                            // Determine sticker type from the sticker info we got earlier
+                            $is_animated = $msg['sticker']['is_animated'] ?? false;
+                            $is_video = $msg['sticker']['is_video'] ?? false;
+                            
+                            if ($is_animated) {
+                                $sticker_info['type'] = 'tgs';
+                            } elseif ($is_video) {
+                                $sticker_info['type'] = 'webm';
+                            } else {
+                                $sticker_info['type'] = 'static';
+                            }
+                        }
+                        
+                        $message_data = [
+                            'id'      => $msg['message_id'],
+                            'date'    => $msg['date'],
+                            'text'    => $text,
+                            'entities' => $entities,
+                            'media'   => $media,
+                            'sticker' => isset($msg['sticker']),
+                            'sticker_type' => $sticker_info['type'] ?? null,
+                            'emoji'   => $msg['sticker']['emoji'] ?? null,
+                            'file_id' => $msg['sticker']['file_id'] ?? null,
+                            'author'  => $author,
+                            'deleted' => false
                         ];
-                    } elseif (isset($msg['author_signature'])) {
-                        $author = [
-                            'signature' => $msg['author_signature'],
-                        ];
-                    }
-                    
-                    $sticker_info = isset($msg['sticker']) ? ['type' => null] : [];
-                    if (isset($msg['sticker']) && !empty($media)) {
-                        // Determine sticker type from the sticker info we got earlier
-                        $is_animated = $msg['sticker']['is_animated'] ?? false;
-                        $is_video = $msg['sticker']['is_video'] ?? false;
                         
-                        if ($is_animated) {
-                            $sticker_info['type'] = 'tgs';
-                        } elseif ($is_video) {
-                            $sticker_info['type'] = 'webm';
-                        } else {
-                            $sticker_info['type'] = 'static';
-                        }
-                    }
-                    
-                    $message_data = [
-                        'id'      => $msg['message_id'],
-                        'date'    => $msg['date'],
-                        'text'    => $text,
-                        'entities' => $entities,
-                        'media'   => $media,
-                        'sticker' => isset($msg['sticker']),
-                        'sticker_type' => $sticker_info['type'] ?? null,
-                        'emoji'   => $msg['sticker']['emoji'] ?? null,
-                        'file_id' => $msg['sticker']['file_id'] ?? null,
-                        'author'  => $author,
-                        'deleted' => false
-                    ];
-                    
-                    // Store message in database (for ALL channels to properly track offset)
-                    PostType::instance()->store_message($update_channel, $message_data);
-                    
-                    // Only add to returned messages array if it matches the requested channel
-                    if ($matches_requested_channel) {
                         $messages[] = $message_data;
+                        
+                        // Store in database
+                        PostType::instance()->store_message($channel_username, $message_data);
+                        
                         if (count($messages) >= $limit) break;
                     }
                 }
             }
-            
-            // Update the offset to acknowledge all processed updates
-            // The offset is global per bot, so we acknowledge ALL updates received
-            // This is required by Telegram's API - you can't selectively acknowledge updates
-            if ($highest_update_id > $last_update_id) {
-                update_option($offset_option_key, $highest_update_id);
-                
-                if (defined('WP_DEBUG') && WP_DEBUG) {
-                    error_log('DFX Telegram Feed: Updated offset from ' . $last_update_id . ' to ' . $highest_update_id);
-                }
-            }
         }
         return $messages;
-    }
-
-    /**
-     * Reset the update offset for the bot.
-     * This will cause getUpdates to return all available updates again.
-     * Useful for troubleshooting or if something goes wrong with offset tracking.
-     */
-    public function reset_update_offset() {
-        $bot_token = get_option('dfx_tg_feed_bot_token');
-        if (!$bot_token) {
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('DFX Telegram Feed: Cannot reset offset - bot token not configured');
-            }
-            return false;
-        }
-        
-        $offset_option_key = 'dfx_tg_feed_update_offset_' . md5($bot_token);
-        delete_option($offset_option_key);
-        
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('DFX Telegram Feed: Update offset reset');
-        }
-        
-        return true;
     }
 
     private function get_attachment_url($bot_token, $photo) {
