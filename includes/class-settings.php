@@ -13,12 +13,14 @@ class Settings {
         register_setting('dfx_tg_feed', 'dfx_tg_feed_bot_token');
         register_setting('dfx_tg_feed', 'dfx_tg_feed_default_count');
         register_setting('dfx_tg_feed', 'dfx_tg_feed_channel');
+        register_setting('dfx_tg_feed', 'dfx_tg_feed_update_mode');
         register_setting('dfx_tg_feed', 'dfx_tg_feed_webhook_secret');
     }
 
     public function render_page() {
         $bot_token = esc_attr(get_option('dfx_tg_feed_bot_token', ''));
         $channel = esc_attr(get_option('dfx_tg_feed_channel', ''));
+        $update_mode = get_option('dfx_tg_feed_update_mode', 'polling');
         $webhook_secret = get_option('dfx_tg_feed_webhook_secret', '');
         
         // Generate a new secret if not set
@@ -38,7 +40,7 @@ class Settings {
                 <li>Send <code>/newbot</code>, follow instructions, and copy your bot token.</li>
                 <li>Paste the bot token below and click "Save Settings".</li>
                 <li>Add your bot as an <strong>admin</strong> to each Telegram channel you want to display (channel &rarr; Administrators &rarr; Add Admin &rarr; [YOUR BOT USERNAME]).</li>
-                <li><strong>Register the webhook</strong> below to receive real-time updates from Telegram.</li>
+                <li>Choose your preferred <strong>Update Mode</strong> below (Webhook for real-time updates, or Polling for on-demand fetching).</li>
                 <li>Use any channel with your bot by specifying the channel username in the shortcode or block (e.g., <code>[dfx_tg_channel_feed channel="@yourchannel"]</code>).</li>
             </ol>
 
@@ -61,41 +63,56 @@ class Settings {
                         <td><input type="number" name="dfx_tg_feed_default_count" value="<?php echo esc_attr(get_option('dfx_tg_feed_default_count', 10)); ?>" min="1" max="100"/></td>
                     </tr>
                     <tr>
-                        <th><?php _e('Webhook Secret Token', 'dfx-tg-feed'); ?></th>
+                        <th><?php _e('Update Mode', 'dfx-tg-feed'); ?></th>
                         <td>
-                            <input type="text" name="dfx_tg_feed_webhook_secret" value="<?php echo esc_attr($webhook_secret); ?>" size="50" autocomplete="off"/>
-                            <p class="description"><?php _e('This secret token is used to verify incoming webhook requests from Telegram.', 'dfx-tg-feed'); ?></p>
+                            <select name="dfx_tg_feed_update_mode" id="dfx_tg_feed_update_mode">
+                                <option value="polling" <?php selected($update_mode, 'polling'); ?>><?php _e('Polling (getUpdates)', 'dfx-tg-feed'); ?></option>
+                                <option value="webhook" <?php selected($update_mode, 'webhook'); ?>><?php _e('Webhook (Real-time)', 'dfx-tg-feed'); ?></option>
+                            </select>
+                            <p class="description">
+                                <strong><?php _e('Polling:', 'dfx-tg-feed'); ?></strong> <?php _e('Messages are fetched on-demand when pages load. Simpler setup, but may have slight delays.', 'dfx-tg-feed'); ?><br>
+                                <strong><?php _e('Webhook:', 'dfx-tg-feed'); ?></strong> <?php _e('Telegram sends messages to your site in real-time. Requires HTTPS and webhook registration.', 'dfx-tg-feed'); ?>
+                            </p>
                         </td>
                     </tr>
                 </table>
                 <?php submit_button(__('Save Settings', 'dfx-tg-feed')); ?>
             </form>
 
-            <hr />
-            <h3><?php _e('Webhook Configuration', 'dfx-tg-feed'); ?></h3>
-            <p><?php _e('Webhooks allow Telegram to send messages to your site in real-time, instead of polling. This is more efficient and provides instant updates.', 'dfx-tg-feed'); ?></p>
-            
-            <table class="form-table">
-                <tr>
-                    <th><?php _e('Your Webhook URL', 'dfx-tg-feed'); ?></th>
-                    <td>
-                        <code id="dfx-tg-webhook-url"><?php echo esc_url($webhook_url); ?></code>
-                        <p class="description"><?php _e('This is the URL that Telegram will send updates to.', 'dfx-tg-feed'); ?></p>
-                    </td>
-                </tr>
-                <tr>
-                    <th><?php _e('Webhook Status', 'dfx-tg-feed'); ?></th>
-                    <td>
-                        <span id="dfx-tg-webhook-status"><?php _e('Checking...', 'dfx-tg-feed'); ?></span>
-                    </td>
-                </tr>
-            </table>
-            
-            <p>
-                <button class="button button-primary" id="dfx-tg-webhook-register-btn" <?php echo empty($bot_token) ? 'disabled' : ''; ?>><?php _e('Register Webhook', 'dfx-tg-feed'); ?></button>
-                <button class="button" id="dfx-tg-webhook-unregister-btn" <?php echo empty($bot_token) ? 'disabled' : ''; ?>><?php _e('Unregister Webhook', 'dfx-tg-feed'); ?></button>
-            </p>
-            <div id="dfx-tg-webhook-result"></div>
+            <div id="dfx-tg-webhook-section" style="<?php echo $update_mode !== 'webhook' ? 'display:none;' : ''; ?>">
+                <hr />
+                <h3><?php _e('Webhook Configuration', 'dfx-tg-feed'); ?></h3>
+                <p><?php _e('Webhooks allow Telegram to send messages to your site in real-time, instead of polling. This is more efficient and provides instant updates.', 'dfx-tg-feed'); ?></p>
+                
+                <table class="form-table">
+                    <tr>
+                        <th><?php _e('Webhook Secret Token', 'dfx-tg-feed'); ?></th>
+                        <td>
+                            <input type="text" name="dfx_tg_feed_webhook_secret" value="<?php echo esc_attr($webhook_secret); ?>" size="50" autocomplete="off" form="dfx-tg-webhook-secret-form"/>
+                            <p class="description"><?php _e('This secret token is used to verify incoming webhook requests from Telegram.', 'dfx-tg-feed'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php _e('Your Webhook URL', 'dfx-tg-feed'); ?></th>
+                        <td>
+                            <code id="dfx-tg-webhook-url"><?php echo esc_url($webhook_url); ?></code>
+                            <p class="description"><?php _e('This is the URL that Telegram will send updates to.', 'dfx-tg-feed'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php _e('Webhook Status', 'dfx-tg-feed'); ?></th>
+                        <td>
+                            <span id="dfx-tg-webhook-status"><?php _e('Checking...', 'dfx-tg-feed'); ?></span>
+                        </td>
+                    </tr>
+                </table>
+                
+                <p>
+                    <button class="button button-primary" id="dfx-tg-webhook-register-btn" <?php echo empty($bot_token) ? 'disabled' : ''; ?>><?php _e('Register Webhook', 'dfx-tg-feed'); ?></button>
+                    <button class="button" id="dfx-tg-webhook-unregister-btn" <?php echo empty($bot_token) ? 'disabled' : ''; ?>><?php _e('Unregister Webhook', 'dfx-tg-feed'); ?></button>
+                </p>
+                <div id="dfx-tg-webhook-result"></div>
+            </div>
 
             <hr />
             <h3><?php _e('Test your configuration', 'dfx-tg-feed'); ?></h3>
@@ -114,6 +131,19 @@ class Settings {
 
             <script>
             (function() {
+                // Toggle webhook section visibility based on update mode
+                var updateModeSelect = document.getElementById('dfx_tg_feed_update_mode');
+                var webhookSection = document.getElementById('dfx-tg-webhook-section');
+                
+                updateModeSelect.addEventListener('change', function() {
+                    if (this.value === 'webhook') {
+                        webhookSection.style.display = '';
+                        checkWebhookStatus();
+                    } else {
+                        webhookSection.style.display = 'none';
+                    }
+                });
+                
                 // Webhook status check
                 function checkWebhookStatus() {
                     fetch(ajaxurl + '?action=dfx_tg_feed_webhook_status&_wpnonce=<?php echo wp_create_nonce('dfx_tg_feed_webhook'); ?>')
@@ -144,10 +174,10 @@ class Settings {
                         });
                 }
                 
-                // Check status on page load
-                <?php if (!empty($bot_token)): ?>
+                // Check status on page load if webhook mode is selected
+                <?php if (!empty($bot_token) && $update_mode === 'webhook'): ?>
                 checkWebhookStatus();
-                <?php else: ?>
+                <?php elseif ($update_mode === 'webhook'): ?>
                 document.getElementById('dfx-tg-webhook-status').innerHTML = '<span style="color:gray;"><?php _e('Please configure your bot token first', 'dfx-tg-feed'); ?></span>';
                 <?php endif; ?>
                 
