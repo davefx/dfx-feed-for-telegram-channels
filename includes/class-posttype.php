@@ -543,9 +543,11 @@ class PostType {
             update_post_meta($post_id, '_tg_author', $message_data['author']);
         }
         
-        // Mark as edited
+        // Mark as edited and store the actual edit timestamp from Telegram
         update_post_meta($post_id, '_tg_edited', true);
-        update_post_meta($post_id, '_tg_edit_date', $message_data['date']);
+        // Use edit_date if provided (Telegram's actual edit timestamp), otherwise fall back to date
+        $edit_timestamp = $message_data['edit_date'] ?? $message_data['date'] ?? time();
+        update_post_meta($post_id, '_tg_edit_date', $edit_timestamp);
         
         return $post_id;
     }

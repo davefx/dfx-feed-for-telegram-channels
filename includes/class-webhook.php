@@ -109,18 +109,9 @@ class Webhook {
             return;
         }
         
-        // Handle deleted messages first
-        if (!empty($update['deleted_business_messages'])) {
-            $this->process_deleted_messages($update['deleted_business_messages']);
-            return;
-        }
-        
-        // Handle channel message deletion (Telegram Bot API 7.0+)
-        if (!empty($update['chat_member']) && isset($update['chat_member']['old_chat_member'])) {
-            // This can indicate member changes, not message deletions
-            // Deletions in channels are handled differently
-            return;
-        }
+        // Note: Message deletion notifications are only available for Telegram Business accounts
+        // (deleted_business_messages). Standard bots do not receive deletion updates.
+        // The plugin handles deletions via manual sync/refresh functionality instead.
         
         $msg = null;
         $channel_identifier = null;
@@ -255,6 +246,7 @@ class Webhook {
         return [
             'id' => $msg['message_id'],
             'date' => $msg['date'],
+            'edit_date' => $msg['edit_date'] ?? null, // Telegram provides this for edited messages
             'text' => $text,
             'entities' => $entities,
             'media' => $media,
@@ -369,13 +361,11 @@ class Webhook {
             // - edited_message: edited regular messages
             // - channel_post: channel messages
             // - edited_channel_post: edited channel messages
-            // - deleted_business_messages: deleted messages (Bot API 7.0+)
             'allowed_updates' => [
                 'message',
                 'edited_message',
                 'channel_post',
                 'edited_channel_post',
-                'deleted_business_messages',
             ],
         ];
         
