@@ -491,6 +491,112 @@ class PostType {
     }
     
     /**
+     * Update an existing message in the database (for edited messages)
+     * 
+     * @param string $channel Channel identifier
+     * @param array $message_data Message data from Telegram
+     * @return int|false Post ID on success, false on failure
+     */
+    public function update_message($channel, $message_data) {
+        // Find existing message
+        $existing = get_posts([
+            'post_type' => 'dfx_tg_message',
+            'meta_query' => [
+                'relation' => 'AND',
+                [
+                    'key' => '_tg_channel',
+                    'value' => $channel,
+                ],
+                [
+                    'key' => '_tg_message_id',
+                    'value' => $message_data['id'],
+                ],
+            ],
+            'posts_per_page' => 1,
+        ]);
+        
+        // If message doesn't exist, create it
+        if (empty($existing)) {
+            return $this->store_message($channel, $message_data);
+        }
+        
+        $post_id = $existing[0]->ID;
+        
+        // Update post content
+        $text_preview = mb_substr($message_data['text'] ?? '', 0, 100);
+        if (strlen($message_data['text'] ?? '') > 100) $text_preview .= '...';
+        
+        wp_update_post([
+            'ID' => $post_id,
+            'post_title' => $text_preview ?: __('(No text)', 'dfx-tg-feed'),
+            'post_content' => $message_data['text'] ?? '',
+        ]);
+        
+        // Update meta fields
+        if (!empty($message_data['media'])) {
+            update_post_meta($post_id, '_tg_media', $message_data['media']);
+        }
+        if (!empty($message_data['entities'])) {
+            update_post_meta($post_id, '_tg_entities', $message_data['entities']);
+        }
+        if (!empty($message_data['author'])) {
+            update_post_meta($post_id, '_tg_author', $message_data['author']);
+        }
+        
+        // Mark as edited
+        update_post_meta($post_id, '_tg_edited', true);
+        update_post_meta($post_id, '_tg_edit_date', $message_data['date']);
+        
+        return $post_id;
+    }
+    
+    /**
+     * Delete a message from the database (move to trash)
+     * 
+     * @param string $channel Channel identifier
+     * @param int $message_id Telegram message ID
+     * @return bool True on success, false on failure
+     */
+    public function delete_message($channel, $message_id) {
+        // Find existing message
+        $existing = get_posts([
+            'post_type' => 'dfx_tg_message',
+            'meta_query' => [
+                'relation' => 'AND',
+                [
+                    'key' => '_tg_channel',
+                    'value' => $channel,
+                ],
+                [
+                    'key' => '_tg_message_id',
+                    'value' => $message_id,
+                ],
+            ],
+            'posts_per_page' => 1,
+        ]);
+        
+        if (empty($existing)) {
+            return false;
+        }
+        
+        $post_id = $existing[0]->ID;
+        
+        // Move to trash (allows recovery if needed)
+        $result = wp_trash_post($post_id);
+        
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log(sprintf(
+                'DFX Telegram Feed: Message %d from channel %s deleted (post ID: %d)',
+                $message_id,
+                $channel,
+                $post_id
+            ));
+        }
+        
+        return $result !== false;
+    }
+    
+    /**
      * Get messages from database
      */
     public function get_messages($channel, $limit = 10) {

@@ -13,11 +13,21 @@ class Settings {
         register_setting('dfx_tg_feed', 'dfx_tg_feed_bot_token');
         register_setting('dfx_tg_feed', 'dfx_tg_feed_default_count');
         register_setting('dfx_tg_feed', 'dfx_tg_feed_channel');
+        register_setting('dfx_tg_feed', 'dfx_tg_feed_webhook_secret');
     }
 
     public function render_page() {
         $bot_token = esc_attr(get_option('dfx_tg_feed_bot_token', ''));
         $channel = esc_attr(get_option('dfx_tg_feed_channel', ''));
+        $webhook_secret = get_option('dfx_tg_feed_webhook_secret', '');
+        
+        // Generate a new secret if not set
+        if (empty($webhook_secret)) {
+            $webhook_secret = wp_generate_password(32, false);
+            update_option('dfx_tg_feed_webhook_secret', $webhook_secret);
+        }
+        
+        $webhook_url = Webhook::get_webhook_url();
         ?>
         <div class="wrap">
             <h1><?php _e('DFX Telegram Channel Feed', 'dfx-tg-feed'); ?></h1>
@@ -28,6 +38,7 @@ class Settings {
                 <li>Send <code>/newbot</code>, follow instructions, and copy your bot token.</li>
                 <li>Paste the bot token below and click "Save Settings".</li>
                 <li>Add your bot as an <strong>admin</strong> to each Telegram channel you want to display (channel &rarr; Administrators &rarr; Add Admin &rarr; [YOUR BOT USERNAME]).</li>
+                <li><strong>Register the webhook</strong> below to receive real-time updates from Telegram.</li>
                 <li>Use any channel with your bot by specifying the channel username in the shortcode or block (e.g., <code>[dfx_tg_channel_feed channel="@yourchannel"]</code>).</li>
             </ol>
 
@@ -49,9 +60,42 @@ class Settings {
                         <th><?php _e('Default Message Count', 'dfx-tg-feed'); ?></th>
                         <td><input type="number" name="dfx_tg_feed_default_count" value="<?php echo esc_attr(get_option('dfx_tg_feed_default_count', 10)); ?>" min="1" max="100"/></td>
                     </tr>
+                    <tr>
+                        <th><?php _e('Webhook Secret Token', 'dfx-tg-feed'); ?></th>
+                        <td>
+                            <input type="text" name="dfx_tg_feed_webhook_secret" value="<?php echo esc_attr($webhook_secret); ?>" size="50" autocomplete="off"/>
+                            <p class="description"><?php _e('This secret token is used to verify incoming webhook requests from Telegram.', 'dfx-tg-feed'); ?></p>
+                        </td>
+                    </tr>
                 </table>
                 <?php submit_button(__('Save Settings', 'dfx-tg-feed')); ?>
             </form>
+
+            <hr />
+            <h3><?php _e('Webhook Configuration', 'dfx-tg-feed'); ?></h3>
+            <p><?php _e('Webhooks allow Telegram to send messages to your site in real-time, instead of polling. This is more efficient and provides instant updates.', 'dfx-tg-feed'); ?></p>
+            
+            <table class="form-table">
+                <tr>
+                    <th><?php _e('Your Webhook URL', 'dfx-tg-feed'); ?></th>
+                    <td>
+                        <code id="dfx-tg-webhook-url"><?php echo esc_url($webhook_url); ?></code>
+                        <p class="description"><?php _e('This is the URL that Telegram will send updates to.', 'dfx-tg-feed'); ?></p>
+                    </td>
+                </tr>
+                <tr>
+                    <th><?php _e('Webhook Status', 'dfx-tg-feed'); ?></th>
+                    <td>
+                        <span id="dfx-tg-webhook-status"><?php _e('Checking...', 'dfx-tg-feed'); ?></span>
+                    </td>
+                </tr>
+            </table>
+            
+            <p>
+                <button class="button button-primary" id="dfx-tg-webhook-register-btn" <?php echo empty($bot_token) ? 'disabled' : ''; ?>><?php _e('Register Webhook', 'dfx-tg-feed'); ?></button>
+                <button class="button" id="dfx-tg-webhook-unregister-btn" <?php echo empty($bot_token) ? 'disabled' : ''; ?>><?php _e('Unregister Webhook', 'dfx-tg-feed'); ?></button>
+            </p>
+            <div id="dfx-tg-webhook-result"></div>
 
             <hr />
             <h3><?php _e('Test your configuration', 'dfx-tg-feed'); ?></h3>
@@ -69,43 +113,136 @@ class Settings {
             <div id="dfx-tg-feed-reload-result"></div>
 
             <script>
-            document.getElementById('dfx-tg-feed-test-btn').addEventListener('click', function(e){
-                e.preventDefault();
-                document.getElementById('dfx-tg-feed-test-result').textContent = 'Testing...';
-                fetch(ajaxurl + '?action=dfx_tg_feed_test')
-                  .then(r=>r.json())
-                  .then(resp=>{
-                    document.getElementById('dfx-tg-feed-test-result').innerHTML = resp.success ? '<span style="color:green">'+resp.data+'</span>' : '<span style="color:red">'+resp.data+'</span>';
-                  });
-            });
-
-            document.getElementById('dfx-tg-feed-reload-form').addEventListener('submit', function(e){
-                e.preventDefault();
-                let resultDiv = document.getElementById('dfx-tg-feed-reload-result');
-                let btn = document.getElementById('dfx-tg-feed-reload-btn');
-                btn.disabled = true;
-                resultDiv.innerHTML = '<span style="color:blue;">Reloading messages... This may take a moment.</span>';
+            (function() {
+                // Webhook status check
+                function checkWebhookStatus() {
+                    fetch(ajaxurl + '?action=dfx_tg_feed_webhook_status&_wpnonce=<?php echo wp_create_nonce('dfx_tg_feed_webhook'); ?>')
+                        .then(r => r.json())
+                        .then(resp => {
+                            let statusEl = document.getElementById('dfx-tg-webhook-status');
+                            if (resp.success && resp.data.info) {
+                                let info = resp.data.info;
+                                if (info.url) {
+                                    let ourUrl = document.getElementById('dfx-tg-webhook-url').textContent;
+                                    if (info.url === ourUrl) {
+                                        statusEl.innerHTML = '<span style="color:green;">✓ <?php _e('Webhook is active and pointing to this site', 'dfx-tg-feed'); ?></span>';
+                                    } else {
+                                        statusEl.innerHTML = '<span style="color:orange;">⚠ <?php _e('Webhook is set to a different URL:', 'dfx-tg-feed'); ?> ' + info.url + '</span>';
+                                    }
+                                    if (info.last_error_message) {
+                                        statusEl.innerHTML += '<br><span style="color:red;"><?php _e('Last error:', 'dfx-tg-feed'); ?> ' + info.last_error_message + '</span>';
+                                    }
+                                } else {
+                                    statusEl.innerHTML = '<span style="color:gray;">○ <?php _e('No webhook configured', 'dfx-tg-feed'); ?></span>';
+                                }
+                            } else {
+                                statusEl.innerHTML = '<span style="color:red;">✗ <?php _e('Unable to check status', 'dfx-tg-feed'); ?></span>';
+                            }
+                        })
+                        .catch(() => {
+                            document.getElementById('dfx-tg-webhook-status').innerHTML = '<span style="color:red;">✗ <?php _e('Error checking status', 'dfx-tg-feed'); ?></span>';
+                        });
+                }
                 
-                let data = new FormData(this);
-                data.append('action', 'dfx_tg_feed_reload');
+                // Check status on page load
+                <?php if (!empty($bot_token)): ?>
+                checkWebhookStatus();
+                <?php else: ?>
+                document.getElementById('dfx-tg-webhook-status').innerHTML = '<span style="color:gray;"><?php _e('Please configure your bot token first', 'dfx-tg-feed'); ?></span>';
+                <?php endif; ?>
                 
-                fetch(ajaxurl, { method: "POST", body: data })
-                .then(r=>r.json())
-                .then(resp=>{
-                    btn.disabled = false;
-                    resultDiv.innerHTML = resp.success ? '<span style="color:green;">'+resp.data+'</span>' : '<span style="color:red;">Failed: '+resp.data+'</span>';
-                })
-                .catch(err => {
-                    btn.disabled = false;
-                    resultDiv.innerHTML = '<span style="color:red;">Error: '+err.message+'</span>';
+                // Register webhook
+                document.getElementById('dfx-tg-webhook-register-btn').addEventListener('click', function(e) {
+                    e.preventDefault();
+                    let btn = this;
+                    let resultDiv = document.getElementById('dfx-tg-webhook-result');
+                    btn.disabled = true;
+                    resultDiv.innerHTML = '<span style="color:blue;"><?php _e('Registering webhook...', 'dfx-tg-feed'); ?></span>';
+                    
+                    fetch(ajaxurl + '?action=dfx_tg_feed_webhook_register&_wpnonce=<?php echo wp_create_nonce('dfx_tg_feed_webhook'); ?>')
+                        .then(r => r.json())
+                        .then(resp => {
+                            btn.disabled = false;
+                            if (resp.success) {
+                                resultDiv.innerHTML = '<span style="color:green;">✓ ' + resp.data + '</span>';
+                                checkWebhookStatus();
+                            } else {
+                                resultDiv.innerHTML = '<span style="color:red;">✗ ' + resp.data + '</span>';
+                            }
+                        })
+                        .catch(err => {
+                            btn.disabled = false;
+                            resultDiv.innerHTML = '<span style="color:red;">✗ <?php _e('Error:', 'dfx-tg-feed'); ?> ' + err.message + '</span>';
+                        });
                 });
-            });
+                
+                // Unregister webhook
+                document.getElementById('dfx-tg-webhook-unregister-btn').addEventListener('click', function(e) {
+                    e.preventDefault();
+                    let btn = this;
+                    let resultDiv = document.getElementById('dfx-tg-webhook-result');
+                    btn.disabled = true;
+                    resultDiv.innerHTML = '<span style="color:blue;"><?php _e('Removing webhook...', 'dfx-tg-feed'); ?></span>';
+                    
+                    fetch(ajaxurl + '?action=dfx_tg_feed_webhook_unregister&_wpnonce=<?php echo wp_create_nonce('dfx_tg_feed_webhook'); ?>')
+                        .then(r => r.json())
+                        .then(resp => {
+                            btn.disabled = false;
+                            if (resp.success) {
+                                resultDiv.innerHTML = '<span style="color:green;">✓ ' + resp.data + '</span>';
+                                checkWebhookStatus();
+                            } else {
+                                resultDiv.innerHTML = '<span style="color:red;">✗ ' + resp.data + '</span>';
+                            }
+                        })
+                        .catch(err => {
+                            btn.disabled = false;
+                            resultDiv.innerHTML = '<span style="color:red;">✗ <?php _e('Error:', 'dfx-tg-feed'); ?> ' + err.message + '</span>';
+                        });
+                });
+                
+                // Test connection
+                document.getElementById('dfx-tg-feed-test-btn').addEventListener('click', function(e){
+                    e.preventDefault();
+                    document.getElementById('dfx-tg-feed-test-result').textContent = '<?php _e('Testing...', 'dfx-tg-feed'); ?>';
+                    fetch(ajaxurl + '?action=dfx_tg_feed_test')
+                      .then(r=>r.json())
+                      .then(resp=>{
+                        document.getElementById('dfx-tg-feed-test-result').innerHTML = resp.success ? '<span style="color:green">'+resp.data+'</span>' : '<span style="color:red">'+resp.data+'</span>';
+                      });
+                });
+
+                // Reload messages
+                document.getElementById('dfx-tg-feed-reload-form').addEventListener('submit', function(e){
+                    e.preventDefault();
+                    let resultDiv = document.getElementById('dfx-tg-feed-reload-result');
+                    let btn = document.getElementById('dfx-tg-feed-reload-btn');
+                    btn.disabled = true;
+                    resultDiv.innerHTML = '<span style="color:blue;"><?php _e('Reloading messages... This may take a moment.', 'dfx-tg-feed'); ?></span>';
+                    
+                    let data = new FormData(this);
+                    data.append('action', 'dfx_tg_feed_reload');
+                    
+                    fetch(ajaxurl, { method: "POST", body: data })
+                    .then(r=>r.json())
+                    .then(resp=>{
+                        btn.disabled = false;
+                        resultDiv.innerHTML = resp.success ? '<span style="color:green;">'+resp.data+'</span>' : '<span style="color:red;"><?php _e('Failed:', 'dfx-tg-feed'); ?> '+resp.data+'</span>';
+                    })
+                    .catch(err => {
+                        btn.disabled = false;
+                        resultDiv.innerHTML = '<span style="color:red;"><?php _e('Error:', 'dfx-tg-feed'); ?> '+err.message+'</span>';
+                    });
+                });
+            })();
             </script>
             <hr>
-            <h4>Troubleshooting</h4>
+            <h4><?php _e('Troubleshooting', 'dfx-tg-feed'); ?></h4>
             <ul>
-                <li>If test fails, check your bot token and ensure the bot is an admin/member in your channel.</li>
-                <li>The Telegram Bot API will only receive messages that happen after your bot joins the channel (no access to full history before that point).</li>
+                <li><?php _e('If test fails, check your bot token and ensure the bot is an admin/member in your channel.', 'dfx-tg-feed'); ?></li>
+                <li><?php _e('The Telegram Bot API will only receive messages that happen after your bot joins the channel (no access to full history before that point).', 'dfx-tg-feed'); ?></li>
+                <li><?php _e('Make sure your site is accessible via HTTPS for the webhook to work.', 'dfx-tg-feed'); ?></li>
+                <li><?php _e('If the webhook shows errors, try unregistering and re-registering it.', 'dfx-tg-feed'); ?></li>
             </ul>
         </div>
         <?php
@@ -161,28 +298,32 @@ class Settings {
             }
         }
         
-        // Fetch and count accessible messages
-        $messages = API::instance()->fetch_channel_messages($channel, 100);
-        $message_count = count($messages);
-        
-        if ($message_count > 0) {
-            $results[] = '<strong>✓ Accessible Messages:</strong> ' . $message_count . ' message(s) currently available';
-            
-            // Show info about the most recent message
-            if (isset($messages[0])) {
-                $latest = $messages[0];
-                $date = date('Y-m-d H:i:s', $latest['date']);
-                $preview = mb_substr($latest['text'] ?? '', 0, 50);
-                if (strlen($latest['text'] ?? '') > 50) $preview .= '...';
-                $results[] = '<strong>Latest Message:</strong> ' . esc_html($date) . ' - "' . esc_html($preview) . '"';
-            }
+        // Check webhook status
+        $webhook_info = Webhook::get_webhook_info($bot_token);
+        if ($webhook_info['success'] && !empty($webhook_info['info']['url'])) {
+            $results[] = '<strong>✓ Webhook Active:</strong> Messages will be received in real-time';
         } else {
-            $results[] = '<strong>⚠ No Messages:</strong> No messages currently accessible. Make sure:
-                <ul style="margin-top:5px;">
-                    <li>The bot was added to the channel</li>
-                    <li>Messages have been posted AFTER the bot was added</li>
-                    <li>The bot has the necessary permissions</li>
-                </ul>';
+            $results[] = '<strong>⚠ No Webhook:</strong> Register a webhook for real-time updates, or messages will be fetched on page load';
+        }
+        
+        // Check stored messages count
+        $stored_messages = get_posts([
+            'post_type' => 'dfx_tg_message',
+            'posts_per_page' => -1,
+            'meta_query' => [
+                [
+                    'key' => '_tg_channel',
+                    'value' => $channel,
+                ],
+            ],
+            'fields' => 'ids',
+        ]);
+        $stored_count = count($stored_messages);
+        
+        if ($stored_count > 0) {
+            $results[] = '<strong>✓ Stored Messages:</strong> ' . $stored_count . ' message(s) in database for this channel';
+        } else {
+            $results[] = '<strong>⚠ No Stored Messages:</strong> No messages stored yet. Post a message to the channel to test.';
         }
         
         wp_send_json_success(implode('<br>', $results));
@@ -246,5 +387,75 @@ class Settings {
             $new_count,
             $updated_count
         ));
+    }
+    
+    /**
+     * AJAX handler to register webhook with Telegram
+     */
+    public function ajax_webhook_register() {
+        check_ajax_referer('dfx_tg_feed_webhook');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(__('Permission denied.', 'dfx-tg-feed'));
+        }
+        
+        $bot_token = get_option('dfx_tg_feed_bot_token', '');
+        if (empty($bot_token)) {
+            wp_send_json_error(__('Bot token not configured.', 'dfx-tg-feed'));
+        }
+        
+        $secret_token = get_option('dfx_tg_feed_webhook_secret', '');
+        
+        $result = Webhook::register_webhook($bot_token, $secret_token);
+        
+        if ($result['success']) {
+            wp_send_json_success($result['message']);
+        } else {
+            wp_send_json_error($result['message']);
+        }
+    }
+    
+    /**
+     * AJAX handler to unregister webhook from Telegram
+     */
+    public function ajax_webhook_unregister() {
+        check_ajax_referer('dfx_tg_feed_webhook');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(__('Permission denied.', 'dfx-tg-feed'));
+        }
+        
+        $bot_token = get_option('dfx_tg_feed_bot_token', '');
+        if (empty($bot_token)) {
+            wp_send_json_error(__('Bot token not configured.', 'dfx-tg-feed'));
+        }
+        
+        $result = Webhook::unregister_webhook($bot_token);
+        
+        if ($result['success']) {
+            wp_send_json_success($result['message']);
+        } else {
+            wp_send_json_error($result['message']);
+        }
+    }
+    
+    /**
+     * AJAX handler to get webhook status
+     */
+    public function ajax_webhook_status() {
+        check_ajax_referer('dfx_tg_feed_webhook');
+        
+        $bot_token = get_option('dfx_tg_feed_bot_token', '');
+        if (empty($bot_token)) {
+            wp_send_json_error(__('Bot token not configured.', 'dfx-tg-feed'));
+        }
+        
+        $result = Webhook::get_webhook_info($bot_token);
+        
+        if ($result['success']) {
+            wp_send_json_success($result);
+        } else {
+            wp_send_json_error($result['message']);
+        }
     }
 }
