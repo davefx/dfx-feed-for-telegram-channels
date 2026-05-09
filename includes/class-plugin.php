@@ -11,6 +11,12 @@ final class Plugin {
     /** @var string Menu slug for the top-level admin menu */
     const MENU_SLUG = 'dfxtgfeed-messages';
 
+    /** @var string Cron hook name for the periodic background refresh */
+    const CRON_HOOK = 'dfxtgfeed_cron_refresh';
+
+    /** @var string Custom cron schedule slug */
+    const CRON_SCHEDULE = 'dfxtgfeed_two_minutes';
+
     /** Return the singleton instance */
     public static function instance() {
         if ( self::$instance === null ) {
@@ -48,6 +54,13 @@ final class Plugin {
         add_action('wp_ajax_dfxtgfeed_proxy_media', [$this, 'ajax_proxy_media']);
         add_action('wp_ajax_nopriv_dfxtgfeed_proxy_media', [$this, 'ajax_proxy_media']);
 
+        // Background refresh: a 2-minute WP-cron job that walks every channel
+        // we have stored data for and pulls new updates. Self-heals on each
+        // request via wp_schedule_event() being idempotent.
+        add_filter('cron_schedules',           [$this, 'register_cron_schedule']);
+        add_action('init',                     [$this, 'schedule_background_refresh']);
+        add_action(self::CRON_HOOK,            [$this, 'cron_refresh_callback']);
+
         // Migrate v1.0.0 prefixes and scrub legacy token-bearing media URLs.
         $this->maybe_run_db_migration();
     }
@@ -65,6 +78,77 @@ final class Plugin {
             'file_id' => $file_id,
             'nonce'   => wp_create_nonce('dfxtgfeed_media_proxy'),
         ], admin_url('admin-ajax.php'));
+    }
+
+    /**
+     * Register a 2-minute custom cron schedule. WP doesn't ship with anything
+     * shorter than "hourly", so we add our own.
+     */
+    public function register_cron_schedule($schedules) {
+        if (!isset($schedules[self::CRON_SCHEDULE])) {
+            $schedules[self::CRON_SCHEDULE] = [
+                'interval' => 2 * MINUTE_IN_SECONDS,
+                'display'  => __('Every 2 minutes (DFX Telegram Channel Feed)', 'dfxtgfeed'),
+            ];
+        }
+        return $schedules;
+    }
+
+    /**
+     * Self-heal: ensure the cron event is scheduled. wp_schedule_event() is a
+     * no-op if the hook is already scheduled, so calling this on every init
+     * is safe and recovers from a deleted cron entry.
+     */
+    public function schedule_background_refresh() {
+        if (!wp_next_scheduled(self::CRON_HOOK)) {
+            // Stagger first run by a minute to avoid piling onto activation traffic.
+            wp_schedule_event(time() + MINUTE_IN_SECONDS, self::CRON_SCHEDULE, self::CRON_HOOK);
+        }
+    }
+
+    /**
+     * Cron callback. Walks every channel we have stored messages for and
+     * pulls fresh updates via the existing PostType::refresh_messages path.
+     *
+     * Caveats:
+     *   - WP-cron only fires when traffic hits the site. On low-traffic sites,
+     *     configure a real system cron pinging wp-cron.php for reliable
+     *     execution. The on-demand refresh in Shortcodes is the fallback.
+     *   - Reuses the same `dfxtgfeed_refreshing_<channel>` lock that the
+     *     on-demand path uses, so concurrent runs collapse to one.
+     */
+    public function cron_refresh_callback() {
+        if (!get_option('dfxtgfeed_bot_token')) {
+            return;
+        }
+
+        global $wpdb;
+        $channels = $wpdb->get_col(
+            "SELECT DISTINCT meta_value FROM {$wpdb->postmeta}
+             WHERE meta_key = '_dfxtgfeed_channel' AND meta_value != ''"
+        );
+        if (empty($channels)) {
+            return;
+        }
+
+        $limit = max(10, (int) get_option('dfxtgfeed_default_count', 10));
+        foreach ($channels as $channel) {
+            $channel_safe = sanitize_key($channel);
+            if (get_transient("dfxtgfeed_refreshing_{$channel_safe}")) {
+                continue;
+            }
+            set_transient("dfxtgfeed_refreshing_{$channel_safe}", true, MINUTE_IN_SECONDS);
+            try {
+                PostType::instance()->refresh_messages($channel, $limit);
+                set_transient("dfxtgfeed_last_sync_{$channel_safe}", time(), HOUR_IN_SECONDS);
+            } catch (\Throwable $e) {
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('DFX TG Feed cron refresh failed for ' . $channel . ': ' . $e->getMessage());
+                }
+            } finally {
+                delete_transient("dfxtgfeed_refreshing_{$channel_safe}");
+            }
+        }
     }
 
     public function register_shortcodes() {

@@ -29,6 +29,7 @@ Messages are cached locally for configurable time to minimize traffic and API us
 == Behaviour and known limitations ==
 
 * **Bot-only access.** Messages are fetched via the Telegram Bot API, which only sees posts that arrived in the channel after the bot was added. There is no access to historical messages from before that point.
+* **Background refresh every 2 minutes.** The plugin schedules a WP-cron task that pulls fresh updates from Telegram for every channel you have stored data for. This keeps the local feed within ~2 minutes of the live channel without any manual action. Note that WP-cron only fires when traffic hits your site — on low-traffic installations you may want to disable WP-cron and trigger `wp-cron.php` from a real system cron job for reliable execution. The on-demand refresh on frontend visits is also kept as a fallback.
 * **Edits sync automatically.** When a message is edited in Telegram, the local copy is updated on the next refresh and a small "(edited)" marker is shown next to the date.
 * **Deletions are not syncable automatically.** The Telegram Bot API does not notify bots about channel message deletions — there is no `deleted_channel_post` update type. There are two ways to remove a message that has been deleted in Telegram from the local feed:
   * **Per-message "Move to Trash"** in the admin row actions. Trashed messages are sticky: refresh will not bring them back.

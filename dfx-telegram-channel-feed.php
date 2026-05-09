@@ -26,7 +26,8 @@ register_activation_hook( __FILE__, function() {
     flush_rewrite_rules();
 } );
 
-// Flush rewrite rules on plugin deactivation
+// Plugin deactivation: clear scheduled cron event and flush rewrite rules.
 register_deactivation_hook( __FILE__, function() {
+    wp_clear_scheduled_hook( \DFXTgFeed\Plugin::CRON_HOOK );
     flush_rewrite_rules();
 } );
