@@ -30,7 +30,9 @@ Messages are cached locally for configurable time to minimize traffic and API us
 
 * **Bot-only access.** Messages are fetched via the Telegram Bot API, which only sees posts that arrived in the channel after the bot was added. There is no access to historical messages from before that point.
 * **Edits sync automatically.** When a message is edited in Telegram, the local copy is updated on the next refresh and a small "(edited)" marker is shown next to the date.
-* **Deletions are not syncable.** The Telegram Bot API does not notify bots about channel message deletions — there is no `deleted_channel_post` update type. To remove a message from your site after it has been deleted in Telegram, use the per-row "Move to Trash" action in the Telegram Messages admin list. Trashed messages are sticky: refresh will not bring them back.
+* **Deletions are not syncable automatically.** The Telegram Bot API does not notify bots about channel message deletions — there is no `deleted_channel_post` update type. There are two ways to remove a message that has been deleted in Telegram from the local feed:
+  * **Per-message "Move to Trash"** in the admin row actions. Trashed messages are sticky: refresh will not bring them back.
+  * **"Sync Deletions" button** (public channels only). Located next to "Refresh Messages" in the admin list, this scrapes the public channel preview at `t.me/s/<channel>`, compares against locally stored messages within the preview's visible window, and offers to trash any that no longer appear. You confirm before anything is moved to Trash. Private channels have no public preview, so this option errors out for them.
 * **Hide vs. Trash.** Use **Hide** to keep a message in the database but suppress it on the frontend (reversible via "Unhide"). Use **Move to Trash** for a permanent local removal.
 
 == Changelog ==

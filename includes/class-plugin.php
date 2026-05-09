@@ -41,6 +41,8 @@ final class Plugin {
         add_action('wp_ajax_dfxtgfeed_test', [Settings::instance(), 'ajax_test_bot_channel']);
         add_action('wp_ajax_dfxtgfeed_reload', [Settings::instance(), 'ajax_reload_messages']);
         add_action('wp_ajax_dfxtgfeed_refresh', [PostType::instance(), 'ajax_refresh_messages']);
+        add_action('wp_ajax_dfxtgfeed_check_deletions', [PostType::instance(), 'ajax_check_deletions']);
+        add_action('wp_ajax_dfxtgfeed_trash_deletion_candidates', [PostType::instance(), 'ajax_trash_deletion_candidates']);
         add_action('wp_ajax_dfxtgfeed_proxy_sticker', [$this, 'ajax_proxy_sticker']);
         add_action('wp_ajax_nopriv_dfxtgfeed_proxy_sticker', [$this, 'ajax_proxy_sticker']);
         add_action('wp_ajax_dfxtgfeed_proxy_media', [$this, 'ajax_proxy_media']);
