@@ -37,17 +37,22 @@ class API {
         
         if (isset($body['ok']) && $body['ok']) {
             foreach (array_reverse($body['result']) as $update) {
+                // Recognize both new and edited channel/regular messages.
+                // edited_* updates carry the full new payload + an edit_date,
+                // so we treat them like channel_post and let store_message
+                // update the existing post in place.
                 $msg = null;
                 $chat_identifier = null;
-                
-                // Check for channel_post (channel messages)
                 if (!empty($update['channel_post'])) {
                     $msg = $update['channel_post'];
-                    $chat_identifier = $msg['chat']['username'] ?? $msg['chat']['id'] ?? null;
-                }
-                // Check for regular message (if bot receives direct messages)
-                elseif (!empty($update['message']) && isset($update['message']['chat'])) {
+                } elseif (!empty($update['edited_channel_post'])) {
+                    $msg = $update['edited_channel_post'];
+                } elseif (!empty($update['message']) && isset($update['message']['chat'])) {
                     $msg = $update['message'];
+                } elseif (!empty($update['edited_message']) && isset($update['edited_message']['chat'])) {
+                    $msg = $update['edited_message'];
+                }
+                if ($msg) {
                     $chat_identifier = $msg['chat']['username'] ?? $msg['chat']['id'] ?? null;
                 }
                 
@@ -126,19 +131,20 @@ class API {
                         }
 
                         $message_data = [
-                            'id'      => $msg['message_id'],
-                            'date'    => $msg['date'],
-                            'text'    => $text,
-                            'entities' => $entities,
+                            'id'        => $msg['message_id'],
+                            'date'      => $msg['date'],
+                            'edit_date' => $msg['edit_date'] ?? null,
+                            'text'      => $text,
+                            'entities'  => $entities,
                             // 'media' is a presence flag now ('1' or null), not a URL.
                             // Templates render a proxy URL built from 'file_id'.
-                            'media'   => !empty($media_file_id) ? '1' : null,
-                            'sticker' => isset($msg['sticker']),
+                            'media'     => !empty($media_file_id) ? '1' : null,
+                            'sticker'   => isset($msg['sticker']),
                             'sticker_type' => $sticker_type,
-                            'emoji'   => $msg['sticker']['emoji'] ?? null,
-                            'file_id' => $media_file_id,
-                            'author'  => $author,
-                            'deleted' => false
+                            'emoji'     => $msg['sticker']['emoji'] ?? null,
+                            'file_id'   => $media_file_id,
+                            'author'    => $author,
+                            'deleted'   => false,
                         ];
                         
                         $messages[] = $message_data;

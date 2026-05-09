@@ -24,12 +24,15 @@ if (!defined('ABSPATH')) exit;
             <!-- 1. Date (first) -->
             <div class="dfxtgfeed-meta">
                 <time class="dfxtgfeed-date" datetime="<?php echo esc_attr(date('c', $msg['date'])); ?>">
-                    <?php 
+                    <?php
                     // Convert UTC timestamp to local timezone
                     $local_timestamp = get_date_from_gmt(date('Y-m-d H:i:s', $msg['date']), 'U');
-                    echo esc_html(wp_date(get_option('date_format') . ' ' . get_option('time_format'), $local_timestamp)); 
+                    echo esc_html(wp_date(get_option('date_format') . ' ' . get_option('time_format'), $local_timestamp));
                     ?>
                 </time>
+                <?php if (!empty($msg['edit_date'])): ?>
+                    <span class="dfxtgfeed-edited" title="<?php echo esc_attr(wp_date(get_option('date_format') . ' ' . get_option('time_format'), get_date_from_gmt(date('Y-m-d H:i:s', $msg['edit_date']), 'U'))); ?>"><?php esc_html_e('(edited)', 'dfxtgfeed'); ?></span>
+                <?php endif; ?>
             </div>
             
             <!-- 2. Author (if exists) -->

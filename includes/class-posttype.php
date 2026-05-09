@@ -419,77 +419,118 @@ class PostType {
     }
     
     /**
-     * Store a message in the database
+     * Store or update a message.
+     *
+     * Three scenarios:
+     *   1. New message (no existing post)        — insert.
+     *   2. Existing publish post + edit update   — update content and meta in place.
+     *   3. Existing trashed post                 — skip (admin manually removed it).
+     *
+     * Trashed posts are intentionally left alone: that's how the manual
+     * "Move to Trash" admin action works as a sticky local-delete.
      */
     public function store_message($channel, $message_data) {
-        // Check if message already exists
         $existing = get_posts([
-            'post_type' => 'dfxtgfeed_message',
-            'meta_query' => [
+            'post_type'      => 'dfxtgfeed_message',
+            'post_status'    => ['publish', 'trash'],
+            'meta_query'     => [
                 'relation' => 'AND',
-                [
-                    'key' => '_dfxtgfeed_channel',
-                    'value' => $channel,
-                ],
-                [
-                    'key' => '_dfxtgfeed_message_id',
-                    'value' => $message_data['id'],
-                ],
+                ['key' => '_dfxtgfeed_channel',    'value' => $channel],
+                ['key' => '_dfxtgfeed_message_id', 'value' => $message_data['id']],
             ],
             'posts_per_page' => 1,
         ]);
-        
+
+        $is_edit = !empty($message_data['edit_date']);
+
         if (!empty($existing)) {
-            return $existing[0]->ID;
+            $existing_post = $existing[0];
+
+            // Sticky trash: refresh never resurrects a manually-trashed message.
+            if ($existing_post->post_status === 'trash') {
+                return $existing_post->ID;
+            }
+
+            // Non-edit refresh hit on an already-stored message: nothing to do.
+            if (!$is_edit) {
+                return $existing_post->ID;
+            }
+
+            $this->apply_message_payload($existing_post->ID, $message_data, false);
+            return $existing_post->ID;
         }
-        
-        // Create new post
+
+        // New message: insert and populate.
         $text_preview = mb_substr($message_data['text'] ?? '', 0, 100);
-        if (strlen($message_data['text'] ?? '') > 100) $text_preview .= '...';
-        
-        // Convert Telegram timestamp to WordPress date format
+        if (strlen($message_data['text'] ?? '') > 100) {
+            $text_preview .= '...';
+        }
         $post_date_gmt = gmdate('Y-m-d H:i:s', $message_data['date']);
         $post_date = get_date_from_gmt($post_date_gmt);
-        
+
         $post_id = wp_insert_post([
-            'post_type' => 'dfxtgfeed_message',
-            'post_title' => $text_preview ?: __('(No text)', 'dfxtgfeed'),
-            'post_content' => $message_data['text'] ?? '',
-            'post_status' => 'publish',
-            'post_date' => $post_date,
+            'post_type'     => 'dfxtgfeed_message',
+            'post_title'    => $text_preview ?: __('(No text)', 'dfxtgfeed'),
+            'post_content'  => $message_data['text'] ?? '',
+            'post_status'   => 'publish',
+            'post_date'     => $post_date,
             'post_date_gmt' => $post_date_gmt,
         ]);
-        
+
         if ($post_id) {
             update_post_meta($post_id, '_dfxtgfeed_channel', $channel);
             update_post_meta($post_id, '_dfxtgfeed_message_id', $message_data['id']);
             update_post_meta($post_id, '_dfxtgfeed_date', $message_data['date']);
-            // _dfxtgfeed_media is now a boolean presence flag ('1'). The actual media is
-            // resolved at render time from _dfxtgfeed_file_id via the media proxy.
-            if (!empty($message_data['media'])) {
-                update_post_meta($post_id, '_dfxtgfeed_media', '1');
-            }
-            if (!empty($message_data['sticker'])) {
-                update_post_meta($post_id, '_dfxtgfeed_is_sticker', true);
-            }
-            if (!empty($message_data['sticker_type'])) {
-                update_post_meta($post_id, '_dfxtgfeed_sticker_type', $message_data['sticker_type']);
-            }
-            if (!empty($message_data['emoji'])) {
-                update_post_meta($post_id, '_dfxtgfeed_emoji', $message_data['emoji']);
-            }
-            if (!empty($message_data['file_id'])) {
-                update_post_meta($post_id, '_dfxtgfeed_file_id', $message_data['file_id']);
-            }
-            if (!empty($message_data['entities'])) {
-                update_post_meta($post_id, '_dfxtgfeed_entities', $message_data['entities']);
-            }
-            if (!empty($message_data['author'])) {
-                update_post_meta($post_id, '_dfxtgfeed_author', $message_data['author']);
-            }
+            $this->apply_message_payload($post_id, $message_data, true);
         }
-        
+
         return $post_id;
+    }
+
+    /**
+     * Write the variable parts of a message payload (text, entities, media,
+     * author, sticker info, edit timestamp) onto an existing post. Used for
+     * both new inserts and incoming edits.
+     *
+     * For edits, also updates post_title / post_content. The post_date is
+     * preserved by the original Telegram timestamp via preserve_post_dates().
+     */
+    private function apply_message_payload($post_id, $message_data, $is_new) {
+        if (!$is_new) {
+            $text_preview = mb_substr($message_data['text'] ?? '', 0, 100);
+            if (strlen($message_data['text'] ?? '') > 100) {
+                $text_preview .= '...';
+            }
+            wp_update_post([
+                'ID'           => $post_id,
+                'post_title'   => $text_preview ?: __('(No text)', 'dfxtgfeed'),
+                'post_content' => $message_data['text'] ?? '',
+            ]);
+        }
+
+        // _dfxtgfeed_media is a presence flag ('1'); the actual URL is
+        // resolved at render time from _dfxtgfeed_file_id via the media proxy.
+        if (!empty($message_data['media'])) {
+            update_post_meta($post_id, '_dfxtgfeed_media', '1');
+        } else {
+            delete_post_meta($post_id, '_dfxtgfeed_media');
+        }
+
+        $this->set_or_clear_meta($post_id, '_dfxtgfeed_is_sticker', !empty($message_data['sticker']) ? true : null);
+        $this->set_or_clear_meta($post_id, '_dfxtgfeed_sticker_type', $message_data['sticker_type'] ?? null);
+        $this->set_or_clear_meta($post_id, '_dfxtgfeed_emoji', $message_data['emoji'] ?? null);
+        $this->set_or_clear_meta($post_id, '_dfxtgfeed_file_id', $message_data['file_id'] ?? null);
+        $this->set_or_clear_meta($post_id, '_dfxtgfeed_entities', !empty($message_data['entities']) ? $message_data['entities'] : null);
+        $this->set_or_clear_meta($post_id, '_dfxtgfeed_author', !empty($message_data['author']) ? $message_data['author'] : null);
+        $this->set_or_clear_meta($post_id, '_dfxtgfeed_edit_date', $message_data['edit_date'] ?? null);
+    }
+
+    private function set_or_clear_meta($post_id, $key, $value) {
+        if ($value === null || $value === '' || $value === false) {
+            delete_post_meta($post_id, $key);
+        } else {
+            update_post_meta($post_id, $key, $value);
+        }
     }
     
     /**
@@ -525,9 +566,11 @@ class PostType {
         
         $messages = [];
         foreach ($posts as $post) {
+            $edit_date = get_post_meta($post->ID, '_dfxtgfeed_edit_date', true);
             $messages[] = [
                 'id' => get_post_meta($post->ID, '_dfxtgfeed_message_id', true),
                 'date' => get_post_meta($post->ID, '_dfxtgfeed_date', true),
+                'edit_date' => $edit_date ? (int) $edit_date : null,
                 'text' => $post->post_content,
                 'entities' => get_post_meta($post->ID, '_dfxtgfeed_entities', true) ?: [],
                 'media' => get_post_meta($post->ID, '_dfxtgfeed_media', true),
@@ -539,99 +582,25 @@ class PostType {
                 'deleted' => false,
             ];
         }
-        
+
         return $messages;
     }
     
     /**
-     * Refresh messages from Telegram API and detect deleted messages
+     * Refresh messages from the Telegram Bot API.
+     *
+     * Note: Bot API does NOT notify about channel message deletions. There is
+     * no `deleted_channel_post` update type, so we cannot reliably know when a
+     * message has been removed from the channel. Admins can manually remove a
+     * message from the local feed via the per-row "Move to Trash" action; the
+     * sticky-trash logic in store_message keeps it from reappearing on refresh.
+     *
+     * Edits ARE detected: edited_channel_post / edited_message updates are
+     * fetched and store_message updates the existing post in place.
      */
     public function refresh_messages($channel, $limit) {
-        // Fetch new messages from API (this will also store them)
         $messages = API::instance()->fetch_channel_messages($channel, $limit);
-        
-        // Detect deleted messages by comparing with stored messages
-        // Only check messages that should be in the fetched range
-        $old = $this->get_all_messages($channel, 200);
-        $deleted_ids = [];
-        if (!empty($old) && !empty($messages)) {
-            $new_ids = array_column($messages, 'id');
-            
-            // Find the minimum message ID in the newly fetched messages
-            // Telegram message IDs are sequential and chronological within a channel,
-            // so the minimum ID represents the oldest message we just fetched
-            $min_fetched_id = min($new_ids);
-            
-            // Only consider stored messages that are >= the oldest fetched message
-            // Messages older than this are beyond our fetch limit and should be ignored
-            $old_ids_in_range = array_column(
-                array_filter($old, function($msg) use ($min_fetched_id) {
-                    return $msg['id'] >= $min_fetched_id;
-                }),
-                'id'
-            );
-            
-            // Find messages that should be in the fetched range but are not present
-            $deleted_ids = array_diff($old_ids_in_range, $new_ids);
-            
-            // Mark deleted messages by moving them to trash
-            if (!empty($deleted_ids)) {
-                // Fetch all posts with deleted message IDs in a single query
-                $posts_to_trash = get_posts([
-                    'post_type' => 'dfxtgfeed_message',
-                    'posts_per_page' => -1,
-                    'fields' => 'ids',
-                    'meta_query' => [
-                        'relation' => 'AND',
-                        [
-                            'key' => '_dfxtgfeed_channel',
-                            'value' => $channel,
-                        ],
-                        [
-                            'key' => '_dfxtgfeed_message_id',
-                            'value' => $deleted_ids,
-                            'compare' => 'IN',
-                        ],
-                    ],
-                ]);
-                
-                // Move all found posts to trash
-                foreach ($posts_to_trash as $post_id) {
-                    wp_trash_post($post_id);
-                }
-            }
-        }
-        
-        return ['messages' => $messages, 'deleted_ids' => $deleted_ids];
-    }
-    
-    /**
-     * Get all messages from database (including hidden ones, for admin purposes)
-     */
-    private function get_all_messages($channel, $limit = 200) {
-        $posts = get_posts([
-            'post_type' => 'dfxtgfeed_message',
-            'posts_per_page' => $limit,
-            'orderby' => 'date',
-            'order' => 'DESC',
-            'post_status' => 'publish',
-            'meta_query' => [
-                [
-                    'key' => '_dfxtgfeed_channel',
-                    'value' => $channel,
-                ],
-            ],
-        ]);
-        
-        $messages = [];
-        foreach ($posts as $post) {
-            $messages[] = [
-                'id' => get_post_meta($post->ID, '_dfxtgfeed_message_id', true),
-                'date' => get_post_meta($post->ID, '_dfxtgfeed_date', true),
-            ];
-        }
-        
-        return $messages;
+        return ['messages' => $messages];
     }
     
     /**

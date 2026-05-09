@@ -86,6 +86,14 @@
     font-weight: 500;
 }
 
+.dfxtgfeed-edited {
+    margin-left: 6px;
+    color: #8899a6;
+    font-size: 0.85em;
+    font-style: italic;
+    cursor: help;
+}
+
 .dfxtgfeed-id {
     color: #8899a6;
     font-family: monospace;
