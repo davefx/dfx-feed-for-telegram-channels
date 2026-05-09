@@ -1,11 +1,17 @@
 <?php
 /*
-Plugin Name: DFX Telegram Channel Feed
-Description: Display messages from a Telegram channel on your WordPress site using your Telegram Bot.
-Version: 1.0.0
-Author: David Marín
-Author URI: http://www.davefx.com
-Text Domain: dfxtgfeed
+Plugin Name:       DFX Telegram Channel Feed
+Plugin URI:        https://github.com/davefx/dfx-telegram-channel-feed
+Description:       Display messages from one or more Telegram channels on your WordPress site, with full media support, via shortcode, Gutenberg block, or Elementor widget.
+Version:           1.0.0
+Requires at least: 5.0
+Requires PHP:      7.4
+Author:            David Marín
+Author URI:        http://www.davefx.com
+License:           GPLv3 or later
+License URI:       https://www.gnu.org/licenses/gpl-3.0.html
+Text Domain:       dfxtgfeed
+Domain Path:       /languages
 */
 
 if ( ! defined( 'ABSPATH' ) ) exit;

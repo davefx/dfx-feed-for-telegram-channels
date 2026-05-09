@@ -2,24 +2,40 @@
 Contributors: davefx
 Tags: telegram, channel, feed, shortcode, block
 Requires at least: 5.0
-Tested up to: 6.4
+Tested up to: 6.9
+Requires PHP: 7.4
 Stable tag: 1.0.0
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-Display messages from Telegram channels as a block or shortcode. Created by David Marín Carreño.
+Display messages from Telegram channels on your WordPress site, with full media support, via shortcode, Gutenberg block, or Elementor widget.
 
 == Description ==
 
-DFX Telegram Channel Feed allows you to show the message history or most recent posts from one or more Telegram channels. You can use a shortcode or a Block, and the output will include images/media as available.
+DFX Telegram Channel Feed mirrors messages from one or more Telegram channels onto your WordPress site. Messages are fetched via a Telegram bot you control, stored locally as a custom post type, and rendered through a shortcode, Gutenberg block, or Elementor widget. Both public and private channels are supported.
 
-Messages are cached locally for configurable time to minimize traffic and API usage.
+= Features =
+
+* **Three rendering surfaces** — shortcode, Gutenberg block, or Elementor widget. The block exposes per-instance styling controls (border, background, padding, typography per element).
+* **Full media support** — photos at the highest resolution available, video and animation thumbnails, static stickers, animated TGS stickers via Lottie, and WEBM video stickers.
+* **Bot token never reaches the client** — Telegram file URLs (which embed your bot token) are resolved server-side; the frontend only receives a token-less proxy URL. Media is cached on disk for performance.
+* **Edits sync automatically** with a small "(edited)" marker carrying the edit timestamp.
+* **Background refresh every 2 minutes** via WP-cron, plus on-demand refresh on frontend visits as a fallback for low-traffic sites.
+* **Per-message admin controls** — Hide (reversible, suppresses on frontend) and Move to Trash (sticky against refresh) row actions.
+* **Sync deletions** for public channels via an opt-in admin button that reconciles against the public channel preview.
+* **Theme template overrides** — drop `dfxtgfeed/feed.php` or `dfxtgfeed/browser.php` into your theme to fully customize the output.
+* **Works with private channels** if your bot is admin in them.
 
 == Installation ==
 
-1. Upload plugin to the `/wp-content/plugins/` directory.
-2. Activate the plugin from the 'Plugins' menu in WordPress.
-3. Go to Settings &gt; DFX Telegram Feed to configure.
+1. Upload the plugin to the `/wp-content/plugins/` directory, or install via the WordPress plugins screen.
+2. Activate the plugin through the 'Plugins' menu.
+3. In WordPress admin, go to **Telegram Messages → Settings**.
+4. Create a Telegram bot via [@BotFather](https://t.me/botfather), paste the bot token into the settings page, and save.
+5. Add the bot as an **administrator** of every channel you want to mirror.
+6. Add a shortcode such as `[dfxtgfeed_channel_feed channel="@yourchannel" count="10"]` to a page, or use the "Telegram Channel Feed" Gutenberg block / Elementor widget.
+
+Note: messages posted in the channel **before** the bot was added are not retrievable via the Bot API.
 
 == Usage ==
 

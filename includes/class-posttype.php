@@ -150,8 +150,8 @@ class PostType {
             ORDER BY meta_value ASC
         ");
         
-        $current_channel = isset($_GET['channel_filter']) ? $_GET['channel_filter'] : '';
-        
+        $current_channel = isset($_GET['channel_filter']) ? sanitize_text_field(wp_unslash($_GET['channel_filter'])) : '';
+
         echo '<select name="channel_filter">';
         echo '<option value="">' . __('All Channels', 'dfxtgfeed') . '</option>';
         foreach ($channels as $channel) {
