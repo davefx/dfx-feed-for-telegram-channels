@@ -1,0 +1,32 @@
+# Files and directories that must NOT ship to WordPress.org SVN.
+# Consumed by 10up/action-wordpress-plugin-deploy and similar tools.
+# Anything listed here is excluded from the deployed zip / svn trunk.
+
+# Build tooling and dev dependencies
+/node_modules
+/package.json
+/package-lock.json
+/webpack.config.js
+
+# Block source — only the compiled /build output ships
+/src
+
+# VCS metadata
+/.git
+/.gitignore
+/.gitattributes
+/.github
+
+# Editor and local-dev artifacts
+/.claude
+/.vscode
+/.idea
+/CLAUDE.md
+
+# OS junk
+.DS_Store
+Thumbs.db
+*.log
+
+# Don't ship the ignore file itself
+/.distignore
