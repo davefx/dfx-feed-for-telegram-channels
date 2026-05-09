@@ -1,5 +1,5 @@
 <?php
-namespace DFX\TelegramChannelFeed;
+namespace DFXTgFeed;
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
@@ -17,7 +17,7 @@ class API {
      * NOTE: Only messages since the bot was added will be returned.
      */
     public function fetch_channel_messages($channel_username, $limit = 10) {
-        $bot_token = get_option('dfx_tg_feed_bot_token');
+        $bot_token = get_option('dfxtgfeed_bot_token');
         if (!$bot_token) return [];
         
         // Clean the @ if present, or use as-is if it's a channel ID
@@ -65,37 +65,36 @@ class API {
                     if ($matches) {
                         // Extract text content
                         $text = $msg['text'] ?? $msg['caption'] ?? '';
-                        
+
                         // Get entities for formatting
                         $entities = $msg['entities'] ?? $msg['caption_entities'] ?? [];
-                        
-                        // Get media URL (photo, video thumbnail, or sticker)
-                        $media = null;
-                        if (isset($msg['photo'])) {
-                            $media = $this->get_attachment_url($bot_token, $msg['photo']);
+
+                        // Capture the displayable media file_id for any media type.
+                        // We never store or render Telegram file URLs — those embed the bot
+                        // token (https://api.telegram.org/file/bot<TOKEN>/...). Instead we
+                        // store the file_id and resolve to bytes server-side via the media
+                        // proxy at render time.
+                        $media_file_id = null;
+                        if (isset($msg['photo']) && is_array($msg['photo'])) {
+                            // 'photo' is an array of size variants; last is highest res.
+                            $largest = end($msg['photo']);
+                            $media_file_id = $largest['file_id'] ?? null;
                         } elseif (isset($msg['sticker'])) {
-                            // For stickers, get the file and determine type
-                            $sticker_info = $this->get_sticker_info($bot_token, $msg['sticker']);
-                            $media = $sticker_info['url'] ?? null;
-                            if (defined('WP_DEBUG') && WP_DEBUG) {
-                                error_log('DFX Telegram Feed: Processing sticker message. Media URL: ' . ($media ? $media : 'NULL'));
-                                error_log('DFX Telegram Feed: Sticker type: ' . ($sticker_info['type'] ?? 'unknown'));
-                                error_log('DFX Telegram Feed: Sticker emoji: ' . ($msg['sticker']['emoji'] ?? 'no emoji'));
-                            }
+                            $media_file_id = $msg['sticker']['file_id'] ?? null;
                         } elseif (isset($msg['video'])) {
-                            // For videos, get thumbnail
-                            if (isset($msg['video']['thumb'])) {
-                                $media = $this->get_file_url($bot_token, $msg['video']['thumb']['file_id']);
+                            $thumb = $msg['video']['thumbnail'] ?? $msg['video']['thumb'] ?? null;
+                            if ($thumb) {
+                                $media_file_id = $thumb['file_id'] ?? null;
                             }
                         } elseif (isset($msg['animation'])) {
-                            // For GIFs/animations, get thumbnail
-                            if (isset($msg['animation']['thumb'])) {
-                                $media = $this->get_file_url($bot_token, $msg['animation']['thumb']['file_id']);
+                            $thumb = $msg['animation']['thumbnail'] ?? $msg['animation']['thumb'] ?? null;
+                            if ($thumb) {
+                                $media_file_id = $thumb['file_id'] ?? null;
                             }
                         }
-                        
+
                         // Skip messages that have no text AND no media (empty messages)
-                        if (empty($text) && empty($media)) {
+                        if (empty($text) && empty($media_file_id)) {
                             continue;
                         }
                         
@@ -113,31 +112,31 @@ class API {
                             ];
                         }
                         
-                        $sticker_info = isset($msg['sticker']) ? ['type' => null] : [];
-                        if (isset($msg['sticker']) && !empty($media)) {
-                            // Determine sticker type from the sticker info we got earlier
+                        $sticker_type = null;
+                        if (isset($msg['sticker'])) {
                             $is_animated = $msg['sticker']['is_animated'] ?? false;
                             $is_video = $msg['sticker']['is_video'] ?? false;
-                            
                             if ($is_animated) {
-                                $sticker_info['type'] = 'tgs';
+                                $sticker_type = 'tgs';
                             } elseif ($is_video) {
-                                $sticker_info['type'] = 'webm';
+                                $sticker_type = 'webm';
                             } else {
-                                $sticker_info['type'] = 'static';
+                                $sticker_type = 'static';
                             }
                         }
-                        
+
                         $message_data = [
                             'id'      => $msg['message_id'],
                             'date'    => $msg['date'],
                             'text'    => $text,
                             'entities' => $entities,
-                            'media'   => $media,
+                            // 'media' is a presence flag now ('1' or null), not a URL.
+                            // Templates render a proxy URL built from 'file_id'.
+                            'media'   => !empty($media_file_id) ? '1' : null,
                             'sticker' => isset($msg['sticker']),
-                            'sticker_type' => $sticker_info['type'] ?? null,
+                            'sticker_type' => $sticker_type,
                             'emoji'   => $msg['sticker']['emoji'] ?? null,
-                            'file_id' => $msg['sticker']['file_id'] ?? null,
+                            'file_id' => $media_file_id,
                             'author'  => $author,
                             'deleted' => false
                         ];
@@ -155,53 +154,43 @@ class API {
         return $messages;
     }
 
-    private function get_attachment_url($bot_token, $photo) {
-        // 'photo' may be an array of photo sizes, get the last element (highest res)
-        $file_id = end($photo)['file_id'] ?? null;
-        if (!$file_id) return null;
-        return $this->get_file_url($bot_token, $file_id);
-    }
-    
-    private function get_sticker_info($bot_token, $sticker) {
-        // Get sticker file - stickers have file_id directly
-        $file_id = $sticker['file_id'] ?? null;
-        if (!$file_id) {
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('DFX Telegram Feed: Sticker has no file_id');
+    /**
+     * Resolve a Telegram file_id to a token-bearing fetchable URL.
+     * Server-side only — never include the return value in HTML, JS, or any
+     * client-visible response: the URL embeds the bot token. Use the media
+     * proxy (admin-ajax dfxtgfeed_proxy_media) for client-facing rendering.
+     *
+     * The file_path → URL mapping is cached briefly because Telegram URLs
+     * remain valid for a limited time and a getFile call per asset is wasteful.
+     */
+    public function resolve_file_url($file_id) {
+        if (empty($file_id)) {
+            return null;
+        }
+        $bot_token = get_option('dfxtgfeed_bot_token');
+        if (!$bot_token) {
+            return null;
+        }
+
+        $cache_key = 'dfxtgfeed_path_' . md5($file_id);
+        $file_path = get_transient($cache_key);
+        if ($file_path === false) {
+            $resp = wp_remote_get("https://api.telegram.org/bot{$bot_token}/getFile?file_id=" . urlencode($file_id), [
+                'timeout' => 15,
+            ]);
+            if (is_wp_error($resp)) {
+                return null;
             }
-            return ['url' => null, 'type' => null, 'file_id' => null];
-        }
-        
-        // Determine sticker type
-        $is_animated = $sticker['is_animated'] ?? false;
-        $is_video = $sticker['is_video'] ?? false;
-        
-        $type = 'static'; // PNG/WEBP
-        if ($is_animated) {
-            $type = 'tgs'; // Lottie animation
-        } elseif ($is_video) {
-            $type = 'webm'; // Video sticker
-        }
-        
-        $url = $this->get_file_url($bot_token, $file_id);
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('DFX Telegram Feed: Sticker URL fetched: ' . ($url ? $url : 'FAILED') . ' (type: ' . $type . ', file_id: ' . $file_id . ')');
-        }
-        
-        return ['url' => $url, 'type' => $type, 'file_id' => $file_id];
-    }
-    
-    private function get_file_url($bot_token, $file_id) {
-        if (!$file_id) return null;
-        // Get file path
-        $resp = wp_remote_get("https://api.telegram.org/bot{$bot_token}/getFile?file_id=" . $file_id);
-        if (is_wp_error($resp)) return null;
-        $body = json_decode(wp_remote_retrieve_body($resp), true);
-        if ($body['ok'] ?? false) {
+            $body = json_decode(wp_remote_retrieve_body($resp), true);
+            if (empty($body['ok']) || empty($body['result']['file_path'])) {
+                return null;
+            }
             $file_path = $body['result']['file_path'];
-            return "https://api.telegram.org/file/bot{$bot_token}/{$file_path}";
+            // Telegram URLs typically remain valid for ~1 hour; refresh sooner.
+            set_transient($cache_key, $file_path, 30 * MINUTE_IN_SECONDS);
         }
-        return null;
+
+        return "https://api.telegram.org/file/bot{$bot_token}/{$file_path}";
     }
     
     /**
@@ -211,10 +200,25 @@ class API {
         if (empty($text) || empty($entities)) {
             return nl2br(esc_html($text));
         }
-        
+
         // Convert text to UTF-16 units (Telegram uses UTF-16 for offsets)
         $utf16_text = mb_convert_encoding($text, 'UTF-16LE', 'UTF-8');
         $utf16_length = mb_strlen($utf16_text, 'UTF-16LE');
+
+        // Pre-compute the displayable text slice for each entity (used to build
+        // hrefs for url/email/phone_number, since the entity payload only has
+        // offset/length, not the text).
+        foreach ($entities as &$entity) {
+            $offset = (int) ($entity['offset'] ?? 0);
+            $length = (int) ($entity['length'] ?? 0);
+            if ($length > 0 && $offset >= 0 && $offset + $length <= $utf16_length) {
+                $slice_utf16 = mb_substr($utf16_text, $offset, $length, 'UTF-16LE');
+                $entity['__text'] = mb_convert_encoding($slice_utf16, 'UTF-8', 'UTF-16LE');
+            } else {
+                $entity['__text'] = '';
+            }
+        }
+        unset($entity);
         
         // Sort entities by start position, then by length (longer first for nested)
         usort($entities, function($a, $b) {
@@ -339,16 +343,28 @@ class API {
                     'close' => '</a>'
                 ];
             case 'url':
+                $href = $entity['__text'] ?? '';
+                return [
+                    'open' => '<a href="' . esc_url($href) . '" target="_blank" rel="noopener noreferrer">',
+                    'close' => '</a>',
+                ];
             case 'email':
+                $href = $entity['__text'] ?? '';
+                return [
+                    'open' => '<a href="' . esc_attr('mailto:' . sanitize_email($href)) . '">',
+                    'close' => '</a>',
+                ];
             case 'phone_number':
-                // For these, we need the actual text, but we'll create a placeholder
-                // and fix it in a second pass
-                return ['open' => '<a href="#" class="tg-auto-link" data-type="' . esc_attr($type) . '">', 'close' => '</a>'];
+                $href = preg_replace('/[^0-9+]/', '', $entity['__text'] ?? '');
+                return [
+                    'open' => '<a href="' . esc_attr('tel:' . $href) . '">',
+                    'close' => '</a>',
+                ];
             case 'mention':
             case 'hashtag':
             case 'cashtag':
             case 'bot_command':
-                return ['open' => '<span class="tg-' . esc_attr($type) . '">', 'close' => '</span>'];
+                return ['open' => '<span class="dfxtgfeed-' . esc_attr($type) . '">', 'close' => '</span>'];
             case 'blockquote':
                 return ['open' => '<blockquote>', 'close' => '</blockquote>'];
             default:

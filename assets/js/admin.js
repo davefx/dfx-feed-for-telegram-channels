@@ -10,7 +10,7 @@
 
 	$( document ).ready( function () {
 		// Handle hide message action
-		$( document ).on( 'click', '.dfx-tg-hide-message', function ( e ) {
+		$( document ).on( 'click', '.dfxtgfeed-hide-message', function ( e ) {
 			e.preventDefault();
 
 			// eslint-disable-next-line @wordpress/no-unused-vars-before-return
@@ -31,7 +31,7 @@
 				url: dfxTgAdmin.ajaxUrl,
 				type: 'POST',
 				data: {
-					action: 'dfx_tg_hide_message',
+					action: 'dfxtgfeed_hide_message',
 					post_id: postId,
 					nonce,
 				},
@@ -56,7 +56,7 @@
 		} );
 
 		// Handle unhide message action
-		$( document ).on( 'click', '.dfx-tg-unhide-message', function ( e ) {
+		$( document ).on( 'click', '.dfxtgfeed-unhide-message', function ( e ) {
 			e.preventDefault();
 
 			const $link = $( this );
@@ -70,7 +70,7 @@
 				url: dfxTgAdmin.ajaxUrl,
 				type: 'POST',
 				data: {
-					action: 'dfx_tg_unhide_message',
+					action: 'dfxtgfeed_unhide_message',
 					post_id: postId,
 					nonce,
 				},

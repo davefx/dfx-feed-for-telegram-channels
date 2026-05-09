@@ -1,16 +1,16 @@
 <?php
-namespace DFX\TelegramChannelFeed\Elementor;
+namespace DFXTgFeed\Elementor;
 
 if (!defined('ABSPATH')) exit;
 
 class Widget_Channel_Feed extends \Elementor\Widget_Base {
 
     public function get_name() {
-        return 'dfx_tg_channel_feed';
+        return 'dfxtgfeed_channel_feed';
     }
 
     public function get_title() {
-        return __('Telegram Channel Feed', 'dfx-tg-feed');
+        return __('Telegram Channel Feed', 'dfxtgfeed');
     }
 
     public function get_icon() {
@@ -18,7 +18,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
     }
 
     public function get_categories() {
-        return ['dfx-telegram'];
+        return ['dfxtgfeed'];
     }
 
     public function get_keywords() {
@@ -29,7 +29,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         $this->start_controls_section(
             'content_section',
             [
-                'label' => __('Settings', 'dfx-tg-feed'),
+                'label' => __('Settings', 'dfxtgfeed'),
                 'tab' => \Elementor\Controls_Manager::TAB_CONTENT,
             ]
         );
@@ -37,10 +37,10 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         $this->add_control(
             'channel',
             [
-                'label' => __('Channel Username', 'dfx-tg-feed'),
+                'label' => __('Channel Username', 'dfxtgfeed'),
                 'type' => \Elementor\Controls_Manager::TEXT,
                 'placeholder' => '@yourchannel',
-                'description' => __('Enter the Telegram channel username with @ or channel ID', 'dfx-tg-feed'),
+                'description' => __('Enter the Telegram channel username with @ or channel ID', 'dfxtgfeed'),
                 'default' => '',
             ]
         );
@@ -48,7 +48,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         $this->add_control(
             'count',
             [
-                'label' => __('Number of Messages', 'dfx-tg-feed'),
+                'label' => __('Number of Messages', 'dfxtgfeed'),
                 'type' => \Elementor\Controls_Manager::NUMBER,
                 'min' => 1,
                 'max' => 100,
@@ -63,7 +63,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         $this->start_controls_section(
             'block_style_section',
             [
-                'label' => __('Block Container', 'dfx-tg-feed'),
+                'label' => __('Block Container', 'dfxtgfeed'),
                 'tab' => \Elementor\Controls_Manager::TAB_STYLE,
             ]
         );
@@ -71,7 +71,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         $this->add_control(
             'block_background',
             [
-                'label' => __('Background Color', 'dfx-tg-feed'),
+                'label' => __('Background Color', 'dfxtgfeed'),
                 'type' => \Elementor\Controls_Manager::COLOR,
                 'scheme' => [
                     'type' => \Elementor\Core\Schemes\Color::get_type(),
@@ -84,18 +84,18 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
             \Elementor\Group_Control_Border::get_type(),
             [
                 'name' => 'block_border',
-                'selector' => '{{WRAPPER}} .dfx-tg-feed-layout',
+                'selector' => '{{WRAPPER}} .dfxtgfeed-layout',
             ]
         );
         
         $this->add_control(
             'block_border_radius',
             [
-                'label' => __('Border Radius', 'dfx-tg-feed'),
+                'label' => __('Border Radius', 'dfxtgfeed'),
                 'type' => \Elementor\Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', '%', 'em'],
                 'selectors' => [
-                    '{{WRAPPER}} .dfx-tg-feed-layout' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} .dfxtgfeed-layout' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
@@ -103,11 +103,11 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         $this->add_responsive_control(
             'block_padding',
             [
-                'label' => __('Padding', 'dfx-tg-feed'),
+                'label' => __('Padding', 'dfxtgfeed'),
                 'type' => \Elementor\Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', '%', 'em'],
                 'selectors' => [
-                    '{{WRAPPER}} .dfx-tg-feed-layout' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} .dfxtgfeed-layout' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
@@ -115,11 +115,11 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         $this->add_responsive_control(
             'block_margin',
             [
-                'label' => __('Margin', 'dfx-tg-feed'),
+                'label' => __('Margin', 'dfxtgfeed'),
                 'type' => \Elementor\Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', '%', 'em'],
                 'selectors' => [
-                    '{{WRAPPER}} .dfx-tg-feed-layout' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} .dfxtgfeed-layout' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
@@ -128,7 +128,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
             \Elementor\Group_Control_Box_Shadow::get_type(),
             [
                 'name' => 'block_box_shadow',
-                'selector' => '{{WRAPPER}} .dfx-tg-feed-layout',
+                'selector' => '{{WRAPPER}} .dfxtgfeed-layout',
             ]
         );
         
@@ -138,7 +138,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         $this->start_controls_section(
             'message_style_section',
             [
-                'label' => __('Message Container', 'dfx-tg-feed'),
+                'label' => __('Message Container', 'dfxtgfeed'),
                 'tab' => \Elementor\Controls_Manager::TAB_STYLE,
             ]
         );
@@ -146,14 +146,14 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         $this->add_control(
             'message_background',
             [
-                'label' => __('Background Color', 'dfx-tg-feed'),
+                'label' => __('Background Color', 'dfxtgfeed'),
                 'type' => \Elementor\Controls_Manager::COLOR,
                 'scheme' => [
                     'type' => \Elementor\Core\Schemes\Color::get_type(),
                     'value' => \Elementor\Core\Schemes\Color::COLOR_1,
                 ],
                 'selectors' => [
-                    '{{WRAPPER}} .dfx-tg-feed-message' => 'background-color: {{VALUE}};',
+                    '{{WRAPPER}} .dfxtgfeed-message' => 'background-color: {{VALUE}};',
                 ],
             ]
         );
@@ -162,18 +162,18 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
             \Elementor\Group_Control_Border::get_type(),
             [
                 'name' => 'message_border',
-                'selector' => '{{WRAPPER}} .dfx-tg-feed-message',
+                'selector' => '{{WRAPPER}} .dfxtgfeed-message',
             ]
         );
         
         $this->add_control(
             'message_border_radius',
             [
-                'label' => __('Border Radius', 'dfx-tg-feed'),
+                'label' => __('Border Radius', 'dfxtgfeed'),
                 'type' => \Elementor\Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', '%', 'em'],
                 'selectors' => [
-                    '{{WRAPPER}} .dfx-tg-feed-message' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} .dfxtgfeed-message' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
@@ -181,11 +181,11 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         $this->add_responsive_control(
             'message_padding',
             [
-                'label' => __('Padding', 'dfx-tg-feed'),
+                'label' => __('Padding', 'dfxtgfeed'),
                 'type' => \Elementor\Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', '%', 'em'],
                 'selectors' => [
-                    '{{WRAPPER}} .dfx-tg-feed-message' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} .dfxtgfeed-message' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
@@ -193,11 +193,11 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         $this->add_responsive_control(
             'message_margin',
             [
-                'label' => __('Margin', 'dfx-tg-feed'),
+                'label' => __('Margin', 'dfxtgfeed'),
                 'type' => \Elementor\Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', '%', 'em'],
                 'selectors' => [
-                    '{{WRAPPER}} .dfx-tg-feed-message' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} .dfxtgfeed-message' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
@@ -206,7 +206,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
             \Elementor\Group_Control_Box_Shadow::get_type(),
             [
                 'name' => 'message_box_shadow',
-                'selector' => '{{WRAPPER}} .dfx-tg-feed-message',
+                'selector' => '{{WRAPPER}} .dfxtgfeed-message',
             ]
         );
         
@@ -216,7 +216,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         $this->start_controls_section(
             'date_typography_section',
             [
-                'label' => __('Date Typography', 'dfx-tg-feed'),
+                'label' => __('Date Typography', 'dfxtgfeed'),
                 'tab' => \Elementor\Controls_Manager::TAB_STYLE,
             ]
         );
@@ -225,7 +225,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
             \Elementor\Group_Control_Typography::get_type(),
             [
                 'name' => 'date_typography',
-                'selector' => '{{WRAPPER}} .dfx-tg-feed-date',
+                'selector' => '{{WRAPPER}} .dfxtgfeed-date',
             ]
         );
         
@@ -235,7 +235,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         $this->start_controls_section(
             'author_typography_section',
             [
-                'label' => __('Author Typography', 'dfx-tg-feed'),
+                'label' => __('Author Typography', 'dfxtgfeed'),
                 'tab' => \Elementor\Controls_Manager::TAB_STYLE,
             ]
         );
@@ -244,7 +244,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
             \Elementor\Group_Control_Typography::get_type(),
             [
                 'name' => 'author_typography',
-                'selector' => '{{WRAPPER}} .dfx-tg-feed-author',
+                'selector' => '{{WRAPPER}} .dfxtgfeed-author',
             ]
         );
         
@@ -254,7 +254,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         $this->start_controls_section(
             'text_typography_section',
             [
-                'label' => __('Message Text Typography', 'dfx-tg-feed'),
+                'label' => __('Message Text Typography', 'dfxtgfeed'),
                 'tab' => \Elementor\Controls_Manager::TAB_STYLE,
             ]
         );
@@ -263,7 +263,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
             \Elementor\Group_Control_Typography::get_type(),
             [
                 'name' => 'text_typography',
-                'selector' => '{{WRAPPER}} .dfx-tg-feed-text',
+                'selector' => '{{WRAPPER}} .dfxtgfeed-text',
             ]
         );
         
@@ -276,7 +276,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         if (empty($settings['channel'])) {
             if (\Elementor\Plugin::$instance->editor->is_edit_mode()) {
                 echo '<div style="padding: 20px; border: 1px dashed #ccc; text-align: center;">';
-                echo __('Please enter a channel username in the widget settings.', 'dfx-tg-feed');
+                echo __('Please enter a channel username in the widget settings.', 'dfxtgfeed');
                 echo '</div>';
             }
             return;
@@ -294,7 +294,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         }
         
         echo '<div ' . $wrapper_style . '>';
-        $shortcode = \DFX\TelegramChannelFeed\Shortcodes::instance();
+        $shortcode = \DFXTgFeed\Shortcodes::instance();
         echo $shortcode->shortcode_channel_feed([
             'channel' => $settings['channel'],
             'count' => $settings['count']

@@ -7,7 +7,7 @@
 @import "../../assets/css/style.css";
 
 /* Editor-specific adjustments if needed */
-.editor-styles-wrapper .dfx-tg-feed-layout,
-.editor-styles-wrapper .dfx-tg-browser-layout {
+.editor-styles-wrapper .dfxtgfeed-layout,
+.editor-styles-wrapper .dfxtgfeed-browser-layout {
     /* Ensure the styles apply in the editor */
 }

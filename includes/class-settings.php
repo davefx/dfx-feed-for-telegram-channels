@@ -1,5 +1,5 @@
 <?php
-namespace DFX\TelegramChannelFeed;
+namespace DFXTgFeed;
 if (!defined('ABSPATH')) exit;
 
 class Settings {
@@ -10,17 +10,47 @@ class Settings {
     }
 
     public function register() {
-        register_setting('dfx_tg_feed', 'dfx_tg_feed_bot_token');
-        register_setting('dfx_tg_feed', 'dfx_tg_feed_default_count');
-        register_setting('dfx_tg_feed', 'dfx_tg_feed_channel');
+        register_setting('dfxtgfeed', 'dfxtgfeed_bot_token', [
+            'type'              => 'string',
+            'sanitize_callback' => [$this, 'sanitize_bot_token'],
+            'default'           => '',
+        ]);
+        register_setting('dfxtgfeed', 'dfxtgfeed_default_count', [
+            'type'              => 'integer',
+            'sanitize_callback' => [$this, 'sanitize_default_count'],
+            'default'           => 10,
+        ]);
+        register_setting('dfxtgfeed', 'dfxtgfeed_channel', [
+            'type'              => 'string',
+            'sanitize_callback' => 'sanitize_text_field',
+            'default'           => '',
+        ]);
+    }
+
+    public function sanitize_bot_token($value) {
+        // Bot tokens are of the form `<bot_id>:<secret>` — strip whitespace and
+        // any character that can't appear in a real token.
+        $value = trim((string) $value);
+        return preg_replace('/[^A-Za-z0-9:_\-]/', '', $value);
+    }
+
+    public function sanitize_default_count($value) {
+        $value = absint($value);
+        if ($value < 1) {
+            return 10;
+        }
+        if ($value > 100) {
+            return 100;
+        }
+        return $value;
     }
 
     public function render_page() {
-        $bot_token = esc_attr(get_option('dfx_tg_feed_bot_token', ''));
-        $channel = esc_attr(get_option('dfx_tg_feed_channel', ''));
+        $bot_token = esc_attr(get_option('dfxtgfeed_bot_token', ''));
+        $channel = esc_attr(get_option('dfxtgfeed_channel', ''));
         ?>
         <div class="wrap">
-            <h1><?php _e('DFX Telegram Channel Feed', 'dfx-tg-feed'); ?></h1>
+            <h1><?php _e('DFX Telegram Channel Feed', 'dfxtgfeed'); ?></h1>
 
             <h2>How to setup your Telegram Bot</h2>
             <ol>
@@ -28,66 +58,66 @@ class Settings {
                 <li>Send <code>/newbot</code>, follow instructions, and copy your bot token.</li>
                 <li>Paste the bot token below and click "Save Settings".</li>
                 <li>Add your bot as an <strong>admin</strong> to each Telegram channel you want to display (channel &rarr; Administrators &rarr; Add Admin &rarr; [YOUR BOT USERNAME]).</li>
-                <li>Use any channel with your bot by specifying the channel username in the shortcode or block (e.g., <code>[dfx_tg_channel_feed channel="@yourchannel"]</code>).</li>
+                <li>Use any channel with your bot by specifying the channel username in the shortcode or block (e.g., <code>[dfxtgfeed_channel_feed channel="@yourchannel"]</code>).</li>
             </ol>
 
             <form method="post" action="options.php">
-                <?php settings_fields('dfx_tg_feed'); do_settings_sections('dfx_tg_feed'); ?>
+                <?php settings_fields('dfxtgfeed'); do_settings_sections('dfxtgfeed'); ?>
                 <table class="form-table">
                     <tr>
-                        <th><?php _e('Telegram Bot Token', 'dfx-tg-feed'); ?></th>
-                        <td><input type="text" name="dfx_tg_feed_bot_token" value="<?php echo $bot_token; ?>" size="50" autocomplete="off"/></td>
+                        <th><?php _e('Telegram Bot Token', 'dfxtgfeed'); ?></th>
+                        <td><input type="text" name="dfxtgfeed_bot_token" value="<?php echo $bot_token; ?>" size="50" autocomplete="off"/></td>
                     </tr>
                     <tr>
-                        <th><?php _e('Test Channel Username (optional)', 'dfx-tg-feed'); ?></th>
+                        <th><?php _e('Test Channel Username (optional)', 'dfxtgfeed'); ?></th>
                         <td>
-                            <input type="text" name="dfx_tg_feed_channel" value="<?php echo $channel; ?>" size="32" autocomplete="off" placeholder="@yourchannel"/>
-                            <p class="description"><?php _e('This field is only used for connection testing below. You can specify any channel directly in your shortcodes or blocks.', 'dfx-tg-feed'); ?></p>
+                            <input type="text" name="dfxtgfeed_channel" value="<?php echo $channel; ?>" size="32" autocomplete="off" placeholder="@yourchannel"/>
+                            <p class="description"><?php _e('This field is only used for connection testing below. You can specify any channel directly in your shortcodes or blocks.', 'dfxtgfeed'); ?></p>
                         </td>
                     </tr>
                     <tr>
-                        <th><?php _e('Default Message Count', 'dfx-tg-feed'); ?></th>
-                        <td><input type="number" name="dfx_tg_feed_default_count" value="<?php echo esc_attr(get_option('dfx_tg_feed_default_count', 10)); ?>" min="1" max="100"/></td>
+                        <th><?php _e('Default Message Count', 'dfxtgfeed'); ?></th>
+                        <td><input type="number" name="dfxtgfeed_default_count" value="<?php echo esc_attr(get_option('dfxtgfeed_default_count', 10)); ?>" min="1" max="100"/></td>
                     </tr>
                 </table>
-                <?php submit_button(__('Save Settings', 'dfx-tg-feed')); ?>
+                <?php submit_button(__('Save Settings', 'dfxtgfeed')); ?>
             </form>
 
             <hr />
-            <h3><?php _e('Test your configuration', 'dfx-tg-feed'); ?></h3>
-            <button class="button" id="dfx-tg-feed-test-btn"><?php _e('Test Connection', 'dfx-tg-feed'); ?></button>
-            <div id="dfx-tg-feed-test-result"></div>
+            <h3><?php _e('Test your configuration', 'dfxtgfeed'); ?></h3>
+            <button class="button" id="dfxtgfeed-test-btn"><?php _e('Test Connection', 'dfxtgfeed'); ?></button>
+            <div id="dfxtgfeed-test-result"></div>
 
             <hr />
-            <h3><?php _e('Reload Messages from Telegram', 'dfx-tg-feed'); ?></h3>
-            <p><?php _e('Fetch all available messages from the channel and save them to the database. This will sync new messages and update existing ones.', 'dfx-tg-feed'); ?></p>
-            <form id="dfx-tg-feed-reload-form" method="post">
+            <h3><?php _e('Reload Messages from Telegram', 'dfxtgfeed'); ?></h3>
+            <p><?php _e('Fetch all available messages from the channel and save them to the database. This will sync new messages and update existing ones.', 'dfxtgfeed'); ?></p>
+            <form id="dfxtgfeed-reload-form" method="post">
                 <input type="text" name="channel" value="<?php echo $channel;?>" placeholder="@channelusername" style="width: 300px;" />
-                <button class="button button-primary" id="dfx-tg-feed-reload-btn"><?php _e('Reload All Messages', 'dfx-tg-feed'); ?></button>
-                <?php wp_nonce_field('dfx_tg_feed_reload', 'dfx_tg_feed_reload_nonce'); ?>
+                <button class="button button-primary" id="dfxtgfeed-reload-btn"><?php _e('Reload All Messages', 'dfxtgfeed'); ?></button>
+                <?php wp_nonce_field('dfxtgfeed_reload', 'dfxtgfeed_reload_nonce'); ?>
             </form>
-            <div id="dfx-tg-feed-reload-result"></div>
+            <div id="dfxtgfeed-reload-result"></div>
 
             <script>
-            document.getElementById('dfx-tg-feed-test-btn').addEventListener('click', function(e){
+            document.getElementById('dfxtgfeed-test-btn').addEventListener('click', function(e){
                 e.preventDefault();
-                document.getElementById('dfx-tg-feed-test-result').textContent = 'Testing...';
-                fetch(ajaxurl + '?action=dfx_tg_feed_test')
+                document.getElementById('dfxtgfeed-test-result').textContent = 'Testing...';
+                fetch(ajaxurl + '?action=dfxtgfeed_test')
                   .then(r=>r.json())
                   .then(resp=>{
-                    document.getElementById('dfx-tg-feed-test-result').innerHTML = resp.success ? '<span style="color:green">'+resp.data+'</span>' : '<span style="color:red">'+resp.data+'</span>';
+                    document.getElementById('dfxtgfeed-test-result').innerHTML = resp.success ? '<span style="color:green">'+resp.data+'</span>' : '<span style="color:red">'+resp.data+'</span>';
                   });
             });
 
-            document.getElementById('dfx-tg-feed-reload-form').addEventListener('submit', function(e){
+            document.getElementById('dfxtgfeed-reload-form').addEventListener('submit', function(e){
                 e.preventDefault();
-                let resultDiv = document.getElementById('dfx-tg-feed-reload-result');
-                let btn = document.getElementById('dfx-tg-feed-reload-btn');
+                let resultDiv = document.getElementById('dfxtgfeed-reload-result');
+                let btn = document.getElementById('dfxtgfeed-reload-btn');
                 btn.disabled = true;
                 resultDiv.innerHTML = '<span style="color:blue;">Reloading messages... This may take a moment.</span>';
                 
                 let data = new FormData(this);
-                data.append('action', 'dfx_tg_feed_reload');
+                data.append('action', 'dfxtgfeed_reload');
                 
                 fetch(ajaxurl, { method: "POST", body: data })
                 .then(r=>r.json())
@@ -112,8 +142,8 @@ class Settings {
     }
 
     public function ajax_test_bot_channel() {
-        $bot_token = get_option('dfx_tg_feed_bot_token', '');
-        $channel = get_option('dfx_tg_feed_channel', '');
+        $bot_token = get_option('dfxtgfeed_bot_token', '');
+        $channel = get_option('dfxtgfeed_channel', '');
         if (!$bot_token || !$channel) {
             wp_send_json_error('Please set both Bot Token and Channel.');
         }
@@ -189,13 +219,13 @@ class Settings {
     }
     
     public function ajax_reload_messages() {
-        check_ajax_referer('dfx_tg_feed_reload', 'dfx_tg_feed_reload_nonce');
+        check_ajax_referer('dfxtgfeed_reload', 'dfxtgfeed_reload_nonce');
         
         if (!current_user_can('manage_options')) {
             wp_send_json_error('Permission denied.');
         }
         
-        $bot_token = get_option('dfx_tg_feed_bot_token', '');
+        $bot_token = get_option('dfxtgfeed_bot_token', '');
         $channel = sanitize_text_field($_POST['channel'] ?? '');
         
         if (!$bot_token || !$channel) {
@@ -217,15 +247,15 @@ class Settings {
         foreach ($messages as $msg) {
             // Check if message already exists
             $existing = get_posts([
-                'post_type' => 'dfx_tg_message',
+                'post_type' => 'dfxtgfeed_message',
                 'meta_query' => [
                     'relation' => 'AND',
                     [
-                        'key' => '_tg_channel',
+                        'key' => '_dfxtgfeed_channel',
                         'value' => $channel,
                     ],
                     [
-                        'key' => '_tg_message_id',
+                        'key' => '_dfxtgfeed_message_id',
                         'value' => $msg['id'],
                     ],
                 ],
@@ -240,7 +270,7 @@ class Settings {
         }
         
         wp_send_json_success(sprintf(
-            __('Successfully reloaded %d messages from channel %s. New: %d, Updated: %d', 'dfx-tg-feed'),
+            __('Successfully reloaded %d messages from channel %s. New: %d, Updated: %d', 'dfxtgfeed'),
             $count,
             '<strong>' . esc_html($channel) . '</strong>',
             $new_count,

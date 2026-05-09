@@ -1,108 +1,68 @@
 /**
  * DFX Telegram Channel Feed - Sticker Support
- * Initializes Lottie animations for TGS stickers
+ * Initializes Lottie animations for TGS stickers.
+ *
+ * Sticker bytes are fetched through the WordPress AJAX proxy using only the
+ * Telegram file_id — the bot token is never exposed to the client.
  */
 
-/* global lottie, dfxTgFeedStickers, MutationObserver */
-/* eslint-disable no-console */
+/* global lottie, dfxtgfeedStickers, MutationObserver */
 
 ( function () {
 	'use strict';
 
+	function buildProxyUrl( fileId ) {
+		return (
+			dfxtgfeedStickers.ajaxUrl +
+			'?action=dfxtgfeed_proxy_sticker' +
+			'&nonce=' +
+			encodeURIComponent( dfxtgfeedStickers.nonce ) +
+			'&file_id=' +
+			encodeURIComponent( fileId )
+		);
+	}
+
+	function showEmojiFallback( container ) {
+		const emojiOverlay = container.nextElementSibling;
+		if (
+			emojiOverlay &&
+			emojiOverlay.classList.contains( 'dfxtgfeed-emoji-overlay' )
+		) {
+			emojiOverlay.style.fontSize = '48px';
+			emojiOverlay.style.position = 'static';
+		}
+	}
+
 	function initStickers() {
-		// Find all TGS sticker containers
 		const stickerContainers = document.querySelectorAll(
-			'.dfx-tg-sticker-container'
+			'.dfxtgfeed-sticker-container'
 		);
-
-		console.log(
-			'DFX Telegram Feed: Found',
-			stickerContainers.length,
-			'sticker containers'
-		);
-
 		if ( ! stickerContainers.length ) {
 			return;
 		}
-
-		// Check if lottie is available
 		if ( typeof lottie === 'undefined' ) {
-			console.error( 'DFX Telegram Feed: Lottie library not loaded' );
 			return;
 		}
 
-		console.log( 'DFX Telegram Feed: Lottie library loaded successfully' );
-
-		stickerContainers.forEach( function ( container, index ) {
-			// Check if already initialized
+		stickerContainers.forEach( function ( container ) {
 			if ( container.dataset.dfxTgInitialized === 'true' ) {
-				console.log(
-					'DFX Telegram Feed: Sticker',
-					index,
-					'already initialized, skipping'
-				);
 				return;
 			}
-
-			const stickerUrl = container.getAttribute( 'data-sticker-url' );
-
-			console.log(
-				'DFX Telegram Feed: Processing sticker',
-				index,
-				'URL:',
-				stickerUrl
-			);
-
-			if ( ! stickerUrl ) {
-				console.warn(
-					'DFX Telegram Feed: Sticker container has no URL'
-				);
-				return;
-			}
-
 			const fileId = container.getAttribute( 'data-file-id' );
-
-			// Mark as initialized
+			if ( ! fileId ) {
+				return;
+			}
 			container.dataset.dfxTgInitialized = 'true';
 
-			// Use WordPress AJAX proxy to bypass CORS
-			const proxyUrl =
-				dfxTgFeedStickers.ajaxUrl +
-				'?action=dfx_tg_proxy_sticker' +
-				'&nonce=' +
-				encodeURIComponent( dfxTgFeedStickers.nonce ) +
-				'&url=' +
-				encodeURIComponent( stickerUrl ) +
-				'&file_id=' +
-				encodeURIComponent( fileId || '' );
-
-			// Load the TGS file and initialize Lottie
-			console.log(
-				'DFX Telegram Feed: Fetching sticker data via proxy:',
-				proxyUrl
-			);
-			fetch( proxyUrl )
+			fetch( buildProxyUrl( fileId ) )
 				.then( function ( response ) {
-					console.log(
-						'DFX Telegram Feed: Fetch response status:',
-						response.status
-					);
 					if ( ! response.ok ) {
-						throw new Error(
-							'Failed to load sticker (HTTP ' +
-								response.status +
-								')'
-						);
+						throw new Error( 'HTTP ' + response.status );
 					}
 					return response.json();
 				} )
 				.then( function ( animationData ) {
-					console.log(
-						'DFX Telegram Feed: Animation data loaded, initializing Lottie'
-					);
-					// Initialize Lottie animation
-					// eslint-disable-next-line no-unused-vars
-					const animation = lottie.loadAnimation( {
+					lottie.loadAnimation( {
 						container,
 						renderer: 'canvas',
 						loop: true,
@@ -114,32 +74,13 @@
 							progressiveLoad: true,
 						},
 					} );
-					console.log(
-						'DFX Telegram Feed: Lottie animation initialized for sticker',
-						index
-					);
 				} )
-				.catch( function ( error ) {
-					console.error(
-						'DFX Telegram Feed: Error loading TGS sticker:',
-						error
-					);
-					// Show emoji overlay as fallback
-					const emojiOverlay = container.nextElementSibling;
-					if (
-						emojiOverlay &&
-						emojiOverlay.classList.contains(
-							'dfx-tg-feed-emoji-overlay'
-						)
-					) {
-						emojiOverlay.style.fontSize = '48px';
-						emojiOverlay.style.position = 'static';
-					}
+				.catch( function () {
+					showEmojiFallback( container );
 				} );
 		} );
 	}
 
-	// Initialize when DOM is ready
 	if ( document.readyState === 'loading' ) {
 		document.addEventListener( 'DOMContentLoaded', initStickers );
 	} else {
@@ -156,10 +97,10 @@
 						if (
 							node.nodeType === 1 &&
 							( node.classList.contains(
-								'dfx-tg-sticker-container'
+								'dfxtgfeed-sticker-container'
 							) ||
 								node.querySelector(
-									'.dfx-tg-sticker-container'
+									'.dfxtgfeed-sticker-container'
 								) )
 						) {
 							shouldInit = true;

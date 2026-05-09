@@ -1,5 +1,5 @@
 <?php
-namespace DFX\TelegramChannelFeed;
+namespace DFXTgFeed;
 if (!defined('ABSPATH')) exit;
 
 class Blocks {
@@ -12,28 +12,28 @@ class Blocks {
     
     public function register() {
         // Register Channel Feed block
-        $channel_feed_asset_file = DFX_TG_FEED_PATH . 'build/channel-feed/index.asset.php';
+        $channel_feed_asset_file = DFXTGFEED_PATH . 'build/channel-feed/index.asset.php';
         if (file_exists($channel_feed_asset_file)) {
             $channel_feed_asset = include $channel_feed_asset_file;
             
             wp_register_script(
-                'dfx-tg-feed-channel-feed-block',
-                DFX_TG_FEED_URL . 'build/channel-feed/index.js',
+                'dfxtgfeed-channel-feed-block',
+                DFXTGFEED_URL . 'build/channel-feed/index.js',
                 $channel_feed_asset['dependencies'],
                 $channel_feed_asset['version']
             );
             
             // Register editor styles
             wp_register_style(
-                'dfx-tg-feed-channel-feed-block-editor',
-                DFX_TG_FEED_URL . 'build/channel-feed/style-index.css',
+                'dfxtgfeed-channel-feed-block-editor',
+                DFXTGFEED_URL . 'build/channel-feed/style-index.css',
                 [],
-                DFX_TG_FEED_VER
+                DFXTGFEED_VER
             );
             
-            register_block_type('dfx-tg-feed/channel-feed', [
-                'editor_script' => 'dfx-tg-feed-channel-feed-block',
-                'editor_style' => 'dfx-tg-feed-channel-feed-block-editor',
+            register_block_type('dfxtgfeed/channel-feed', [
+                'editor_script' => 'dfxtgfeed-channel-feed-block',
+                'editor_style' => 'dfxtgfeed-channel-feed-block-editor',
                 'render_callback' => [$this, 'render_channel_feed'],
                 'attributes' => [
                     'channel' => [
@@ -152,28 +152,28 @@ class Blocks {
         }
         
         // Register Channel Browser block
-        $channel_browser_asset_file = DFX_TG_FEED_PATH . 'build/channel-browser/index.asset.php';
+        $channel_browser_asset_file = DFXTGFEED_PATH . 'build/channel-browser/index.asset.php';
         if (file_exists($channel_browser_asset_file)) {
             $channel_browser_asset = include $channel_browser_asset_file;
             
             wp_register_script(
-                'dfx-tg-feed-channel-browser-block',
-                DFX_TG_FEED_URL . 'build/channel-browser/index.js',
+                'dfxtgfeed-channel-browser-block',
+                DFXTGFEED_URL . 'build/channel-browser/index.js',
                 $channel_browser_asset['dependencies'],
                 $channel_browser_asset['version']
             );
             
             // Register editor styles - use same frontend styles
             wp_register_style(
-                'dfx-tg-feed-channel-browser-block-editor',
-                DFX_TG_FEED_URL . 'assets/css/style.css',
+                'dfxtgfeed-channel-browser-block-editor',
+                DFXTGFEED_URL . 'assets/css/style.css',
                 [],
-                DFX_TG_FEED_VER
+                DFXTGFEED_VER
             );
             
-            register_block_type('dfx-tg-feed/channel-browser', [
-                'editor_script' => 'dfx-tg-feed-channel-browser-block',
-                'editor_style' => 'dfx-tg-feed-channel-browser-block-editor',
+            register_block_type('dfxtgfeed/channel-browser', [
+                'editor_script' => 'dfxtgfeed-channel-browser-block',
+                'editor_style' => 'dfxtgfeed-channel-browser-block-editor',
                 'render_callback' => [$this, 'render_channel_browser'],
                 'attributes' => [
                     'channel' => [
@@ -298,10 +298,10 @@ class Blocks {
         
         // Add the block ID to the wrapper via one-time filter
         $filter = function($classes) use ($block_id, &$filter) {
-            remove_filter('dfx_tg_feed_wrapper_class', $filter);
+            remove_filter('dfxtgfeed_wrapper_class', $filter);
             return $classes . ' ' . $block_id;
         };
-        add_filter('dfx_tg_feed_wrapper_class', $filter);
+        add_filter('dfxtgfeed_wrapper_class', $filter);
         
         $output = '';
         
@@ -325,10 +325,10 @@ class Blocks {
         
         // Add the block ID to the wrapper via one-time filter
         $filter = function($classes) use ($block_id, &$filter) {
-            remove_filter('dfx_tg_feed_wrapper_class', $filter);
+            remove_filter('dfxtgfeed_wrapper_class', $filter);
             return $classes . ' ' . $block_id;
         };
-        add_filter('dfx_tg_feed_wrapper_class', $filter);
+        add_filter('dfxtgfeed_wrapper_class', $filter);
         
         $output = '';
         
@@ -348,12 +348,12 @@ class Blocks {
     private function enqueue_block_styles($attributes, $block_type) {
         static $block_counter = 0;
         $block_counter++;
-        $block_id = 'dfx-tg-feed-block-' . $block_counter;
+        $block_id = 'dfxtgfeed-block-' . $block_counter;
         
         $styles = $this->generate_block_styles($attributes, $block_id);
         
         if (!empty($styles)) {
-            wp_add_inline_style('dfx-tg-feed', $styles);
+            wp_add_inline_style('dfxtgfeed', $styles);
         }
         
         return $block_id;
@@ -452,7 +452,7 @@ class Blocks {
         }
         
         if (!empty($message_styles)) {
-            $css .= '.' . $block_id . ' .dfx-tg-feed-message { ' . implode(' ', $message_styles) . ' }' . "\n";
+            $css .= '.' . $block_id . ' .dfxtgfeed-message { ' . implode(' ', $message_styles) . ' }' . "\n";
         }
         
         // Typography styles
@@ -474,7 +474,7 @@ class Blocks {
                 }
             }
             if (!empty($date_styles)) {
-                $css .= '.' . $block_id . ' .dfx-tg-feed-date { ' . implode(' ', $date_styles) . ' }' . "\n";
+                $css .= '.' . $block_id . ' .dfxtgfeed-date { ' . implode(' ', $date_styles) . ' }' . "\n";
             }
         }
         
@@ -496,7 +496,7 @@ class Blocks {
                 }
             }
             if (!empty($author_styles)) {
-                $css .= '.' . $block_id . ' .dfx-tg-feed-author { ' . implode(' ', $author_styles) . ' }' . "\n";
+                $css .= '.' . $block_id . ' .dfxtgfeed-author { ' . implode(' ', $author_styles) . ' }' . "\n";
             }
         }
         
@@ -518,7 +518,7 @@ class Blocks {
                 }
             }
             if (!empty($text_styles)) {
-                $css .= '.' . $block_id . ' .dfx-tg-feed-text { ' . implode(' ', $text_styles) . ' }' . "\n";
+                $css .= '.' . $block_id . ' .dfxtgfeed-text { ' . implode(' ', $text_styles) . ' }' . "\n";
             }
         }
         

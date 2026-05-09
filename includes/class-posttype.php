@@ -1,5 +1,5 @@
 <?php
-namespace DFX\TelegramChannelFeed;
+namespace DFXTgFeed;
 
 if (!defined('ABSPATH')) exit;
 
@@ -16,9 +16,9 @@ class PostType {
         $this->register_post_type();
         
         // Add filters and actions for post type management
-        add_filter('manage_dfx_tg_message_posts_columns', [$this, 'set_custom_columns']);
-        add_action('manage_dfx_tg_message_posts_custom_column', [$this, 'custom_column_content'], 10, 2);
-        add_filter('manage_edit-dfx_tg_message_sortable_columns', [$this, 'set_sortable_columns']);
+        add_filter('manage_dfxtgfeed_message_posts_columns', [$this, 'set_custom_columns']);
+        add_action('manage_dfxtgfeed_message_posts_custom_column', [$this, 'custom_column_content'], 10, 2);
+        add_filter('manage_edit-dfxtgfeed_message_sortable_columns', [$this, 'set_sortable_columns']);
         add_action('restrict_manage_posts', [$this, 'add_channel_filter']);
         add_action('restrict_manage_posts', [$this, 'add_refresh_button']);
         add_filter('parse_query', [$this, 'filter_by_channel']);
@@ -27,11 +27,11 @@ class PostType {
         add_action('admin_menu', [$this, 'remove_standalone_menu'], 999);
         add_filter('parent_file', [$this, 'set_parent_file']);
         add_filter('submenu_file', [$this, 'set_submenu_file']);
-        add_action('wp_ajax_dfx_tg_hide_message', [$this, 'ajax_hide_message']);
-        add_action('wp_ajax_dfx_tg_unhide_message', [$this, 'ajax_unhide_message']);
+        add_action('wp_ajax_dfxtgfeed_hide_message', [$this, 'ajax_hide_message']);
+        add_action('wp_ajax_dfxtgfeed_unhide_message', [$this, 'ajax_unhide_message']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_scripts']);
-        add_filter('bulk_actions-edit-dfx_tg_message', [$this, 'register_bulk_actions']);
-        add_filter('handle_bulk_actions-edit-dfx_tg_message', [$this, 'handle_bulk_actions'], 10, 3);
+        add_filter('bulk_actions-edit-dfxtgfeed_message', [$this, 'register_bulk_actions']);
+        add_filter('handle_bulk_actions-edit-dfxtgfeed_message', [$this, 'handle_bulk_actions'], 10, 3);
         add_action('admin_notices', [$this, 'bulk_action_notices']);
         // Prevent WordPress from changing post dates when status changes
         add_filter('wp_insert_post_data', [$this, 'preserve_post_dates'], 10, 2);
@@ -39,17 +39,17 @@ class PostType {
     
     public function register_post_type() {
         $labels = [
-            'name'               => __('Telegram Messages', 'dfx-tg-feed'),
-            'singular_name'      => __('Telegram Message', 'dfx-tg-feed'),
-            'menu_name'          => __('Telegram Messages', 'dfx-tg-feed'),
-            'add_new'            => __('Add New', 'dfx-tg-feed'),
-            'add_new_item'       => __('Add New Message', 'dfx-tg-feed'),
-            'edit_item'          => __('Edit Message', 'dfx-tg-feed'),
-            'new_item'           => __('New Message', 'dfx-tg-feed'),
-            'view_item'          => __('View Message', 'dfx-tg-feed'),
-            'search_items'       => __('Search Messages', 'dfx-tg-feed'),
-            'not_found'          => __('No messages found', 'dfx-tg-feed'),
-            'not_found_in_trash' => __('No messages found in trash', 'dfx-tg-feed'),
+            'name'               => __('Telegram Messages', 'dfxtgfeed'),
+            'singular_name'      => __('Telegram Message', 'dfxtgfeed'),
+            'menu_name'          => __('Telegram Messages', 'dfxtgfeed'),
+            'add_new'            => __('Add New', 'dfxtgfeed'),
+            'add_new_item'       => __('Add New Message', 'dfxtgfeed'),
+            'edit_item'          => __('Edit Message', 'dfxtgfeed'),
+            'new_item'           => __('New Message', 'dfxtgfeed'),
+            'view_item'          => __('View Message', 'dfxtgfeed'),
+            'search_items'       => __('Search Messages', 'dfxtgfeed'),
+            'not_found'          => __('No messages found', 'dfxtgfeed'),
+            'not_found_in_trash' => __('No messages found in trash', 'dfxtgfeed'),
         ];
         
         $args = [
@@ -68,34 +68,34 @@ class PostType {
             'menu_icon'           => 'dashicons-email-alt',
         ];
         
-        register_post_type('dfx_tg_message', $args);
+        register_post_type('dfxtgfeed_message', $args);
     }
     
     public function set_custom_columns($columns) {
         $new_columns = [];
         $new_columns['cb'] = $columns['cb'];
-        $new_columns['title'] = __('Message Preview', 'dfx-tg-feed');
-        $new_columns['channel'] = __('Channel', 'dfx-tg-feed');
-        $new_columns['author'] = __('Author', 'dfx-tg-feed');
-        $new_columns['media'] = __('Media', 'dfx-tg-feed');
-        $new_columns['message_id'] = __('Message ID', 'dfx-tg-feed');
-        $new_columns['visibility'] = __('Visibility', 'dfx-tg-feed');
-        $new_columns['date'] = __('Posted Date', 'dfx-tg-feed');
+        $new_columns['title'] = __('Message Preview', 'dfxtgfeed');
+        $new_columns['channel'] = __('Channel', 'dfxtgfeed');
+        $new_columns['author'] = __('Author', 'dfxtgfeed');
+        $new_columns['media'] = __('Media', 'dfxtgfeed');
+        $new_columns['message_id'] = __('Message ID', 'dfxtgfeed');
+        $new_columns['visibility'] = __('Visibility', 'dfxtgfeed');
+        $new_columns['date'] = __('Posted Date', 'dfxtgfeed');
         return $new_columns;
     }
     
     public function custom_column_content($column, $post_id) {
         switch ($column) {
             case 'channel':
-                $channel = get_post_meta($post_id, '_tg_channel', true);
+                $channel = get_post_meta($post_id, '_dfxtgfeed_channel', true);
                 echo '<strong>' . esc_html($channel) . '</strong>';
                 break;
             case 'message_id':
-                echo '<code>' . esc_html(get_post_meta($post_id, '_tg_message_id', true)) . '</code>';
+                echo '<code>' . esc_html(get_post_meta($post_id, '_dfxtgfeed_message_id', true)) . '</code>';
                 break;
             case 'media':
-                $media = get_post_meta($post_id, '_tg_media', true);
-                $is_sticker = get_post_meta($post_id, '_tg_is_sticker', true);
+                $media = get_post_meta($post_id, '_dfxtgfeed_media', true);
+                $is_sticker = get_post_meta($post_id, '_dfxtgfeed_is_sticker', true);
                 if ($is_sticker) {
                     echo '<span class="dashicons dashicons-format-image" title="Sticker"></span>';
                 } elseif ($media) {
@@ -105,7 +105,7 @@ class PostType {
                 }
                 break;
             case 'author':
-                $author = get_post_meta($post_id, '_tg_author', true);
+                $author = get_post_meta($post_id, '_dfxtgfeed_author', true);
                 if ($author) {
                     $display = $author['name'] ?? '';
                     if (!empty($author['username'])) {
@@ -117,11 +117,11 @@ class PostType {
                 }
                 break;
             case 'visibility':
-                $is_hidden = get_post_meta($post_id, '_tg_hidden', true);
+                $is_hidden = get_post_meta($post_id, '_dfxtgfeed_hidden', true);
                 if ($is_hidden) {
-                    echo '<span style="color: #d63638;"><span class="dashicons dashicons-hidden"></span> ' . __('Hidden', 'dfx-tg-feed') . '</span>';
+                    echo '<span style="color: #d63638;"><span class="dashicons dashicons-hidden"></span> ' . __('Hidden', 'dfxtgfeed') . '</span>';
                 } else {
-                    echo '<span style="color: #00a32a;"><span class="dashicons dashicons-visibility"></span> ' . __('Visible', 'dfx-tg-feed') . '</span>';
+                    echo '<span style="color: #00a32a;"><span class="dashicons dashicons-visibility"></span> ' . __('Visible', 'dfxtgfeed') . '</span>';
                 }
                 break;
         }
@@ -136,7 +136,7 @@ class PostType {
     public function add_channel_filter() {
         global $typenow;
         
-        if ($typenow !== 'dfx_tg_message') {
+        if ($typenow !== 'dfxtgfeed_message') {
             return;
         }
         
@@ -145,14 +145,14 @@ class PostType {
         $channels = $wpdb->get_col("
             SELECT DISTINCT meta_value 
             FROM {$wpdb->postmeta} 
-            WHERE meta_key = '_tg_channel' 
+            WHERE meta_key = '_dfxtgfeed_channel' 
             ORDER BY meta_value ASC
         ");
         
         $current_channel = isset($_GET['channel_filter']) ? $_GET['channel_filter'] : '';
         
         echo '<select name="channel_filter">';
-        echo '<option value="">' . __('All Channels', 'dfx-tg-feed') . '</option>';
+        echo '<option value="">' . __('All Channels', 'dfxtgfeed') . '</option>';
         foreach ($channels as $channel) {
             printf(
                 '<option value="%s"%s>%s</option>',
@@ -167,7 +167,7 @@ class PostType {
     public function add_refresh_button() {
         global $typenow;
         
-        if ($typenow !== 'dfx_tg_message') {
+        if ($typenow !== 'dfxtgfeed_message') {
             return;
         }
         
@@ -176,27 +176,27 @@ class PostType {
         
         // Display refresh button
         ?>
-        <button type="button" class="button" id="dfx-tg-refresh-messages" <?php echo empty($current_channel) ? 'disabled' : ''; ?>>
+        <button type="button" class="button" id="dfxtgfeed-refresh-messages" <?php echo empty($current_channel) ? 'disabled' : ''; ?>>
             <span class="dashicons dashicons-update" style="vertical-align: middle; margin-top: 2px;"></span>
-            <?php _e('Refresh Messages', 'dfx-tg-feed'); ?>
+            <?php _e('Refresh Messages', 'dfxtgfeed'); ?>
         </button>
         <?php if (empty($current_channel)): ?>
             <p class="description" style="display:inline; margin-left: 5px;">
-                <?php _e('Select a channel to enable refresh', 'dfx-tg-feed'); ?>
+                <?php _e('Select a channel to enable refresh', 'dfxtgfeed'); ?>
             </p>
         <?php endif; ?>
-        <span id="dfx-tg-refresh-status" style="margin-left: 10px;"></span>
+        <span id="dfxtgfeed-refresh-status" style="margin-left: 10px;"></span>
         <?php
     }
     
     public function filter_by_channel($query) {
         global $pagenow, $typenow;
         
-        if ($pagenow === 'edit.php' && $typenow === 'dfx_tg_message' && isset($_GET['channel_filter']) && $_GET['channel_filter'] !== '') {
+        if ($pagenow === 'edit.php' && $typenow === 'dfxtgfeed_message' && isset($_GET['channel_filter']) && $_GET['channel_filter'] !== '') {
             // Use meta_query instead of meta_key/meta_value to avoid conflicts with sorting
             $meta_query = $query->get('meta_query') ?: [];
             $meta_query[] = [
-                'key' => '_tg_channel',
+                'key' => '_dfxtgfeed_channel',
                 'value' => sanitize_text_field($_GET['channel_filter']),
                 'compare' => '='
             ];
@@ -210,7 +210,7 @@ class PostType {
     public function handle_custom_column_sorting($query) {
         // Only run on admin edit.php page for our post type
         global $pagenow, $typenow;
-        if (!is_admin() || !$query->is_main_query() || $pagenow !== 'edit.php' || $typenow !== 'dfx_tg_message') {
+        if (!is_admin() || !$query->is_main_query() || $pagenow !== 'edit.php' || $typenow !== 'dfxtgfeed_message') {
             return;
         }
         
@@ -220,11 +220,11 @@ class PostType {
         // Handle sorting by custom meta fields
         if ($orderby === 'channel') {
             // Sort by channel meta field (alphabetically)
-            $query->set('meta_key', '_tg_channel');
+            $query->set('meta_key', '_dfxtgfeed_channel');
             $query->set('orderby', 'meta_value');
         } elseif ($orderby === 'message_id') {
             // Sort by message_id meta field (numerically)
-            $query->set('meta_key', '_tg_message_id');
+            $query->set('meta_key', '_dfxtgfeed_message_id');
             $query->set('orderby', 'meta_value_num');
         }
     }
@@ -232,7 +232,7 @@ class PostType {
     public function enqueue_admin_scripts($hook) {
         // Only enqueue on the post type list page
         $post_type = isset($_GET['post_type']) ? sanitize_text_field($_GET['post_type']) : 'post';
-        if ($hook !== 'edit.php' || $post_type !== 'dfx_tg_message') {
+        if ($hook !== 'edit.php' || $post_type !== 'dfxtgfeed_message') {
             return;
         }
         
@@ -240,31 +240,31 @@ class PostType {
         wp_enqueue_script('jquery');
         
         // Localize script data for AJAX
-        wp_localize_script('jquery', 'dfxTgFeedRefresh', [
+        wp_localize_script('jquery', 'dfxtgfeedRefresh', [
             'ajaxUrl' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('dfx_tg_feed_refresh'),
+            'nonce' => wp_create_nonce('dfxtgfeed_refresh'),
             'i18n' => [
-                'selectChannel' => __('Please select a channel first', 'dfx-tg-feed'),
-                'refreshing' => __('Refreshing messages...', 'dfx-tg-feed'),
-                'success' => __('Messages refreshed successfully! Reloading...', 'dfx-tg-feed'),
-                'errorLabel' => __('Error:', 'dfx-tg-feed'),
-                'requestFailed' => __('Request failed:', 'dfx-tg-feed'),
-                'unknownError' => __('Unknown error', 'dfx-tg-feed'),
+                'selectChannel' => __('Please select a channel first', 'dfxtgfeed'),
+                'refreshing' => __('Refreshing messages...', 'dfxtgfeed'),
+                'success' => __('Messages refreshed successfully! Reloading...', 'dfxtgfeed'),
+                'errorLabel' => __('Error:', 'dfxtgfeed'),
+                'requestFailed' => __('Request failed:', 'dfxtgfeed'),
+                'unknownError' => __('Unknown error', 'dfxtgfeed'),
             ],
         ]);
         
         // Add inline CSS for status messages
         wp_add_inline_style('common', '
-            .dfx-tg-status-loading { color: #0073aa; }
-            .dfx-tg-status-success { color: #46b450; }
-            .dfx-tg-status-error { color: #dc3232; }
+            .dfxtgfeed-status-loading { color: #0073aa; }
+            .dfxtgfeed-status-success { color: #46b450; }
+            .dfxtgfeed-status-error { color: #dc3232; }
         ');
         
         // Add inline script for refresh functionality
         wp_add_inline_script('jquery', "
         jQuery(document).ready(function($) {
-            var refreshBtn = $('#dfx-tg-refresh-messages');
-            var statusSpan = $('#dfx-tg-refresh-status');
+            var refreshBtn = $('#dfxtgfeed-refresh-messages');
+            var statusSpan = $('#dfxtgfeed-refresh-status');
             var channelFilter = $('select[name=\"channel_filter\"]');
             
             function setStatus(message, statusClass) {
@@ -286,37 +286,37 @@ class PostType {
                 
                 var channel = channelFilter.val();
                 if (!channel) {
-                    alert(dfxTgFeedRefresh.i18n.selectChannel);
+                    alert(dfxtgfeedRefresh.i18n.selectChannel);
                     return;
                 }
                 
                 // Disable button and show loading status
                 refreshBtn.prop('disabled', true);
-                setStatus(dfxTgFeedRefresh.i18n.refreshing, 'dfx-tg-status-loading');
+                setStatus(dfxtgfeedRefresh.i18n.refreshing, 'dfxtgfeed-status-loading');
                 
                 $.ajax({
-                    url: dfxTgFeedRefresh.ajaxUrl,
+                    url: dfxtgfeedRefresh.ajaxUrl,
                     type: 'POST',
                     data: {
-                        action: 'dfx_tg_feed_refresh',
+                        action: 'dfxtgfeed_refresh',
                         channel: channel,
-                        _ajax_nonce: dfxTgFeedRefresh.nonce
+                        _ajax_nonce: dfxtgfeedRefresh.nonce
                     },
                     success: function(response) {
                         if (response.success) {
-                            setStatus(dfxTgFeedRefresh.i18n.success, 'dfx-tg-status-success');
+                            setStatus(dfxtgfeedRefresh.i18n.success, 'dfxtgfeed-status-success');
                             // Reload the page after a short delay to show updated messages
                             setTimeout(function() {
                                 window.location.reload();
                             }, 1000);
                         } else {
-                            var errorMsg = response.data || dfxTgFeedRefresh.i18n.unknownError;
-                            setStatus(dfxTgFeedRefresh.i18n.errorLabel + ' ' + errorMsg, 'dfx-tg-status-error');
+                            var errorMsg = response.data || dfxtgfeedRefresh.i18n.unknownError;
+                            setStatus(dfxtgfeedRefresh.i18n.errorLabel + ' ' + errorMsg, 'dfxtgfeed-status-error');
                             refreshBtn.prop('disabled', false);
                         }
                     },
                     error: function(xhr, status, error) {
-                        setStatus(dfxTgFeedRefresh.i18n.requestFailed + ' ' + error, 'dfx-tg-status-error');
+                        setStatus(dfxtgfeedRefresh.i18n.requestFailed + ' ' + error, 'dfxtgfeed-status-error');
                         refreshBtn.prop('disabled', false);
                     }
                 });
@@ -326,28 +326,28 @@ class PostType {
 
         
         wp_enqueue_script(
-            'dfx-tg-admin',
-            DFX_TG_FEED_URL . 'assets/js/admin.js',
+            'dfxtgfeed-admin',
+            DFXTGFEED_URL . 'assets/js/admin.js',
             ['jquery'],
-            DFX_TG_FEED_VER,
+            DFXTGFEED_VER,
             true
         );
         
-        wp_localize_script('dfx-tg-admin', 'dfxTgAdmin', [
+        wp_localize_script('dfxtgfeed-admin', 'dfxTgAdmin', [
             'ajaxUrl' => admin_url('admin-ajax.php'),
-            'hideConfirm' => __('Are you sure you want to hide this message from the frontend?', 'dfx-tg-feed'),
-            'error' => __('An error occurred. Please try again.', 'dfx-tg-feed'),
+            'hideConfirm' => __('Are you sure you want to hide this message from the frontend?', 'dfxtgfeed'),
+            'error' => __('An error occurred. Please try again.', 'dfxtgfeed'),
         ]);
     }
     
     public function modify_row_actions($actions, $post) {
-        if ($post->post_type === 'dfx_tg_message') {
+        if ($post->post_type === 'dfxtgfeed_message') {
             // Remove "Quick Edit" since posts are synced from Telegram
             unset($actions['inline hide-if-no-js']);
             
             // Add custom action to view in Telegram
-            $message_id = get_post_meta($post->ID, '_tg_message_id', true);
-            $channel = get_post_meta($post->ID, '_tg_channel', true);
+            $message_id = get_post_meta($post->ID, '_dfxtgfeed_message_id', true);
+            $channel = get_post_meta($post->ID, '_dfxtgfeed_channel', true);
             
             if ($message_id && $channel) {
                 // Remove @ if present
@@ -356,27 +356,27 @@ class PostType {
                     '<a href="https://t.me/%s/%s" target="_blank">%s</a>',
                     esc_attr($channel_clean),
                     esc_attr($message_id),
-                    __('View in Telegram', 'dfx-tg-feed')
+                    __('View in Telegram', 'dfxtgfeed')
                 );
             }
             
             // Add hide/unhide action
-            $is_hidden = get_post_meta($post->ID, '_tg_hidden', true);
-            $nonce = wp_create_nonce('dfx_tg_hide_message_' . $post->ID);
+            $is_hidden = get_post_meta($post->ID, '_dfxtgfeed_hidden', true);
+            $nonce = wp_create_nonce('dfxtgfeed_hide_message_' . $post->ID);
             
             if ($is_hidden) {
                 $actions['unhide'] = sprintf(
-                    '<a href="#" class="dfx-tg-unhide-message" data-post-id="%d" data-nonce="%s">%s</a>',
+                    '<a href="#" class="dfxtgfeed-unhide-message" data-post-id="%d" data-nonce="%s">%s</a>',
                     $post->ID,
                     $nonce,
-                    __('Unhide', 'dfx-tg-feed')
+                    __('Unhide', 'dfxtgfeed')
                 );
             } else {
                 $actions['hide'] = sprintf(
-                    '<a href="#" class="dfx-tg-hide-message" data-post-id="%d" data-nonce="%s">%s</a>',
+                    '<a href="#" class="dfxtgfeed-hide-message" data-post-id="%d" data-nonce="%s">%s</a>',
                     $post->ID,
                     $nonce,
-                    __('Hide', 'dfx-tg-feed')
+                    __('Hide', 'dfxtgfeed')
                 );
             }
         }
@@ -389,7 +389,7 @@ class PostType {
      * since we're adding it under a custom parent menu
      */
     public function remove_standalone_menu() {
-        remove_menu_page('edit.php?post_type=dfx_tg_message');
+        remove_menu_page('edit.php?post_type=dfxtgfeed_message');
     }
     
     /**
@@ -398,7 +398,7 @@ class PostType {
     public function set_parent_file($parent_file) {
         global $current_screen;
         
-        if ($current_screen && $current_screen->post_type === 'dfx_tg_message') {
+        if ($current_screen && $current_screen->post_type === 'dfxtgfeed_message') {
             $parent_file = Plugin::MENU_SLUG;
         }
         
@@ -411,8 +411,8 @@ class PostType {
     public function set_submenu_file($submenu_file) {
         global $current_screen;
         
-        if ($current_screen && $current_screen->post_type === 'dfx_tg_message') {
-            $submenu_file = 'edit.php?post_type=dfx_tg_message';
+        if ($current_screen && $current_screen->post_type === 'dfxtgfeed_message') {
+            $submenu_file = 'edit.php?post_type=dfxtgfeed_message';
         }
         
         return $submenu_file;
@@ -424,15 +424,15 @@ class PostType {
     public function store_message($channel, $message_data) {
         // Check if message already exists
         $existing = get_posts([
-            'post_type' => 'dfx_tg_message',
+            'post_type' => 'dfxtgfeed_message',
             'meta_query' => [
                 'relation' => 'AND',
                 [
-                    'key' => '_tg_channel',
+                    'key' => '_dfxtgfeed_channel',
                     'value' => $channel,
                 ],
                 [
-                    'key' => '_tg_message_id',
+                    'key' => '_dfxtgfeed_message_id',
                     'value' => $message_data['id'],
                 ],
             ],
@@ -452,8 +452,8 @@ class PostType {
         $post_date = get_date_from_gmt($post_date_gmt);
         
         $post_id = wp_insert_post([
-            'post_type' => 'dfx_tg_message',
-            'post_title' => $text_preview ?: __('(No text)', 'dfx-tg-feed'),
+            'post_type' => 'dfxtgfeed_message',
+            'post_title' => $text_preview ?: __('(No text)', 'dfxtgfeed'),
             'post_content' => $message_data['text'] ?? '',
             'post_status' => 'publish',
             'post_date' => $post_date,
@@ -461,29 +461,31 @@ class PostType {
         ]);
         
         if ($post_id) {
-            update_post_meta($post_id, '_tg_channel', $channel);
-            update_post_meta($post_id, '_tg_message_id', $message_data['id']);
-            update_post_meta($post_id, '_tg_date', $message_data['date']);
+            update_post_meta($post_id, '_dfxtgfeed_channel', $channel);
+            update_post_meta($post_id, '_dfxtgfeed_message_id', $message_data['id']);
+            update_post_meta($post_id, '_dfxtgfeed_date', $message_data['date']);
+            // _dfxtgfeed_media is now a boolean presence flag ('1'). The actual media is
+            // resolved at render time from _dfxtgfeed_file_id via the media proxy.
             if (!empty($message_data['media'])) {
-                update_post_meta($post_id, '_tg_media', $message_data['media']);
+                update_post_meta($post_id, '_dfxtgfeed_media', '1');
             }
             if (!empty($message_data['sticker'])) {
-                update_post_meta($post_id, '_tg_is_sticker', true);
+                update_post_meta($post_id, '_dfxtgfeed_is_sticker', true);
             }
             if (!empty($message_data['sticker_type'])) {
-                update_post_meta($post_id, '_tg_sticker_type', $message_data['sticker_type']);
+                update_post_meta($post_id, '_dfxtgfeed_sticker_type', $message_data['sticker_type']);
             }
             if (!empty($message_data['emoji'])) {
-                update_post_meta($post_id, '_tg_emoji', $message_data['emoji']);
+                update_post_meta($post_id, '_dfxtgfeed_emoji', $message_data['emoji']);
             }
             if (!empty($message_data['file_id'])) {
-                update_post_meta($post_id, '_tg_file_id', $message_data['file_id']);
+                update_post_meta($post_id, '_dfxtgfeed_file_id', $message_data['file_id']);
             }
             if (!empty($message_data['entities'])) {
-                update_post_meta($post_id, '_tg_entities', $message_data['entities']);
+                update_post_meta($post_id, '_dfxtgfeed_entities', $message_data['entities']);
             }
             if (!empty($message_data['author'])) {
-                update_post_meta($post_id, '_tg_author', $message_data['author']);
+                update_post_meta($post_id, '_dfxtgfeed_author', $message_data['author']);
             }
         }
         
@@ -495,25 +497,25 @@ class PostType {
      */
     public function get_messages($channel, $limit = 10) {
         $posts = get_posts([
-            'post_type' => 'dfx_tg_message',
+            'post_type' => 'dfxtgfeed_message',
             'posts_per_page' => $limit,
-            'meta_key' => '_tg_message_id',
+            'meta_key' => '_dfxtgfeed_message_id',
             'orderby' => 'meta_value_num',
             'order' => 'DESC',
             'meta_query' => [
                 'relation' => 'AND',
                 [
-                    'key' => '_tg_channel',
+                    'key' => '_dfxtgfeed_channel',
                     'value' => $channel,
                 ],
                 [
                     'relation' => 'OR',
                     [
-                        'key' => '_tg_hidden',
+                        'key' => '_dfxtgfeed_hidden',
                         'compare' => 'NOT EXISTS',
                     ],
                     [
-                        'key' => '_tg_hidden',
+                        'key' => '_dfxtgfeed_hidden',
                         'value' => '1',
                         'compare' => '!=',
                     ],
@@ -524,16 +526,16 @@ class PostType {
         $messages = [];
         foreach ($posts as $post) {
             $messages[] = [
-                'id' => get_post_meta($post->ID, '_tg_message_id', true),
-                'date' => get_post_meta($post->ID, '_tg_date', true),
+                'id' => get_post_meta($post->ID, '_dfxtgfeed_message_id', true),
+                'date' => get_post_meta($post->ID, '_dfxtgfeed_date', true),
                 'text' => $post->post_content,
-                'entities' => get_post_meta($post->ID, '_tg_entities', true) ?: [],
-                'media' => get_post_meta($post->ID, '_tg_media', true),
-                'sticker' => get_post_meta($post->ID, '_tg_is_sticker', true),
-                'sticker_type' => get_post_meta($post->ID, '_tg_sticker_type', true),
-                'emoji' => get_post_meta($post->ID, '_tg_emoji', true),
-                'file_id' => get_post_meta($post->ID, '_tg_file_id', true),
-                'author' => get_post_meta($post->ID, '_tg_author', true),
+                'entities' => get_post_meta($post->ID, '_dfxtgfeed_entities', true) ?: [],
+                'media' => get_post_meta($post->ID, '_dfxtgfeed_media', true),
+                'sticker' => get_post_meta($post->ID, '_dfxtgfeed_is_sticker', true),
+                'sticker_type' => get_post_meta($post->ID, '_dfxtgfeed_sticker_type', true),
+                'emoji' => get_post_meta($post->ID, '_dfxtgfeed_emoji', true),
+                'file_id' => get_post_meta($post->ID, '_dfxtgfeed_file_id', true),
+                'author' => get_post_meta($post->ID, '_dfxtgfeed_author', true),
                 'deleted' => false,
             ];
         }
@@ -576,17 +578,17 @@ class PostType {
             if (!empty($deleted_ids)) {
                 // Fetch all posts with deleted message IDs in a single query
                 $posts_to_trash = get_posts([
-                    'post_type' => 'dfx_tg_message',
+                    'post_type' => 'dfxtgfeed_message',
                     'posts_per_page' => -1,
                     'fields' => 'ids',
                     'meta_query' => [
                         'relation' => 'AND',
                         [
-                            'key' => '_tg_channel',
+                            'key' => '_dfxtgfeed_channel',
                             'value' => $channel,
                         ],
                         [
-                            'key' => '_tg_message_id',
+                            'key' => '_dfxtgfeed_message_id',
                             'value' => $deleted_ids,
                             'compare' => 'IN',
                         ],
@@ -608,14 +610,14 @@ class PostType {
      */
     private function get_all_messages($channel, $limit = 200) {
         $posts = get_posts([
-            'post_type' => 'dfx_tg_message',
+            'post_type' => 'dfxtgfeed_message',
             'posts_per_page' => $limit,
             'orderby' => 'date',
             'order' => 'DESC',
             'post_status' => 'publish',
             'meta_query' => [
                 [
-                    'key' => '_tg_channel',
+                    'key' => '_dfxtgfeed_channel',
                     'value' => $channel,
                 ],
             ],
@@ -624,8 +626,8 @@ class PostType {
         $messages = [];
         foreach ($posts as $post) {
             $messages[] = [
-                'id' => get_post_meta($post->ID, '_tg_message_id', true),
-                'date' => get_post_meta($post->ID, '_tg_date', true),
+                'id' => get_post_meta($post->ID, '_dfxtgfeed_message_id', true),
+                'date' => get_post_meta($post->ID, '_dfxtgfeed_date', true),
             ];
         }
         
@@ -636,7 +638,7 @@ class PostType {
      * AJAX handler to refresh messages for admin panel
      */
     public function ajax_refresh_messages() {
-        check_ajax_referer('dfx_tg_feed_refresh');
+        check_ajax_referer('dfxtgfeed_refresh');
         if (!current_user_can('manage_options')) {
             wp_send_json_error('No permission.');
         }
@@ -646,7 +648,7 @@ class PostType {
             wp_send_json_error('Channel parameter is required.');
         }
         
-        $limit = intval(get_option('dfx_tg_feed_default_count', 10));
+        $limit = intval(get_option('dfxtgfeed_default_count', 10));
         $result = $this->refresh_messages($channel, $limit);
         
         wp_send_json_success($result);
@@ -660,25 +662,25 @@ class PostType {
         $post_id = intval($_POST['post_id'] ?? 0);
         $nonce = sanitize_text_field($_POST['nonce'] ?? '');
         
-        if (!wp_verify_nonce($nonce, 'dfx_tg_hide_message_' . $post_id)) {
-            wp_send_json_error(__('Invalid security token.', 'dfx-tg-feed'));
+        if (!wp_verify_nonce($nonce, 'dfxtgfeed_hide_message_' . $post_id)) {
+            wp_send_json_error(__('Invalid security token.', 'dfxtgfeed'));
         }
         
         if (!$post_id) {
-            wp_send_json_error(__('Invalid request.', 'dfx-tg-feed'));
+            wp_send_json_error(__('Invalid request.', 'dfxtgfeed'));
         }
         
         if (!current_user_can('edit_post', $post_id)) {
-            wp_send_json_error(__('No permission.', 'dfx-tg-feed'));
+            wp_send_json_error(__('No permission.', 'dfxtgfeed'));
         }
         
         $post = get_post($post_id);
-        if (!$post || $post->post_type !== 'dfx_tg_message') {
-            wp_send_json_error(__('Invalid post.', 'dfx-tg-feed'));
+        if (!$post || $post->post_type !== 'dfxtgfeed_message') {
+            wp_send_json_error(__('Invalid post.', 'dfxtgfeed'));
         }
         
-        update_post_meta($post_id, '_tg_hidden', '1');
-        wp_send_json_success(__('Message hidden from frontend.', 'dfx-tg-feed'));
+        update_post_meta($post_id, '_dfxtgfeed_hidden', '1');
+        wp_send_json_success(__('Message hidden from frontend.', 'dfxtgfeed'));
     }
     
     /**
@@ -689,33 +691,33 @@ class PostType {
         $post_id = intval($_POST['post_id'] ?? 0);
         $nonce = sanitize_text_field($_POST['nonce'] ?? '');
         
-        if (!wp_verify_nonce($nonce, 'dfx_tg_hide_message_' . $post_id)) {
-            wp_send_json_error(__('Invalid security token.', 'dfx-tg-feed'));
+        if (!wp_verify_nonce($nonce, 'dfxtgfeed_hide_message_' . $post_id)) {
+            wp_send_json_error(__('Invalid security token.', 'dfxtgfeed'));
         }
         
         if (!$post_id) {
-            wp_send_json_error(__('Invalid request.', 'dfx-tg-feed'));
+            wp_send_json_error(__('Invalid request.', 'dfxtgfeed'));
         }
         
         if (!current_user_can('edit_post', $post_id)) {
-            wp_send_json_error(__('No permission.', 'dfx-tg-feed'));
+            wp_send_json_error(__('No permission.', 'dfxtgfeed'));
         }
         
         $post = get_post($post_id);
-        if (!$post || $post->post_type !== 'dfx_tg_message') {
-            wp_send_json_error(__('Invalid post.', 'dfx-tg-feed'));
+        if (!$post || $post->post_type !== 'dfxtgfeed_message') {
+            wp_send_json_error(__('Invalid post.', 'dfxtgfeed'));
         }
         
-        delete_post_meta($post_id, '_tg_hidden');
-        wp_send_json_success(__('Message is now visible in frontend.', 'dfx-tg-feed'));
+        delete_post_meta($post_id, '_dfxtgfeed_hidden');
+        wp_send_json_success(__('Message is now visible in frontend.', 'dfxtgfeed'));
     }
     
     /**
      * Register bulk actions for the post type
      */
     public function register_bulk_actions($bulk_actions) {
-        $bulk_actions['hide_messages'] = __('Hide', 'dfx-tg-feed');
-        $bulk_actions['unhide_messages'] = __('Unhide', 'dfx-tg-feed');
+        $bulk_actions['hide_messages'] = __('Hide', 'dfxtgfeed');
+        $bulk_actions['unhide_messages'] = __('Unhide', 'dfxtgfeed');
         return $bulk_actions;
     }
     
@@ -728,8 +730,8 @@ class PostType {
             foreach ($post_ids as $post_id) {
                 if (current_user_can('edit_post', $post_id)) {
                     $post = get_post($post_id);
-                    if ($post && $post->post_type === 'dfx_tg_message') {
-                        update_post_meta($post_id, '_tg_hidden', '1');
+                    if ($post && $post->post_type === 'dfxtgfeed_message') {
+                        update_post_meta($post_id, '_dfxtgfeed_hidden', '1');
                         $count++;
                     }
                 }
@@ -740,8 +742,8 @@ class PostType {
             foreach ($post_ids as $post_id) {
                 if (current_user_can('edit_post', $post_id)) {
                     $post = get_post($post_id);
-                    if ($post && $post->post_type === 'dfx_tg_message') {
-                        delete_post_meta($post_id, '_tg_hidden');
+                    if ($post && $post->post_type === 'dfxtgfeed_message') {
+                        delete_post_meta($post_id, '_dfxtgfeed_hidden');
                         $count++;
                     }
                 }
@@ -758,7 +760,7 @@ class PostType {
     public function bulk_action_notices() {
         global $typenow;
         
-        if ($typenow !== 'dfx_tg_message') {
+        if ($typenow !== 'dfxtgfeed_message') {
             return;
         }
         
@@ -766,7 +768,7 @@ class PostType {
             $count = absint($_REQUEST['bulk_hidden_messages']);
             printf(
                 '<div class="notice notice-success is-dismissible"><p>' .
-                _n('%s message hidden from frontend.', '%s messages hidden from frontend.', $count, 'dfx-tg-feed') .
+                _n('%s message hidden from frontend.', '%s messages hidden from frontend.', $count, 'dfxtgfeed') .
                 '</p></div>',
                 number_format_i18n($count)
             );
@@ -776,7 +778,7 @@ class PostType {
             $count = absint($_REQUEST['bulk_unhidden_messages']);
             printf(
                 '<div class="notice notice-success is-dismissible"><p>' .
-                _n('%s message is now visible in frontend.', '%s messages are now visible in frontend.', $count, 'dfx-tg-feed') .
+                _n('%s message is now visible in frontend.', '%s messages are now visible in frontend.', $count, 'dfxtgfeed') .
                 '</p></div>',
                 number_format_i18n($count)
             );
@@ -791,7 +793,7 @@ class PostType {
      * preserve the original date from Telegram, so we prevent this behavior.
      * 
      * This filter ensures that post_date and post_date_gmt are ALWAYS set from
-     * the original Telegram message timestamp stored in the _tg_date meta field.
+     * the original Telegram message timestamp stored in the _dfxtgfeed_date meta field.
      * 
      * @param array $data    An array of slashed post data
      * @param array $postarr An array of sanitized post data
@@ -799,13 +801,13 @@ class PostType {
      */
     public function preserve_post_dates($data, $postarr) {
         // Only apply to our custom post type
-        if ($data['post_type'] !== 'dfx_tg_message') {
+        if ($data['post_type'] !== 'dfxtgfeed_message') {
             return $data;
         }
         
         // If this is an update (not a new post), get the original Telegram timestamp
         if (!empty($postarr['ID'])) {
-            $telegram_timestamp = get_post_meta($postarr['ID'], '_tg_date', true);
+            $telegram_timestamp = get_post_meta($postarr['ID'], '_dfxtgfeed_date', true);
             
             if ($telegram_timestamp) {
                 // Convert Telegram timestamp to WordPress date format

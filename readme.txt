@@ -23,8 +23,8 @@ Messages are cached locally for configurable time to minimize traffic and API us
 
 == Usage ==
 
-- Use `[dfx_tg_channel_feed channel="yourchannel" count="5"]` to show the N latest messages.
-- Use `[dfx_tg_channel_browser channel="yourchannel"]` to show the full channel history.
+- Use `[dfxtgfeed_channel_feed channel="yourchannel" count="5"]` to show the N latest messages.
+- Use `[dfxtgfeed_channel_browser channel="yourchannel"]` to show the full channel history.
 
 == Changelog ==
 

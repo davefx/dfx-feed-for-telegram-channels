@@ -3,22 +3,22 @@
  */
 
 /* Feed Container */
-.dfx-tg-feed-layout,
-.dfx-tg-browser-layout {
+.dfxtgfeed-layout,
+.dfxtgfeed-browser-layout {
     max-width: 800px;
     margin: 0 auto;
 }
 
 /* Remove max-width on small screens for full mobile width */
 @media (max-width: 768px) {
-    .dfx-tg-feed-layout,
-    .dfx-tg-browser-layout {
+    .dfxtgfeed-layout,
+    .dfxtgfeed-browser-layout {
         max-width: 100%;
     }
 }
 
 /* Individual Message */
-.dfx-tg-feed-message {
+.dfxtgfeed-message {
     background: #ffffff;
     border: 1px solid #e1e8ed;
     border-radius: 12px;
@@ -27,21 +27,21 @@
     transition: box-shadow 0.2s ease;
 }
 
-.dfx-tg-feed-message:hover {
+.dfxtgfeed-message:hover {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.dfx-tg-feed-message:last-child {
+.dfxtgfeed-message:last-child {
     margin-bottom: 0;
 }
 
 /* Media - Images appear BEFORE text */
-.dfx-tg-feed-media {
+.dfxtgfeed-media {
     margin-bottom: 12px;
     line-height: 0;
 }
 
-.dfx-tg-feed-media img {
+.dfxtgfeed-media img {
     width: 100%;
     height: auto;
     border-radius: 8px;
@@ -49,13 +49,13 @@
 }
 
 /* Feed-specific: Miniaturized/constrained images */
-.dfx-tg-feed .dfx-tg-feed-media {
+.dfxtgfeed .dfxtgfeed-media {
     max-height: 200px;
     overflow: hidden;
     position: relative;
 }
 
-.dfx-tg-feed .dfx-tg-feed-media img {
+.dfxtgfeed .dfxtgfeed-media img {
     max-height: 200px;
     width: auto;
     max-width: 100%;
@@ -64,16 +64,16 @@
 }
 
 /* Browser-specific: Full-size images */
-.dfx-tg-feed-browser .dfx-tg-feed-media-browser {
+.dfxtgfeed-browser .dfxtgfeed-media-browser {
     max-height: none;
 }
 
-.dfx-tg-feed-browser .dfx-tg-feed-media-browser img {
+.dfxtgfeed-browser .dfxtgfeed-media-browser img {
     max-height: none;
 }
 
 /* Meta Information */
-.dfx-tg-feed-meta {
+.dfxtgfeed-meta {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -82,34 +82,34 @@
     color: #657786;
 }
 
-.dfx-tg-feed-date {
+.dfxtgfeed-date {
     font-weight: 500;
 }
 
-.dfx-tg-feed-id {
+.dfxtgfeed-id {
     color: #8899a6;
     font-family: monospace;
 }
 
 /* Author Information */
-.dfx-tg-feed-author {
+.dfxtgfeed-author {
     margin-bottom: 10px;
     font-size: 14px;
     color: #14171a;
     font-weight: 600;
 }
 
-.dfx-tg-feed-username {
+.dfxtgfeed-username {
     color: #1da1f2;
     font-weight: 400;
 }
 
 /* Media appears after date and author */
-.dfx-tg-feed-media {
+.dfxtgfeed-media {
     margin-bottom: 12px;
     line-height: 0;
 }
-.dfx-tg-feed-text {
+.dfxtgfeed-text {
     color: #14171a;
     font-size: 15px;
     line-height: 1.5;
@@ -117,23 +117,23 @@
 }
 
 /* Browser Specific Styles */
-.dfx-tg-feed-browser .dfx-tg-feed-message-browser {
+.dfxtgfeed-browser .dfxtgfeed-message-browser {
     border-left: 4px solid #1da1f2;
 }
 
 /* Sticker Styles */
-.dfx-tg-feed-sticker .dfx-tg-feed-media-sticker {
+.dfxtgfeed-sticker .dfxtgfeed-media-sticker {
     max-height: none;
     text-align: center;
 }
 
-.dfx-tg-feed-sticker .dfx-tg-feed-media-sticker img {
+.dfxtgfeed-sticker .dfxtgfeed-media-sticker img {
     max-width: 150px;
     max-height: 150px;
     object-fit: contain;
 }
 
-.dfx-tg-feed-emoji-overlay {
+.dfxtgfeed-emoji-overlay {
     position: absolute;
     bottom: 5px;
     right: 5px;
@@ -142,7 +142,7 @@
 }
 
 /* Text Formatting */
-.dfx-tg-feed-text code {
+.dfxtgfeed-text code {
     background: #f6f8fa;
     padding: 2px 6px;
     border-radius: 3px;
@@ -151,7 +151,7 @@
     color: #24292e;
 }
 
-.dfx-tg-feed-text pre {
+.dfxtgfeed-text pre {
     background: #f6f8fa;
     padding: 12px;
     border-radius: 6px;
@@ -159,14 +159,14 @@
     margin: 10px 0;
 }
 
-.dfx-tg-feed-text pre code {
+.dfxtgfeed-text pre code {
     background: transparent;
     padding: 0;
     font-size: 13px;
     line-height: 1.5;
 }
 
-.dfx-tg-feed-text blockquote {
+.dfxtgfeed-text blockquote {
     border-left: 4px solid #dfe2e5;
     padding-left: 16px;
     margin: 10px 0;
@@ -174,28 +174,28 @@
     font-style: italic;
 }
 
-.dfx-tg-feed-text a {
+.dfxtgfeed-text a {
     color: #1da1f2;
     text-decoration: none;
 }
 
-.dfx-tg-feed-text a:hover {
+.dfxtgfeed-text a:hover {
     text-decoration: underline;
 }
 
-.dfx-tg-feed-text .tg-mention,
-.dfx-tg-feed-text .tg-hashtag {
+.dfxtgfeed-text .dfxtgfeed-mention,
+.dfxtgfeed-text .dfxtgfeed-hashtag {
     color: #1da1f2;
     font-weight: 500;
 }
 
-.dfx-tg-feed-text .tg-bot_command {
+.dfxtgfeed-text .dfxtgfeed-bot_command {
     color: #0366d6;
     font-family: monospace;
 }
 
 /* Error and Info Messages */
-.dfx-tg-feed-error {
+.dfxtgfeed-error {
     padding: 15px;
     background: #f8d7da;
     border: 1px solid #f5c2c7;
@@ -204,11 +204,11 @@
     margin: 16px 0;
 }
 
-.dfx-tg-feed-error strong {
+.dfxtgfeed-error strong {
     font-weight: 600;
 }
 
-.dfx-tg-feed-info {
+.dfxtgfeed-info {
     padding: 15px;
     background: #cfe2ff;
     border: 1px solid #b6d4fe;
@@ -217,52 +217,52 @@
     margin: 16px 0;
 }
 
-.dfx-tg-feed-info strong {
+.dfxtgfeed-info strong {
     font-weight: 600;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .dfx-tg-feed-message {
+    .dfxtgfeed-message {
         padding: 12px;
         margin-bottom: 16px;
     }
     
-    .dfx-tg-feed-text {
+    .dfxtgfeed-text {
         font-size: 14px;
     }
     
-    .dfx-tg-feed .dfx-tg-feed-media {
+    .dfxtgfeed .dfxtgfeed-media {
         max-height: 150px;
     }
     
-    .dfx-tg-feed .dfx-tg-feed-media img {
+    .dfxtgfeed .dfxtgfeed-media img {
         max-height: 150px;
     }
 }
 
 /* Dark Mode Support */
 @media (prefers-color-scheme: dark) {
-    .dfx-tg-feed-message {
+    .dfxtgfeed-message {
         background: #15202b;
         border-color: #38444d;
     }
     
-    .dfx-tg-feed-message:hover {
+    .dfxtgfeed-message:hover {
         box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
     }
     
-    .dfx-tg-feed-text {
+    .dfxtgfeed-text {
         color: #ffffff;
     }
     
-    .dfx-tg-feed-meta {
+    .dfxtgfeed-meta {
         color: #8899a6;
     }
 }
 
 /* Sticker Containers */
-.dfx-tg-sticker-container {
+.dfxtgfeed-sticker-container {
     max-width: 150px;
     max-height: 150px;
     margin: 0 auto;
@@ -272,20 +272,20 @@
     justify-content: center;
 }
 
-.dfx-tg-sticker-container.dfx-tg-sticker-browser {
+.dfxtgfeed-sticker-container.dfxtgfeed-sticker-browser {
     max-width: 256px;
     max-height: 256px;
 }
 
 @media (max-width: 768px) {
-    .dfx-tg-sticker-container {
+    .dfxtgfeed-sticker-container {
         max-width: 120px;
         max-height: 120px;
     }
 }
 
 /* Video Stickers */
-.dfx-tg-sticker-video {
+.dfxtgfeed-sticker-video {
     max-width: 150px;
     max-height: 150px;
     display: block;
@@ -293,20 +293,20 @@
     border-radius: 0; /* Stickers don't have rounded corners */
 }
 
-.dfx-tg-sticker-video.dfx-tg-sticker-browser {
+.dfxtgfeed-sticker-video.dfxtgfeed-sticker-browser {
     max-width: 256px;
     max-height: 256px;
 }
 
 @media (max-width: 768px) {
-    .dfx-tg-sticker-video {
+    .dfxtgfeed-sticker-video {
         max-width: 120px;
         max-height: 120px;
     }
 }
 
 /* Lottie player canvas */
-.dfx-tg-sticker-container canvas {
+.dfxtgfeed-sticker-container canvas {
     max-width: 100% !important;
     max-height: 100% !important;
     width: auto !important;
@@ -314,7 +314,7 @@
 }
 
 /* Lightbox Styles */
-.dfx-tg-lightbox {
+.dfxtgfeed-lightbox {
     display: none;
     position: fixed;
     top: 0;
@@ -324,11 +324,11 @@
     z-index: 9999;
 }
 
-.dfx-tg-lightbox-active {
+.dfxtgfeed-lightbox-active {
     display: block;
 }
 
-.dfx-tg-lightbox-backdrop {
+.dfxtgfeed-lightbox-backdrop {
     position: absolute;
     top: 0;
     left: 0;
@@ -338,7 +338,7 @@
     cursor: pointer;
 }
 
-.dfx-tg-lightbox-content {
+.dfxtgfeed-lightbox-content {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -350,7 +350,7 @@
     justify-content: center;
 }
 
-.dfx-tg-lightbox-image {
+.dfxtgfeed-lightbox-image {
     max-width: 95vw;
     max-height: 95vh;
     width: auto;
@@ -361,7 +361,7 @@
     user-select: none;
 }
 
-.dfx-tg-lightbox-controls {
+.dfxtgfeed-lightbox-controls {
     position: fixed;
     top: 20px;
     right: 20px;
@@ -370,7 +370,7 @@
     z-index: 10000;
 }
 
-.dfx-tg-lightbox-btn {
+.dfxtgfeed-lightbox-btn {
     width: 44px;
     height: 44px;
     border: none;
@@ -387,43 +387,43 @@
     padding: 0;
 }
 
-.dfx-tg-lightbox-btn:hover {
+.dfxtgfeed-lightbox-btn:hover {
     background: rgba(255, 255, 255, 0.25);
 }
 
-.dfx-tg-lightbox-btn:active {
+.dfxtgfeed-lightbox-btn:active {
     background: rgba(255, 255, 255, 0.35);
 }
 
-.dfx-tg-lightbox-btn svg {
+.dfxtgfeed-lightbox-btn svg {
     width: 20px;
     height: 20px;
 }
 
 /* Responsive adjustments for lightbox */
 @media (max-width: 768px) {
-    .dfx-tg-lightbox-controls {
+    .dfxtgfeed-lightbox-controls {
         top: 10px;
         right: 10px;
         gap: 8px;
     }
     
-    .dfx-tg-lightbox-btn {
+    .dfxtgfeed-lightbox-btn {
         width: 40px;
         height: 40px;
     }
     
-    .dfx-tg-lightbox-btn svg {
+    .dfxtgfeed-lightbox-btn svg {
         width: 18px;
         height: 18px;
     }
     
-    .dfx-tg-lightbox-image {
+    .dfxtgfeed-lightbox-image {
         max-width: 100vw;
         max-height: 100vh;
     }
     
-    .dfx-tg-lightbox-content {
+    .dfxtgfeed-lightbox-content {
         max-width: 100vw;
         max-height: 100vh;
     }

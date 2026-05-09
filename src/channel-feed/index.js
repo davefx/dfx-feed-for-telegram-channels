@@ -20,11 +20,11 @@ import { __ } from '@wordpress/i18n';
 import ServerSideRender from '@wordpress/server-side-render';
 import './editor.css';
 
-registerBlockType( 'dfx-tg-feed/channel-feed', {
-	title: __( 'Telegram Channel Feed', 'dfx-tg-feed' ),
+registerBlockType( 'dfxtgfeed/channel-feed', {
+	title: __( 'Telegram Channel Feed', 'dfxtgfeed' ),
 	description: __(
 		'Display recent messages from a Telegram channel',
-		'dfx-tg-feed'
+		'dfxtgfeed'
 	),
 	category: 'widgets',
 	icon: 'rss',
@@ -147,7 +147,7 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 		const blockProps = useBlockProps();
 
 		const fontFamilies = [
-			{ label: __( 'Default', 'dfx-tg-feed' ), value: '' },
+			{ label: __( 'Default', 'dfxtgfeed' ), value: '' },
 			{ label: 'Arial', value: 'Arial, sans-serif' },
 			{ label: 'Helvetica', value: 'Helvetica, sans-serif' },
 			{ label: 'Times New Roman', value: '"Times New Roman", serif' },
@@ -160,58 +160,58 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 		];
 
 		const borderStyles = [
-			{ label: __( 'None', 'dfx-tg-feed' ), value: '' },
-			{ label: __( 'Solid', 'dfx-tg-feed' ), value: 'solid' },
-			{ label: __( 'Dashed', 'dfx-tg-feed' ), value: 'dashed' },
-			{ label: __( 'Dotted', 'dfx-tg-feed' ), value: 'dotted' },
-			{ label: __( 'Double', 'dfx-tg-feed' ), value: 'double' },
+			{ label: __( 'None', 'dfxtgfeed' ), value: '' },
+			{ label: __( 'Solid', 'dfxtgfeed' ), value: 'solid' },
+			{ label: __( 'Dashed', 'dfxtgfeed' ), value: 'dashed' },
+			{ label: __( 'Dotted', 'dfxtgfeed' ), value: 'dotted' },
+			{ label: __( 'Double', 'dfxtgfeed' ), value: 'double' },
 		];
 
 		const shadowPresets = [
-			{ label: __( 'None', 'dfx-tg-feed' ), value: '' },
+			{ label: __( 'None', 'dfxtgfeed' ), value: '' },
 			{
-				label: __( 'Small', 'dfx-tg-feed' ),
+				label: __( 'Small', 'dfxtgfeed' ),
 				value: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
 			},
 			{
-				label: __( 'Medium', 'dfx-tg-feed' ),
+				label: __( 'Medium', 'dfxtgfeed' ),
 				value: '0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)',
 			},
 			{
-				label: __( 'Large', 'dfx-tg-feed' ),
+				label: __( 'Large', 'dfxtgfeed' ),
 				value: '0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)',
 			},
 			{
-				label: __( 'Extra Large', 'dfx-tg-feed' ),
+				label: __( 'Extra Large', 'dfxtgfeed' ),
 				value: '0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22)',
 			},
 			{
-				label: __( 'Inset', 'dfx-tg-feed' ),
+				label: __( 'Inset', 'dfxtgfeed' ),
 				value: 'inset 0 2px 4px rgba(0,0,0,0.15)',
 			},
-			{ label: __( 'Custom', 'dfx-tg-feed' ), value: 'custom' },
+			{ label: __( 'Custom', 'dfxtgfeed' ), value: 'custom' },
 		];
 
 		return (
 			<>
 				<InspectorControls>
 					<TabPanel
-						className="dfx-tg-feed-tabs"
+						className="dfxtgfeed-tabs"
 						activeClass="is-active"
 						tabs={ [
 							{
 								name: 'settings',
-								title: __( 'Settings', 'dfx-tg-feed' ),
+								title: __( 'Settings', 'dfxtgfeed' ),
 								className: 'tab-settings',
 							},
 							{
 								name: 'block-styles',
-								title: __( 'Block Styles', 'dfx-tg-feed' ),
+								title: __( 'Block Styles', 'dfxtgfeed' ),
 								className: 'tab-block-styles',
 							},
 							{
 								name: 'message-styles',
-								title: __( 'Message Styles', 'dfx-tg-feed' ),
+								title: __( 'Message Styles', 'dfxtgfeed' ),
 								className: 'tab-message-styles',
 							},
 						] }
@@ -223,18 +223,18 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 										<PanelBody
 											title={ __(
 												'General Settings',
-												'dfx-tg-feed'
+												'dfxtgfeed'
 											) }
 											initialOpen={ true }
 										>
 											<TextControl
 												label={ __(
 													'Channel Username',
-													'dfx-tg-feed'
+													'dfxtgfeed'
 												) }
 												help={ __(
 													'Enter channel username with @ (e.g., @yourchannel) or channel ID',
-													'dfx-tg-feed'
+													'dfxtgfeed'
 												) }
 												value={ attributes.channel }
 												onChange={ ( value ) =>
@@ -246,7 +246,7 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 											<RangeControl
 												label={ __(
 													'Number of Messages',
-													'dfx-tg-feed'
+													'dfxtgfeed'
 												) }
 												value={ attributes.count }
 												onChange={ ( value ) =>
@@ -266,7 +266,7 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 										<PanelBody
 											title={ __(
 												'Block Container',
-												'dfx-tg-feed'
+												'dfxtgfeed'
 											) }
 											initialOpen={ true }
 										>
@@ -274,7 +274,7 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 												id="block-background-color-control"
 												label={ __(
 													'Background Color',
-													'dfx-tg-feed'
+													'dfxtgfeed'
 												) }
 											>
 												<ColorPalette
@@ -293,7 +293,7 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 											<SelectControl
 												label={ __(
 													'Border Style',
-													'dfx-tg-feed'
+													'dfxtgfeed'
 												) }
 												value={
 													attributes.blockBorderStyle
@@ -310,7 +310,7 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 													<UnitControl
 														label={ __(
 															'Border Width',
-															'dfx-tg-feed'
+															'dfxtgfeed'
 														) }
 														value={
 															attributes.blockBorderWidth
@@ -326,7 +326,7 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 														id="block-background-color-control"
 														label={ __(
 															'Border Color',
-															'dfx-tg-feed'
+															'dfxtgfeed'
 														) }
 													>
 														<ColorPalette
@@ -348,7 +348,7 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 													<UnitControl
 														label={ __(
 															'Border Radius',
-															'dfx-tg-feed'
+															'dfxtgfeed'
 														) }
 														value={
 															attributes.blockBorderRadius
@@ -367,7 +367,7 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 													<BoxControl
 														label={ __(
 															'Padding',
-															'dfx-tg-feed'
+															'dfxtgfeed'
 														) }
 														values={
 															attributes.blockPadding
@@ -382,7 +382,7 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 													<BoxControl
 														label={ __(
 															'Margin',
-															'dfx-tg-feed'
+															'dfxtgfeed'
 														) }
 														values={
 															attributes.blockMargin
@@ -399,7 +399,7 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 											<SelectControl
 												label={ __(
 													'Box Shadow',
-													'dfx-tg-feed'
+													'dfxtgfeed'
 												) }
 												value={
 													shadowPresets.find(
@@ -446,11 +446,11 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 												<TextControl
 													label={ __(
 														'Custom Shadow (CSS)',
-														'dfx-tg-feed'
+														'dfxtgfeed'
 													) }
 													help={ __(
 														'e.g., 0 4px 6px rgba(0,0,0,0.1)',
-														'dfx-tg-feed'
+														'dfxtgfeed'
 													) }
 													value={
 														attributes.blockBoxShadow
@@ -472,7 +472,7 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 										<PanelBody
 											title={ __(
 												'Message Container',
-												'dfx-tg-feed'
+												'dfxtgfeed'
 											) }
 											initialOpen={ true }
 										>
@@ -480,7 +480,7 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 												id="block-background-color-control"
 												label={ __(
 													'Background Color',
-													'dfx-tg-feed'
+													'dfxtgfeed'
 												) }
 											>
 												<ColorPalette
@@ -499,7 +499,7 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 											<SelectControl
 												label={ __(
 													'Border Style',
-													'dfx-tg-feed'
+													'dfxtgfeed'
 												) }
 												value={
 													attributes.messageBorderStyle
@@ -517,7 +517,7 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 													<UnitControl
 														label={ __(
 															'Border Width',
-															'dfx-tg-feed'
+															'dfxtgfeed'
 														) }
 														value={
 															attributes.messageBorderWidth
@@ -533,7 +533,7 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 														id="block-background-color-control"
 														label={ __(
 															'Border Color',
-															'dfx-tg-feed'
+															'dfxtgfeed'
 														) }
 													>
 														<ColorPalette
@@ -555,7 +555,7 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 													<UnitControl
 														label={ __(
 															'Border Radius',
-															'dfx-tg-feed'
+															'dfxtgfeed'
 														) }
 														value={
 															attributes.messageBorderRadius
@@ -574,7 +574,7 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 													<BoxControl
 														label={ __(
 															'Padding',
-															'dfx-tg-feed'
+															'dfxtgfeed'
 														) }
 														values={
 															attributes.messagePadding
@@ -589,7 +589,7 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 													<BoxControl
 														label={ __(
 															'Margin',
-															'dfx-tg-feed'
+															'dfxtgfeed'
 														) }
 														values={
 															attributes.messageMargin
@@ -606,7 +606,7 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 											<SelectControl
 												label={ __(
 													'Box Shadow',
-													'dfx-tg-feed'
+													'dfxtgfeed'
 												) }
 												value={
 													shadowPresets.find(
@@ -653,11 +653,11 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 												<TextControl
 													label={ __(
 														'Custom Shadow (CSS)',
-														'dfx-tg-feed'
+														'dfxtgfeed'
 													) }
 													help={ __(
 														'e.g., 0 4px 6px rgba(0,0,0,0.1)',
-														'dfx-tg-feed'
+														'dfxtgfeed'
 													) }
 													value={
 														attributes.messageBoxShadow
@@ -674,17 +674,17 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 										<PanelBody
 											title={ __(
 												'Typography',
-												'dfx-tg-feed'
+												'dfxtgfeed'
 											) }
 											initialOpen={ false }
 										>
 											<h3>
-												{ __( 'Date', 'dfx-tg-feed' ) }
+												{ __( 'Date', 'dfxtgfeed' ) }
 											</h3>
 											<SelectControl
 												label={ __(
 													'Font Family',
-													'dfx-tg-feed'
+													'dfxtgfeed'
 												) }
 												value={
 													attributes.dateFontFamily
@@ -699,7 +699,7 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 											<UnitControl
 												label={ __(
 													'Font Size',
-													'dfx-tg-feed'
+													'dfxtgfeed'
 												) }
 												value={
 													attributes.dateFontSize
@@ -714,7 +714,7 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 												id="block-background-color-control"
 												label={ __(
 													'Text Color',
-													'dfx-tg-feed'
+													'dfxtgfeed'
 												) }
 											>
 												<ColorPalette
@@ -732,15 +732,12 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 											</BaseControl>
 											<hr />
 											<h3>
-												{ __(
-													'Author',
-													'dfx-tg-feed'
-												) }
+												{ __( 'Author', 'dfxtgfeed' ) }
 											</h3>
 											<SelectControl
 												label={ __(
 													'Font Family',
-													'dfx-tg-feed'
+													'dfxtgfeed'
 												) }
 												value={
 													attributes.authorFontFamily
@@ -755,7 +752,7 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 											<UnitControl
 												label={ __(
 													'Font Size',
-													'dfx-tg-feed'
+													'dfxtgfeed'
 												) }
 												value={
 													attributes.authorFontSize
@@ -770,7 +767,7 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 												id="block-background-color-control"
 												label={ __(
 													'Text Color',
-													'dfx-tg-feed'
+													'dfxtgfeed'
 												) }
 											>
 												<ColorPalette
@@ -790,13 +787,13 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 											<h3>
 												{ __(
 													'Message Text',
-													'dfx-tg-feed'
+													'dfxtgfeed'
 												) }
 											</h3>
 											<SelectControl
 												label={ __(
 													'Font Family',
-													'dfx-tg-feed'
+													'dfxtgfeed'
 												) }
 												value={
 													attributes.textFontFamily
@@ -811,7 +808,7 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 											<UnitControl
 												label={ __(
 													'Font Size',
-													'dfx-tg-feed'
+													'dfxtgfeed'
 												) }
 												value={
 													attributes.textFontSize
@@ -826,7 +823,7 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 												id="block-background-color-control"
 												label={ __(
 													'Text Color',
-													'dfx-tg-feed'
+													'dfxtgfeed'
 												) }
 											>
 												<ColorPalette
@@ -852,12 +849,12 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 				<div { ...blockProps }>
 					{ attributes.channel ? (
 						<ServerSideRender
-							block="dfx-tg-feed/channel-feed"
+							block="dfxtgfeed/channel-feed"
 							attributes={ attributes }
 						/>
 					) : (
 						<div
-							className="dfx-tg-feed-placeholder"
+							className="dfxtgfeed-placeholder"
 							style={ {
 								padding: '20px',
 								border: '1px dashed #ccc',
@@ -866,7 +863,7 @@ registerBlockType( 'dfx-tg-feed/channel-feed', {
 						>
 							{ __(
 								'Please enter a channel username in the block settings.',
-								'dfx-tg-feed'
+								'dfxtgfeed'
 							) }
 						</div>
 					) }
