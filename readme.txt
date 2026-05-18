@@ -22,7 +22,6 @@ DFX Telegram Channel Feed mirrors messages from one or more Telegram channels on
 * **Edits sync automatically** with a small "(edited)" marker carrying the edit timestamp.
 * **Background refresh every 2 minutes** via WP-cron, plus on-demand refresh on frontend visits as a fallback for low-traffic sites.
 * **Per-message admin controls** — Hide (reversible, suppresses on frontend) and Move to Trash (sticky against refresh) row actions.
-* **Sync deletions** for public channels via an opt-in admin button that reconciles against the public channel preview.
 * **Theme template overrides** — drop `dfxtgfeed/feed.php` or `dfxtgfeed/browser.php` into your theme to fully customize the output.
 * **Works with private channels** if your bot is admin in them.
 
@@ -47,9 +46,7 @@ Note: messages posted in the channel **before** the bot was added are not retrie
 * **Bot-only access.** Messages are fetched via the Telegram Bot API, which only sees posts that arrived in the channel after the bot was added. There is no access to historical messages from before that point.
 * **Background refresh every 2 minutes.** The plugin schedules a WP-cron task that pulls fresh updates from Telegram for every channel you have stored data for. This keeps the local feed within ~2 minutes of the live channel without any manual action. Note that WP-cron only fires when traffic hits your site — on low-traffic installations you may want to disable WP-cron and trigger `wp-cron.php` from a real system cron job for reliable execution. The on-demand refresh on frontend visits is also kept as a fallback.
 * **Edits sync automatically.** When a message is edited in Telegram, the local copy is updated on the next refresh and a small "(edited)" marker is shown next to the date.
-* **Deletions are not syncable automatically.** The Telegram Bot API does not notify bots about channel message deletions — there is no `deleted_channel_post` update type. There are two ways to remove a message that has been deleted in Telegram from the local feed:
-  * **Per-message "Move to Trash"** in the admin row actions. Trashed messages are sticky: refresh will not bring them back.
-  * **"Sync Deletions" button** (public channels only). Located next to "Refresh Messages" in the admin list, this scrapes the public channel preview at `t.me/s/<channel>`, compares against locally stored messages within the preview's visible window, and offers to trash any that no longer appear. You confirm before anything is moved to Trash. Private channels have no public preview, so this option errors out for them.
+* **Deletions are not syncable automatically.** The Telegram Bot API does not notify bots about channel message deletions — there is no `deleted_channel_post` update type. To remove a message that has been deleted in Telegram from the local feed, use the per-message **"Move to Trash"** admin row action. Trashed messages are sticky: refresh will not bring them back.
 * **Hide vs. Trash.** Use **Hide** to keep a message in the database but suppress it on the frontend (reversible via "Unhide"). Use **Move to Trash** for a permanent local removal.
 
 == Changelog ==

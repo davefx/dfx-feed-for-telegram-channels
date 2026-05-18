@@ -21,7 +21,6 @@ class PostType {
         add_filter('manage_edit-dfxtgfeed_message_sortable_columns', [$this, 'set_sortable_columns']);
         add_action('restrict_manage_posts', [$this, 'add_channel_filter']);
         add_action('restrict_manage_posts', [$this, 'add_refresh_button']);
-        add_action('restrict_manage_posts', [$this, 'add_sync_deletions_button']);
         add_filter('parse_query', [$this, 'filter_by_channel']);
         add_action('pre_get_posts', [$this, 'handle_custom_column_sorting']);
         add_filter('post_row_actions', [$this, 'modify_row_actions'], 10, 2);
@@ -190,28 +189,6 @@ class PostType {
         <?php
     }
 
-    /**
-     * Render the "Sync deletions" admin button next to the refresh button.
-     * Opt-in helper that scrapes the public channel preview at t.me/s/<channel>
-     * to identify locally-stored messages no longer present in the channel.
-     * Public channels only — the button itself works for any channel filter,
-     * but the AJAX handler returns an error for private channels.
-     */
-    public function add_sync_deletions_button() {
-        global $typenow;
-        if ($typenow !== 'dfxtgfeed_message') {
-            return;
-        }
-        $current_channel = isset($_GET['channel_filter']) ? sanitize_text_field($_GET['channel_filter']) : '';
-        ?>
-        <button type="button" class="button" id="dfxtgfeed-sync-deletions" <?php echo empty($current_channel) ? 'disabled' : ''; ?> style="margin-left: 6px;">
-            <span class="dashicons dashicons-trash" style="vertical-align: middle; margin-top: 2px;"></span>
-            <?php _e('Sync Deletions', 'dfxtgfeed'); ?>
-        </button>
-        <span id="dfxtgfeed-sync-deletions-status" style="margin-left: 10px;"></span>
-        <?php
-    }
-
     public function filter_by_channel($query) {
         global $pagenow, $typenow;
         
@@ -266,7 +243,6 @@ class PostType {
         wp_localize_script('jquery', 'dfxtgfeedRefresh', [
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('dfxtgfeed_refresh'),
-            'syncNonce' => wp_create_nonce('dfxtgfeed_check_deletions'),
             'i18n' => [
                 'selectChannel'      => __('Please select a channel first', 'dfxtgfeed'),
                 'refreshing'         => __('Refreshing messages...', 'dfxtgfeed'),
@@ -274,12 +250,6 @@ class PostType {
                 'errorLabel'         => __('Error:', 'dfxtgfeed'),
                 'requestFailed'      => __('Request failed:', 'dfxtgfeed'),
                 'unknownError'       => __('Unknown error', 'dfxtgfeed'),
-                'checking'           => __('Checking public channel preview...', 'dfxtgfeed'),
-                'noDeletions'        => __('No deletions detected. All locally stored messages are still visible in the public channel.', 'dfxtgfeed'),
-                'confirmTrashTitle'  => __('Found {n} message(s) that no longer appear in the public channel:', 'dfxtgfeed'),
-                'confirmTrashFooter' => __('Move all to Trash? (Trashed messages stay trashed across refreshes; you can restore them from the Trash filter.)', 'dfxtgfeed'),
-                'trashing'           => __('Moving messages to Trash...', 'dfxtgfeed'),
-                'trashed'            => __('{n} message(s) moved to Trash. Reloading...', 'dfxtgfeed'),
             ],
         ]);
         
@@ -290,13 +260,11 @@ class PostType {
             .dfxtgfeed-status-error { color: #dc3232; }
         ');
         
-        // Add inline script for refresh + sync-deletions functionality
+        // Add inline script for refresh functionality
         wp_add_inline_script('jquery', "
         jQuery(document).ready(function($) {
             var refreshBtn = $('#dfxtgfeed-refresh-messages');
             var refreshStatus = $('#dfxtgfeed-refresh-status');
-            var syncBtn = $('#dfxtgfeed-sync-deletions');
-            var syncStatus = $('#dfxtgfeed-sync-deletions-status');
             var channelFilter = $('select[name=\"channel_filter\"]');
             var i18n = dfxtgfeedRefresh.i18n;
 
@@ -306,9 +274,7 @@ class PostType {
             }
 
             channelFilter.on('change', function() {
-                var hasChannel = !!$(this).val();
-                refreshBtn.prop('disabled', !hasChannel);
-                syncBtn.prop('disabled', !hasChannel);
+                refreshBtn.prop('disabled', !$(this).val());
             });
 
             refreshBtn.on('click', function(e) {
@@ -338,78 +304,6 @@ class PostType {
                     error: function(xhr, status, error) {
                         setStatus(refreshStatus, i18n.requestFailed + ' ' + error, 'dfxtgfeed-status-error');
                         refreshBtn.prop('disabled', false);
-                    }
-                });
-            });
-
-            syncBtn.on('click', function(e) {
-                e.preventDefault();
-                var channel = channelFilter.val();
-                if (!channel) { alert(i18n.selectChannel); return; }
-                syncBtn.prop('disabled', true);
-                setStatus(syncStatus, i18n.checking, 'dfxtgfeed-status-loading');
-                $.ajax({
-                    url: dfxtgfeedRefresh.ajaxUrl,
-                    type: 'POST',
-                    data: {
-                        action: 'dfxtgfeed_check_deletions',
-                        channel: channel,
-                        _ajax_nonce: dfxtgfeedRefresh.syncNonce
-                    },
-                    success: function(response) {
-                        if (!response.success) {
-                            var errorMsg = response.data || i18n.unknownError;
-                            setStatus(syncStatus, i18n.errorLabel + ' ' + errorMsg, 'dfxtgfeed-status-error');
-                            syncBtn.prop('disabled', false);
-                            return;
-                        }
-                        var candidates = (response.data && response.data.candidates) || [];
-                        if (candidates.length === 0) {
-                            setStatus(syncStatus, i18n.noDeletions, 'dfxtgfeed-status-success');
-                            syncBtn.prop('disabled', false);
-                            return;
-                        }
-                        var lines = candidates.map(function(c) {
-                            var preview = (c.preview || '').substring(0, 60);
-                            return '  • #' + c.message_id + ': ' + preview;
-                        });
-                        var msg = i18n.confirmTrashTitle.replace('{n}', candidates.length) + '\\n\\n' +
-                                  lines.join('\\n') + '\\n\\n' + i18n.confirmTrashFooter;
-                        if (!window.confirm(msg)) {
-                            setStatus(syncStatus, '', '');
-                            syncBtn.prop('disabled', false);
-                            return;
-                        }
-                        var postIds = candidates.map(function(c) { return c.post_id; });
-                        setStatus(syncStatus, i18n.trashing, 'dfxtgfeed-status-loading');
-                        $.ajax({
-                            url: dfxtgfeedRefresh.ajaxUrl,
-                            type: 'POST',
-                            data: {
-                                action: 'dfxtgfeed_trash_deletion_candidates',
-                                'post_ids[]': postIds,
-                                _ajax_nonce: dfxtgfeedRefresh.syncNonce
-                            },
-                            success: function(resp2) {
-                                if (resp2.success) {
-                                    var n = (resp2.data && resp2.data.count) || 0;
-                                    setStatus(syncStatus, i18n.trashed.replace('{n}', n), 'dfxtgfeed-status-success');
-                                    setTimeout(function() { window.location.reload(); }, 1200);
-                                } else {
-                                    var errorMsg2 = resp2.data || i18n.unknownError;
-                                    setStatus(syncStatus, i18n.errorLabel + ' ' + errorMsg2, 'dfxtgfeed-status-error');
-                                    syncBtn.prop('disabled', false);
-                                }
-                            },
-                            error: function(xhr, status, error) {
-                                setStatus(syncStatus, i18n.requestFailed + ' ' + error, 'dfxtgfeed-status-error');
-                                syncBtn.prop('disabled', false);
-                            }
-                        });
-                    },
-                    error: function(xhr, status, error) {
-                        setStatus(syncStatus, i18n.requestFailed + ' ' + error, 'dfxtgfeed-status-error');
-                        syncBtn.prop('disabled', false);
                     }
                 });
             });
@@ -715,97 +609,6 @@ class PostType {
         wp_send_json_success($result);
     }
 
-    /**
-     * AJAX: scrape the public channel preview and return the list of locally
-     * stored messages that no longer appear there. Does NOT trash them — the
-     * UI shows the candidates first and asks for confirmation, after which
-     * the second handler (ajax_trash_deletion_candidates) does the trashing.
-     */
-    public function ajax_check_deletions() {
-        check_ajax_referer('dfxtgfeed_check_deletions');
-        if (!current_user_can('manage_options')) {
-            wp_send_json_error(__('No permission.', 'dfxtgfeed'));
-        }
-        $channel = sanitize_text_field($_POST['channel'] ?? '');
-        if (empty($channel)) {
-            wp_send_json_error(__('Channel parameter is required.', 'dfxtgfeed'));
-        }
-
-        $live_ids = API::instance()->fetch_public_preview_ids($channel, 200);
-        if (is_wp_error($live_ids)) {
-            wp_send_json_error($live_ids->get_error_message());
-        }
-        if (empty($live_ids)) {
-            wp_send_json_error(__('Public preview returned no messages.', 'dfxtgfeed'));
-        }
-
-        // Look only at locally stored messages within the visible-preview range.
-        // Messages older than min(live_ids) are beyond the preview window and
-        // should NOT be considered candidates — we can't tell whether they
-        // were deleted or simply pre-date the preview's depth.
-        $min_live = (int) min($live_ids);
-        $stored = get_posts([
-            'post_type'      => 'dfxtgfeed_message',
-            'post_status'    => 'publish',
-            'posts_per_page' => -1,
-            'fields'         => 'ids',
-            'meta_query'     => [
-                'relation' => 'AND',
-                ['key' => '_dfxtgfeed_channel', 'value' => $channel],
-                [
-                    'key'     => '_dfxtgfeed_message_id',
-                    'value'   => $min_live,
-                    'compare' => '>=',
-                    'type'    => 'NUMERIC',
-                ],
-            ],
-        ]);
-
-        $live_set = array_flip($live_ids);
-        $candidates = [];
-        foreach ($stored as $post_id) {
-            $message_id = (int) get_post_meta($post_id, '_dfxtgfeed_message_id', true);
-            if (!isset($live_set[$message_id])) {
-                $candidates[] = [
-                    'post_id'    => (int) $post_id,
-                    'message_id' => $message_id,
-                    'preview'    => get_the_title($post_id),
-                ];
-            }
-        }
-
-        wp_send_json_success([
-            'candidates' => $candidates,
-            'count'      => count($candidates),
-        ]);
-    }
-
-    /**
-     * AJAX: move the user-confirmed list of "no-longer-in-channel" posts to
-     * Trash. The sticky-trash logic in store_message prevents resurrection on
-     * subsequent refreshes.
-     */
-    public function ajax_trash_deletion_candidates() {
-        check_ajax_referer('dfxtgfeed_check_deletions');
-        if (!current_user_can('manage_options')) {
-            wp_send_json_error(__('No permission.', 'dfxtgfeed'));
-        }
-        $post_ids = isset($_POST['post_ids']) ? array_map('intval', (array) $_POST['post_ids']) : [];
-        if (empty($post_ids)) {
-            wp_send_json_error(__('No posts specified.', 'dfxtgfeed'));
-        }
-        $count = 0;
-        foreach ($post_ids as $post_id) {
-            $post = get_post($post_id);
-            if ($post && $post->post_type === 'dfxtgfeed_message' && current_user_can('delete_post', $post_id)) {
-                if (wp_trash_post($post_id)) {
-                    $count++;
-                }
-            }
-        }
-        wp_send_json_success(['count' => $count]);
-    }
-    
     /**
      * AJAX handler to hide a message
      */
