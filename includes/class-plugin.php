@@ -86,7 +86,7 @@ final class Plugin {
         if (!isset($schedules[self::CRON_SCHEDULE])) {
             $schedules[self::CRON_SCHEDULE] = [
                 'interval' => 2 * MINUTE_IN_SECONDS,
-                'display'  => __('Every 2 minutes (DFX Telegram Channel Feed)', 'dfxtgfeed'),
+                'display'  => __('Every 2 minutes (DFX Telegram Channel Feed)', 'dfx-telegram-channel-feed'),
             ];
         }
         return $schedules;
@@ -168,8 +168,8 @@ final class Plugin {
     public function settings_page() {
         // Add top-level menu
         add_menu_page(
-            __('Telegram Messages', 'dfxtgfeed'),
-            __('Telegram Messages', 'dfxtgfeed'),
+            __('Telegram Messages', 'dfx-telegram-channel-feed'),
+            __('Telegram Messages', 'dfx-telegram-channel-feed'),
             'manage_options',
             self::MENU_SLUG,
             [$this, 'redirect_to_messages'],
@@ -180,8 +180,8 @@ final class Plugin {
         // Add submenu for viewing all messages (custom post type listing)
         add_submenu_page(
             self::MENU_SLUG,
-            __('All Messages', 'dfxtgfeed'),
-            __('All Messages', 'dfxtgfeed'),
+            __('All Messages', 'dfx-telegram-channel-feed'),
+            __('All Messages', 'dfx-telegram-channel-feed'),
             'edit_posts',
             'edit.php?post_type=dfxtgfeed_message'
         );
@@ -189,8 +189,8 @@ final class Plugin {
         // Add settings submenu under the top-level menu
         add_submenu_page(
             self::MENU_SLUG,
-            __('Settings', 'dfxtgfeed'),
-            __('Settings', 'dfxtgfeed'),
+            __('Settings', 'dfx-telegram-channel-feed'),
+            __('Settings', 'dfx-telegram-channel-feed'),
             'manage_options',
             'dfxtgfeed',
             [Settings::instance(), 'render_page']

@@ -39,17 +39,17 @@ class PostType {
     
     public function register_post_type() {
         $labels = [
-            'name'               => __('Telegram Messages', 'dfxtgfeed'),
-            'singular_name'      => __('Telegram Message', 'dfxtgfeed'),
-            'menu_name'          => __('Telegram Messages', 'dfxtgfeed'),
-            'add_new'            => __('Add New', 'dfxtgfeed'),
-            'add_new_item'       => __('Add New Message', 'dfxtgfeed'),
-            'edit_item'          => __('Edit Message', 'dfxtgfeed'),
-            'new_item'           => __('New Message', 'dfxtgfeed'),
-            'view_item'          => __('View Message', 'dfxtgfeed'),
-            'search_items'       => __('Search Messages', 'dfxtgfeed'),
-            'not_found'          => __('No messages found', 'dfxtgfeed'),
-            'not_found_in_trash' => __('No messages found in trash', 'dfxtgfeed'),
+            'name'               => __('Telegram Messages', 'dfx-telegram-channel-feed'),
+            'singular_name'      => __('Telegram Message', 'dfx-telegram-channel-feed'),
+            'menu_name'          => __('Telegram Messages', 'dfx-telegram-channel-feed'),
+            'add_new'            => __('Add New', 'dfx-telegram-channel-feed'),
+            'add_new_item'       => __('Add New Message', 'dfx-telegram-channel-feed'),
+            'edit_item'          => __('Edit Message', 'dfx-telegram-channel-feed'),
+            'new_item'           => __('New Message', 'dfx-telegram-channel-feed'),
+            'view_item'          => __('View Message', 'dfx-telegram-channel-feed'),
+            'search_items'       => __('Search Messages', 'dfx-telegram-channel-feed'),
+            'not_found'          => __('No messages found', 'dfx-telegram-channel-feed'),
+            'not_found_in_trash' => __('No messages found in trash', 'dfx-telegram-channel-feed'),
         ];
         
         $args = [
@@ -74,13 +74,13 @@ class PostType {
     public function set_custom_columns($columns) {
         $new_columns = [];
         $new_columns['cb'] = $columns['cb'];
-        $new_columns['title'] = __('Message Preview', 'dfxtgfeed');
-        $new_columns['channel'] = __('Channel', 'dfxtgfeed');
-        $new_columns['author'] = __('Author', 'dfxtgfeed');
-        $new_columns['media'] = __('Media', 'dfxtgfeed');
-        $new_columns['message_id'] = __('Message ID', 'dfxtgfeed');
-        $new_columns['visibility'] = __('Visibility', 'dfxtgfeed');
-        $new_columns['date'] = __('Posted Date', 'dfxtgfeed');
+        $new_columns['title'] = __('Message Preview', 'dfx-telegram-channel-feed');
+        $new_columns['channel'] = __('Channel', 'dfx-telegram-channel-feed');
+        $new_columns['author'] = __('Author', 'dfx-telegram-channel-feed');
+        $new_columns['media'] = __('Media', 'dfx-telegram-channel-feed');
+        $new_columns['message_id'] = __('Message ID', 'dfx-telegram-channel-feed');
+        $new_columns['visibility'] = __('Visibility', 'dfx-telegram-channel-feed');
+        $new_columns['date'] = __('Posted Date', 'dfx-telegram-channel-feed');
         return $new_columns;
     }
     
@@ -119,9 +119,9 @@ class PostType {
             case 'visibility':
                 $is_hidden = get_post_meta($post_id, '_dfxtgfeed_hidden', true);
                 if ($is_hidden) {
-                    echo '<span style="color: #d63638;"><span class="dashicons dashicons-hidden"></span> ' . __('Hidden', 'dfxtgfeed') . '</span>';
+                    echo '<span style="color: #d63638;"><span class="dashicons dashicons-hidden"></span> ' . __('Hidden', 'dfx-telegram-channel-feed') . '</span>';
                 } else {
-                    echo '<span style="color: #00a32a;"><span class="dashicons dashicons-visibility"></span> ' . __('Visible', 'dfxtgfeed') . '</span>';
+                    echo '<span style="color: #00a32a;"><span class="dashicons dashicons-visibility"></span> ' . __('Visible', 'dfx-telegram-channel-feed') . '</span>';
                 }
                 break;
         }
@@ -152,7 +152,7 @@ class PostType {
         $current_channel = isset($_GET['channel_filter']) ? sanitize_text_field(wp_unslash($_GET['channel_filter'])) : '';
 
         echo '<select name="channel_filter">';
-        echo '<option value="">' . __('All Channels', 'dfxtgfeed') . '</option>';
+        echo '<option value="">' . __('All Channels', 'dfx-telegram-channel-feed') . '</option>';
         foreach ($channels as $channel) {
             printf(
                 '<option value="%s"%s>%s</option>',
@@ -178,11 +178,11 @@ class PostType {
         ?>
         <button type="button" class="button" id="dfxtgfeed-refresh-messages" <?php echo empty($current_channel) ? 'disabled' : ''; ?>>
             <span class="dashicons dashicons-update" style="vertical-align: middle; margin-top: 2px;"></span>
-            <?php _e('Refresh Messages', 'dfxtgfeed'); ?>
+            <?php _e('Refresh Messages', 'dfx-telegram-channel-feed'); ?>
         </button>
         <?php if (empty($current_channel)): ?>
             <p class="description" style="display:inline; margin-left: 5px;">
-                <?php _e('Select a channel to enable refresh', 'dfxtgfeed'); ?>
+                <?php _e('Select a channel to enable refresh', 'dfx-telegram-channel-feed'); ?>
             </p>
         <?php endif; ?>
         <span id="dfxtgfeed-refresh-status" style="margin-left: 10px;"></span>
@@ -244,12 +244,12 @@ class PostType {
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('dfxtgfeed_refresh'),
             'i18n' => [
-                'selectChannel'      => __('Please select a channel first', 'dfxtgfeed'),
-                'refreshing'         => __('Refreshing messages...', 'dfxtgfeed'),
-                'success'            => __('Messages refreshed successfully! Reloading...', 'dfxtgfeed'),
-                'errorLabel'         => __('Error:', 'dfxtgfeed'),
-                'requestFailed'      => __('Request failed:', 'dfxtgfeed'),
-                'unknownError'       => __('Unknown error', 'dfxtgfeed'),
+                'selectChannel'      => __('Please select a channel first', 'dfx-telegram-channel-feed'),
+                'refreshing'         => __('Refreshing messages...', 'dfx-telegram-channel-feed'),
+                'success'            => __('Messages refreshed successfully! Reloading...', 'dfx-telegram-channel-feed'),
+                'errorLabel'         => __('Error:', 'dfx-telegram-channel-feed'),
+                'requestFailed'      => __('Request failed:', 'dfx-telegram-channel-feed'),
+                'unknownError'       => __('Unknown error', 'dfx-telegram-channel-feed'),
             ],
         ]);
         
@@ -321,8 +321,8 @@ class PostType {
         
         wp_localize_script('dfxtgfeed-admin', 'dfxTgAdmin', [
             'ajaxUrl' => admin_url('admin-ajax.php'),
-            'hideConfirm' => __('Are you sure you want to hide this message from the frontend?', 'dfxtgfeed'),
-            'error' => __('An error occurred. Please try again.', 'dfxtgfeed'),
+            'hideConfirm' => __('Are you sure you want to hide this message from the frontend?', 'dfx-telegram-channel-feed'),
+            'error' => __('An error occurred. Please try again.', 'dfx-telegram-channel-feed'),
         ]);
     }
     
@@ -342,7 +342,7 @@ class PostType {
                     '<a href="https://t.me/%s/%s" target="_blank">%s</a>',
                     esc_attr($channel_clean),
                     esc_attr($message_id),
-                    __('View in Telegram', 'dfxtgfeed')
+                    __('View in Telegram', 'dfx-telegram-channel-feed')
                 );
             }
             
@@ -355,14 +355,14 @@ class PostType {
                     '<a href="#" class="dfxtgfeed-unhide-message" data-post-id="%d" data-nonce="%s">%s</a>',
                     $post->ID,
                     $nonce,
-                    __('Unhide', 'dfxtgfeed')
+                    __('Unhide', 'dfx-telegram-channel-feed')
                 );
             } else {
                 $actions['hide'] = sprintf(
                     '<a href="#" class="dfxtgfeed-hide-message" data-post-id="%d" data-nonce="%s">%s</a>',
                     $post->ID,
                     $nonce,
-                    __('Hide', 'dfxtgfeed')
+                    __('Hide', 'dfx-telegram-channel-feed')
                 );
             }
         }
@@ -456,7 +456,7 @@ class PostType {
 
         $post_id = wp_insert_post([
             'post_type'     => 'dfxtgfeed_message',
-            'post_title'    => $text_preview ?: __('(No text)', 'dfxtgfeed'),
+            'post_title'    => $text_preview ?: __('(No text)', 'dfx-telegram-channel-feed'),
             'post_content'  => $message_data['text'] ?? '',
             'post_status'   => 'publish',
             'post_date'     => $post_date,
@@ -489,7 +489,7 @@ class PostType {
             }
             wp_update_post([
                 'ID'           => $post_id,
-                'post_title'   => $text_preview ?: __('(No text)', 'dfxtgfeed'),
+                'post_title'   => $text_preview ?: __('(No text)', 'dfx-telegram-channel-feed'),
                 'post_content' => $message_data['text'] ?? '',
             ]);
         }
@@ -618,24 +618,24 @@ class PostType {
         $nonce = sanitize_text_field($_POST['nonce'] ?? '');
         
         if (!wp_verify_nonce($nonce, 'dfxtgfeed_hide_message_' . $post_id)) {
-            wp_send_json_error(__('Invalid security token.', 'dfxtgfeed'));
+            wp_send_json_error(__('Invalid security token.', 'dfx-telegram-channel-feed'));
         }
         
         if (!$post_id) {
-            wp_send_json_error(__('Invalid request.', 'dfxtgfeed'));
+            wp_send_json_error(__('Invalid request.', 'dfx-telegram-channel-feed'));
         }
         
         if (!current_user_can('edit_post', $post_id)) {
-            wp_send_json_error(__('No permission.', 'dfxtgfeed'));
+            wp_send_json_error(__('No permission.', 'dfx-telegram-channel-feed'));
         }
         
         $post = get_post($post_id);
         if (!$post || $post->post_type !== 'dfxtgfeed_message') {
-            wp_send_json_error(__('Invalid post.', 'dfxtgfeed'));
+            wp_send_json_error(__('Invalid post.', 'dfx-telegram-channel-feed'));
         }
         
         update_post_meta($post_id, '_dfxtgfeed_hidden', '1');
-        wp_send_json_success(__('Message hidden from frontend.', 'dfxtgfeed'));
+        wp_send_json_success(__('Message hidden from frontend.', 'dfx-telegram-channel-feed'));
     }
     
     /**
@@ -647,32 +647,32 @@ class PostType {
         $nonce = sanitize_text_field($_POST['nonce'] ?? '');
         
         if (!wp_verify_nonce($nonce, 'dfxtgfeed_hide_message_' . $post_id)) {
-            wp_send_json_error(__('Invalid security token.', 'dfxtgfeed'));
+            wp_send_json_error(__('Invalid security token.', 'dfx-telegram-channel-feed'));
         }
         
         if (!$post_id) {
-            wp_send_json_error(__('Invalid request.', 'dfxtgfeed'));
+            wp_send_json_error(__('Invalid request.', 'dfx-telegram-channel-feed'));
         }
         
         if (!current_user_can('edit_post', $post_id)) {
-            wp_send_json_error(__('No permission.', 'dfxtgfeed'));
+            wp_send_json_error(__('No permission.', 'dfx-telegram-channel-feed'));
         }
         
         $post = get_post($post_id);
         if (!$post || $post->post_type !== 'dfxtgfeed_message') {
-            wp_send_json_error(__('Invalid post.', 'dfxtgfeed'));
+            wp_send_json_error(__('Invalid post.', 'dfx-telegram-channel-feed'));
         }
         
         delete_post_meta($post_id, '_dfxtgfeed_hidden');
-        wp_send_json_success(__('Message is now visible in frontend.', 'dfxtgfeed'));
+        wp_send_json_success(__('Message is now visible in frontend.', 'dfx-telegram-channel-feed'));
     }
     
     /**
      * Register bulk actions for the post type
      */
     public function register_bulk_actions($bulk_actions) {
-        $bulk_actions['hide_messages'] = __('Hide', 'dfxtgfeed');
-        $bulk_actions['unhide_messages'] = __('Unhide', 'dfxtgfeed');
+        $bulk_actions['hide_messages'] = __('Hide', 'dfx-telegram-channel-feed');
+        $bulk_actions['unhide_messages'] = __('Unhide', 'dfx-telegram-channel-feed');
         return $bulk_actions;
     }
     
@@ -723,7 +723,7 @@ class PostType {
             $count = absint($_REQUEST['bulk_hidden_messages']);
             printf(
                 '<div class="notice notice-success is-dismissible"><p>' .
-                _n('%s message hidden from frontend.', '%s messages hidden from frontend.', $count, 'dfxtgfeed') .
+                _n('%s message hidden from frontend.', '%s messages hidden from frontend.', $count, 'dfx-telegram-channel-feed') .
                 '</p></div>',
                 number_format_i18n($count)
             );
@@ -733,7 +733,7 @@ class PostType {
             $count = absint($_REQUEST['bulk_unhidden_messages']);
             printf(
                 '<div class="notice notice-success is-dismissible"><p>' .
-                _n('%s message is now visible in frontend.', '%s messages are now visible in frontend.', $count, 'dfxtgfeed') .
+                _n('%s message is now visible in frontend.', '%s messages are now visible in frontend.', $count, 'dfx-telegram-channel-feed') .
                 '</p></div>',
                 number_format_i18n($count)
             );

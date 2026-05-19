@@ -50,7 +50,7 @@ class Settings {
         $channel = esc_attr(get_option('dfxtgfeed_channel', ''));
         ?>
         <div class="wrap">
-            <h1><?php _e('DFX Telegram Channel Feed', 'dfxtgfeed'); ?></h1>
+            <h1><?php _e('DFX Telegram Channel Feed', 'dfx-telegram-channel-feed'); ?></h1>
 
             <h2>How to setup your Telegram Bot</h2>
             <ol>
@@ -65,35 +65,35 @@ class Settings {
                 <?php settings_fields('dfxtgfeed'); do_settings_sections('dfxtgfeed'); ?>
                 <table class="form-table">
                     <tr>
-                        <th><?php _e('Telegram Bot Token', 'dfxtgfeed'); ?></th>
+                        <th><?php _e('Telegram Bot Token', 'dfx-telegram-channel-feed'); ?></th>
                         <td><input type="text" name="dfxtgfeed_bot_token" value="<?php echo $bot_token; ?>" size="50" autocomplete="off"/></td>
                     </tr>
                     <tr>
-                        <th><?php _e('Test Channel Username (optional)', 'dfxtgfeed'); ?></th>
+                        <th><?php _e('Test Channel Username (optional)', 'dfx-telegram-channel-feed'); ?></th>
                         <td>
                             <input type="text" name="dfxtgfeed_channel" value="<?php echo $channel; ?>" size="32" autocomplete="off" placeholder="@yourchannel"/>
-                            <p class="description"><?php _e('This field is only used for connection testing below. You can specify any channel directly in your shortcodes or blocks.', 'dfxtgfeed'); ?></p>
+                            <p class="description"><?php _e('This field is only used for connection testing below. You can specify any channel directly in your shortcodes or blocks.', 'dfx-telegram-channel-feed'); ?></p>
                         </td>
                     </tr>
                     <tr>
-                        <th><?php _e('Default Message Count', 'dfxtgfeed'); ?></th>
+                        <th><?php _e('Default Message Count', 'dfx-telegram-channel-feed'); ?></th>
                         <td><input type="number" name="dfxtgfeed_default_count" value="<?php echo esc_attr(get_option('dfxtgfeed_default_count', 10)); ?>" min="1" max="100"/></td>
                     </tr>
                 </table>
-                <?php submit_button(__('Save Settings', 'dfxtgfeed')); ?>
+                <?php submit_button(__('Save Settings', 'dfx-telegram-channel-feed')); ?>
             </form>
 
             <hr />
-            <h3><?php _e('Test your configuration', 'dfxtgfeed'); ?></h3>
-            <button class="button" id="dfxtgfeed-test-btn"><?php _e('Test Connection', 'dfxtgfeed'); ?></button>
+            <h3><?php _e('Test your configuration', 'dfx-telegram-channel-feed'); ?></h3>
+            <button class="button" id="dfxtgfeed-test-btn"><?php _e('Test Connection', 'dfx-telegram-channel-feed'); ?></button>
             <div id="dfxtgfeed-test-result"></div>
 
             <hr />
-            <h3><?php _e('Reload Messages from Telegram', 'dfxtgfeed'); ?></h3>
-            <p><?php _e('Fetch all available messages from the channel and save them to the database. This will sync new messages and update existing ones.', 'dfxtgfeed'); ?></p>
+            <h3><?php _e('Reload Messages from Telegram', 'dfx-telegram-channel-feed'); ?></h3>
+            <p><?php _e('Fetch all available messages from the channel and save them to the database. This will sync new messages and update existing ones.', 'dfx-telegram-channel-feed'); ?></p>
             <form id="dfxtgfeed-reload-form" method="post">
                 <input type="text" name="channel" value="<?php echo $channel;?>" placeholder="@channelusername" style="width: 300px;" />
-                <button class="button button-primary" id="dfxtgfeed-reload-btn"><?php _e('Reload All Messages', 'dfxtgfeed'); ?></button>
+                <button class="button button-primary" id="dfxtgfeed-reload-btn"><?php _e('Reload All Messages', 'dfx-telegram-channel-feed'); ?></button>
                 <?php wp_nonce_field('dfxtgfeed_reload', 'dfxtgfeed_reload_nonce'); ?>
             </form>
             <div id="dfxtgfeed-reload-result"></div>
@@ -270,7 +270,7 @@ class Settings {
         }
         
         wp_send_json_success(sprintf(
-            __('Successfully reloaded %d messages from channel %s. New: %d, Updated: %d', 'dfxtgfeed'),
+            __('Successfully reloaded %d messages from channel %s. New: %d, Updated: %d', 'dfx-telegram-channel-feed'),
             $count,
             '<strong>' . esc_html($channel) . '</strong>',
             $new_count,

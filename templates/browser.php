@@ -31,7 +31,7 @@ if (!defined('ABSPATH')) exit;
                     ?>
                 </time>
                 <?php if (!empty($msg['edit_date'])): ?>
-                    <span class="dfxtgfeed-edited" title="<?php echo esc_attr(wp_date(get_option('date_format') . ' ' . get_option('time_format'), get_date_from_gmt(date('Y-m-d H:i:s', $msg['edit_date']), 'U'))); ?>"><?php esc_html_e('(edited)', 'dfxtgfeed'); ?></span>
+                    <span class="dfxtgfeed-edited" title="<?php echo esc_attr(wp_date(get_option('date_format') . ' ' . get_option('time_format'), get_date_from_gmt(date('Y-m-d H:i:s', $msg['edit_date']), 'U'))); ?>"><?php esc_html_e('(edited)', 'dfx-telegram-channel-feed'); ?></span>
                 <?php endif; ?>
             </div>
             
@@ -83,7 +83,7 @@ if (!defined('ABSPATH')) exit;
                     <?php else:
                         // Static sticker or regular image
                     ?>
-                        <img src="<?php echo esc_url($media_url); ?>" alt="<?php echo $is_sticker ? esc_attr__('Telegram sticker', 'dfxtgfeed') : esc_attr__('Telegram message media', 'dfxtgfeed'); ?>" />
+                        <img src="<?php echo esc_url($media_url); ?>" alt="<?php echo $is_sticker ? esc_attr__('Telegram sticker', 'dfx-telegram-channel-feed') : esc_attr__('Telegram message media', 'dfx-telegram-channel-feed'); ?>" />
                         <?php if ($has_emoji): ?>
                             <span class="dfxtgfeed-emoji-overlay"><?php echo esc_html($msg['emoji']); ?></span>
                         <?php endif; ?>

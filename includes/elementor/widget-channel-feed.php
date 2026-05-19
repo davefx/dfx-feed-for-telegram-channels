@@ -10,7 +10,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
     }
 
     public function get_title() {
-        return __('Telegram Channel Feed', 'dfxtgfeed');
+        return __('Telegram Channel Feed', 'dfx-telegram-channel-feed');
     }
 
     public function get_icon() {
@@ -29,7 +29,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         $this->start_controls_section(
             'content_section',
             [
-                'label' => __('Settings', 'dfxtgfeed'),
+                'label' => __('Settings', 'dfx-telegram-channel-feed'),
                 'tab' => \Elementor\Controls_Manager::TAB_CONTENT,
             ]
         );
@@ -37,10 +37,10 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         $this->add_control(
             'channel',
             [
-                'label' => __('Channel Username', 'dfxtgfeed'),
+                'label' => __('Channel Username', 'dfx-telegram-channel-feed'),
                 'type' => \Elementor\Controls_Manager::TEXT,
                 'placeholder' => '@yourchannel',
-                'description' => __('Enter the Telegram channel username with @ or channel ID', 'dfxtgfeed'),
+                'description' => __('Enter the Telegram channel username with @ or channel ID', 'dfx-telegram-channel-feed'),
                 'default' => '',
             ]
         );
@@ -48,7 +48,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         $this->add_control(
             'count',
             [
-                'label' => __('Number of Messages', 'dfxtgfeed'),
+                'label' => __('Number of Messages', 'dfx-telegram-channel-feed'),
                 'type' => \Elementor\Controls_Manager::NUMBER,
                 'min' => 1,
                 'max' => 100,
@@ -63,7 +63,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         $this->start_controls_section(
             'block_style_section',
             [
-                'label' => __('Block Container', 'dfxtgfeed'),
+                'label' => __('Block Container', 'dfx-telegram-channel-feed'),
                 'tab' => \Elementor\Controls_Manager::TAB_STYLE,
             ]
         );
@@ -71,7 +71,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         $this->add_control(
             'block_background',
             [
-                'label' => __('Background Color', 'dfxtgfeed'),
+                'label' => __('Background Color', 'dfx-telegram-channel-feed'),
                 'type' => \Elementor\Controls_Manager::COLOR,
                 'scheme' => [
                     'type' => \Elementor\Core\Schemes\Color::get_type(),
@@ -91,7 +91,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         $this->add_control(
             'block_border_radius',
             [
-                'label' => __('Border Radius', 'dfxtgfeed'),
+                'label' => __('Border Radius', 'dfx-telegram-channel-feed'),
                 'type' => \Elementor\Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', '%', 'em'],
                 'selectors' => [
@@ -103,7 +103,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         $this->add_responsive_control(
             'block_padding',
             [
-                'label' => __('Padding', 'dfxtgfeed'),
+                'label' => __('Padding', 'dfx-telegram-channel-feed'),
                 'type' => \Elementor\Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', '%', 'em'],
                 'selectors' => [
@@ -115,7 +115,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         $this->add_responsive_control(
             'block_margin',
             [
-                'label' => __('Margin', 'dfxtgfeed'),
+                'label' => __('Margin', 'dfx-telegram-channel-feed'),
                 'type' => \Elementor\Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', '%', 'em'],
                 'selectors' => [
@@ -138,7 +138,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         $this->start_controls_section(
             'message_style_section',
             [
-                'label' => __('Message Container', 'dfxtgfeed'),
+                'label' => __('Message Container', 'dfx-telegram-channel-feed'),
                 'tab' => \Elementor\Controls_Manager::TAB_STYLE,
             ]
         );
@@ -146,7 +146,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         $this->add_control(
             'message_background',
             [
-                'label' => __('Background Color', 'dfxtgfeed'),
+                'label' => __('Background Color', 'dfx-telegram-channel-feed'),
                 'type' => \Elementor\Controls_Manager::COLOR,
                 'scheme' => [
                     'type' => \Elementor\Core\Schemes\Color::get_type(),
@@ -169,7 +169,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         $this->add_control(
             'message_border_radius',
             [
-                'label' => __('Border Radius', 'dfxtgfeed'),
+                'label' => __('Border Radius', 'dfx-telegram-channel-feed'),
                 'type' => \Elementor\Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', '%', 'em'],
                 'selectors' => [
@@ -181,7 +181,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         $this->add_responsive_control(
             'message_padding',
             [
-                'label' => __('Padding', 'dfxtgfeed'),
+                'label' => __('Padding', 'dfx-telegram-channel-feed'),
                 'type' => \Elementor\Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', '%', 'em'],
                 'selectors' => [
@@ -193,7 +193,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         $this->add_responsive_control(
             'message_margin',
             [
-                'label' => __('Margin', 'dfxtgfeed'),
+                'label' => __('Margin', 'dfx-telegram-channel-feed'),
                 'type' => \Elementor\Controls_Manager::DIMENSIONS,
                 'size_units' => ['px', '%', 'em'],
                 'selectors' => [
@@ -216,7 +216,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         $this->start_controls_section(
             'date_typography_section',
             [
-                'label' => __('Date Typography', 'dfxtgfeed'),
+                'label' => __('Date Typography', 'dfx-telegram-channel-feed'),
                 'tab' => \Elementor\Controls_Manager::TAB_STYLE,
             ]
         );
@@ -235,7 +235,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         $this->start_controls_section(
             'author_typography_section',
             [
-                'label' => __('Author Typography', 'dfxtgfeed'),
+                'label' => __('Author Typography', 'dfx-telegram-channel-feed'),
                 'tab' => \Elementor\Controls_Manager::TAB_STYLE,
             ]
         );
@@ -254,7 +254,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         $this->start_controls_section(
             'text_typography_section',
             [
-                'label' => __('Message Text Typography', 'dfxtgfeed'),
+                'label' => __('Message Text Typography', 'dfx-telegram-channel-feed'),
                 'tab' => \Elementor\Controls_Manager::TAB_STYLE,
             ]
         );
@@ -276,7 +276,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
         if (empty($settings['channel'])) {
             if (\Elementor\Plugin::$instance->editor->is_edit_mode()) {
                 echo '<div style="padding: 20px; border: 1px dashed #ccc; text-align: center;">';
-                echo __('Please enter a channel username in the widget settings.', 'dfxtgfeed');
+                echo __('Please enter a channel username in the widget settings.', 'dfx-telegram-channel-feed');
                 echo '</div>';
             }
             return;

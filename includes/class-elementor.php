@@ -28,7 +28,7 @@ class Elementor {
         $elements_manager->add_category(
             'dfxtgfeed',
             [
-                'title' => __('Telegram Feed', 'dfxtgfeed'),
+                'title' => __('Telegram Feed', 'dfx-telegram-channel-feed'),
                 'icon' => 'fa fa-plug',
             ]
         );

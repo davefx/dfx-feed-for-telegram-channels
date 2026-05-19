@@ -91,13 +91,13 @@ class Shortcodes {
         
         // Check if channel is specified
         if (!$channel) {
-            return $this->render_error(__('No channel specified. Please configure the channel in block settings.', 'dfxtgfeed'));
+            return $this->render_error(__('No channel specified. Please configure the channel in block settings.', 'dfx-telegram-channel-feed'));
         }
         
         // Check if bot token is configured
         $bot_token = get_option('dfxtgfeed_bot_token');
         if (!$bot_token) {
-            return $this->render_error(__('Telegram Bot Token not configured. Please configure it in Settings → DFX Telegram Feed.', 'dfxtgfeed'));
+            return $this->render_error(__('Telegram Bot Token not configured. Please configure it in Settings → DFX Telegram Feed.', 'dfx-telegram-channel-feed'));
         }
         
         // Smart on-demand refresh: Check if last update is > 10 minutes old
@@ -122,7 +122,7 @@ class Shortcodes {
         // Check if messages were retrieved
         if (empty($messages)) {
             return $this->render_info(sprintf(
-                __('No messages found for channel %s. Make sure your bot is added as an admin to the channel and has received messages since being added.', 'dfxtgfeed'),
+                __('No messages found for channel %s. Make sure your bot is added as an admin to the channel and has received messages since being added.', 'dfx-telegram-channel-feed'),
                 '<strong>' . esc_html($channel) . '</strong>'
             ));
         }
@@ -146,13 +146,13 @@ class Shortcodes {
         
         // Check if channel is specified
         if (!$channel) {
-            return $this->render_error(__('No channel specified. Please configure the channel in block settings.', 'dfxtgfeed'));
+            return $this->render_error(__('No channel specified. Please configure the channel in block settings.', 'dfx-telegram-channel-feed'));
         }
         
         // Check if bot token is configured
         $bot_token = get_option('dfxtgfeed_bot_token');
         if (!$bot_token) {
-            return $this->render_error(__('Telegram Bot Token not configured. Please configure it in Settings → DFX Telegram Feed.', 'dfxtgfeed'));
+            return $this->render_error(__('Telegram Bot Token not configured. Please configure it in Settings → DFX Telegram Feed.', 'dfx-telegram-channel-feed'));
         }
         
         // For browsing you might want to paginate, but for now show all
@@ -166,7 +166,7 @@ class Shortcodes {
         // Check if messages were retrieved
         if (empty($messages)) {
             return $this->render_info(sprintf(
-                __('No messages found for channel %s. Make sure your bot is added as an admin to the channel and has received messages since being added.', 'dfxtgfeed'),
+                __('No messages found for channel %s. Make sure your bot is added as an admin to the channel and has received messages since being added.', 'dfx-telegram-channel-feed'),
                 '<strong>' . esc_html($channel) . '</strong>'
             ));
         }
@@ -189,7 +189,7 @@ class Shortcodes {
             '<div class="dfxtgfeed-error" style="padding: 15px; background: #f8d7da; border: 1px solid #f5c2c7; border-radius: 4px; color: #842029;">
                 <strong>%s</strong> %s
             </div>',
-            __('Error:', 'dfxtgfeed'),
+            __('Error:', 'dfx-telegram-channel-feed'),
             $message
         );
     }
@@ -202,7 +202,7 @@ class Shortcodes {
             '<div class="dfxtgfeed-info" style="padding: 15px; background: #cfe2ff; border: 1px solid #b6d4fe; border-radius: 4px; color: #084298;">
                 <strong>%s</strong> %s
             </div>',
-            __('Info:', 'dfxtgfeed'),
+            __('Info:', 'dfx-telegram-channel-feed'),
             $message
         );
     }

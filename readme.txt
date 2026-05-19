@@ -4,7 +4,7 @@ Tags: telegram, channel, feed, shortcode, block
 Requires at least: 5.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -51,8 +51,11 @@ Note: messages posted in the channel **before** the bot was added are not retrie
 
 == Changelog ==
 
+= 1.0.2 =
+* Fixed Plugin Check warnings: text domain now matches the plugin slug (`dfx-telegram-channel-feed`), and the unused `Domain Path` header was removed.
+
 = 1.0.1 =
-* Initial WordPress.org release. Removed the experimental "Sync Deletions" feature (which scraped the public `t.me/s/<channel>` preview) ahead of submission.
+* Removed the experimental "Sync Deletions" feature (which scraped the public `t.me/s/<channel>` preview) ahead of WordPress.org submission.
 
 = 1.0.0 =
 * Internal release (not published to WordPress.org).
