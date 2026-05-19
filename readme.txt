@@ -4,7 +4,7 @@ Tags: telegram, channel, feed, shortcode, block
 Requires at least: 5.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -51,8 +51,11 @@ Note: messages posted in the channel **before** the bot was added are not retrie
 
 == Changelog ==
 
+= 1.0.1 =
+* Initial WordPress.org release. Removed the experimental "Sync Deletions" feature (which scraped the public `t.me/s/<channel>` preview) ahead of submission.
+
 = 1.0.0 =
-* Initial release
+* Internal release (not published to WordPress.org).
 
 == License ==
 

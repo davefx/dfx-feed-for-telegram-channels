@@ -1,6 +1,6 @@
 {
   "name": "dfx-telegram-channel-feed",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Display messages from a Telegram channel on your WordPress site using your Telegram Bot",
   "scripts": {
     "build": "wp-scripts build",
