@@ -28,5 +28,6 @@
 Thumbs.db
 *.log
 
-# Don't ship the ignore file itself
+# Don't ship the ignore file or build script
 /.distignore
+/build-zip.sh
