@@ -6,17 +6,17 @@
  * Telegram file_id — the bot token is never exposed to the client.
  */
 
-/* global lottie, dfxtgfeedStickers, MutationObserver */
+/* global lottie, dfxfftcStickers, MutationObserver */
 
 ( function () {
 	'use strict';
 
 	function buildProxyUrl( fileId ) {
 		return (
-			dfxtgfeedStickers.ajaxUrl +
-			'?action=dfxtgfeed_proxy_sticker' +
+			dfxfftcStickers.ajaxUrl +
+			'?action=dfxfftc_proxy_sticker' +
 			'&nonce=' +
-			encodeURIComponent( dfxtgfeedStickers.nonce ) +
+			encodeURIComponent( dfxfftcStickers.nonce ) +
 			'&file_id=' +
 			encodeURIComponent( fileId )
 		);
@@ -26,7 +26,7 @@
 		const emojiOverlay = container.nextElementSibling;
 		if (
 			emojiOverlay &&
-			emojiOverlay.classList.contains( 'dfxtgfeed-emoji-overlay' )
+			emojiOverlay.classList.contains( 'dfxfftc-emoji-overlay' )
 		) {
 			emojiOverlay.style.fontSize = '48px';
 			emojiOverlay.style.position = 'static';
@@ -35,7 +35,7 @@
 
 	function initStickers() {
 		const stickerContainers = document.querySelectorAll(
-			'.dfxtgfeed-sticker-container'
+			'.dfxfftc-sticker-container'
 		);
 		if ( ! stickerContainers.length ) {
 			return;
@@ -97,10 +97,10 @@
 						if (
 							node.nodeType === 1 &&
 							( node.classList.contains(
-								'dfxtgfeed-sticker-container'
+								'dfxfftc-sticker-container'
 							) ||
 								node.querySelector(
-									'.dfxtgfeed-sticker-container'
+									'.dfxfftc-sticker-container'
 								) )
 						) {
 							shouldInit = true;

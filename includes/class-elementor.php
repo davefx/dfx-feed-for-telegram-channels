@@ -1,5 +1,5 @@
 <?php
-namespace DFXTgFeed;
+namespace DFXFFTC;
 
 if (!defined('ABSPATH')) exit;
 
@@ -26,17 +26,17 @@ class Elementor {
 
     public function add_elementor_widget_categories($elements_manager) {
         $elements_manager->add_category(
-            'dfxtgfeed',
+            'dfxfftc',
             [
-                'title' => __('Telegram Feed', 'dfx-telegram-channel-feed'),
+                'title' => __('Telegram Feed', 'dfx-feed-for-telegram-channels'),
                 'icon' => 'fa fa-plug',
             ]
         );
     }
 
     public function register_widgets($widgets_manager) {
-        require_once DFXTGFEED_PATH . 'includes/elementor/widget-channel-feed.php';
-        require_once DFXTGFEED_PATH . 'includes/elementor/widget-channel-browser.php';
+        require_once DFXFFTC_PATH . 'includes/elementor/widget-channel-feed.php';
+        require_once DFXFFTC_PATH . 'includes/elementor/widget-channel-browser.php';
 
         $widgets_manager->register(new Elementor\Widget_Channel_Feed());
         $widgets_manager->register(new Elementor\Widget_Channel_Browser());

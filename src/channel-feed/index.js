@@ -20,11 +20,11 @@ import { __ } from '@wordpress/i18n';
 import ServerSideRender from '@wordpress/server-side-render';
 import './editor.css';
 
-registerBlockType( 'dfxtgfeed/channel-feed', {
-	title: __( 'Telegram Channel Feed', 'dfx-telegram-channel-feed' ),
+registerBlockType( 'dfxfftc/channel-feed', {
+	title: __( 'Telegram Channel Feed', 'dfx-feed-for-telegram-channels' ),
 	description: __(
 		'Display recent messages from a Telegram channel',
-		'dfx-telegram-channel-feed'
+		'dfx-feed-for-telegram-channels'
 	),
 	category: 'widgets',
 	icon: 'rss',
@@ -147,7 +147,7 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 		const blockProps = useBlockProps();
 
 		const fontFamilies = [
-			{ label: __( 'Default', 'dfx-telegram-channel-feed' ), value: '' },
+			{ label: __( 'Default', 'dfx-feed-for-telegram-channels' ), value: '' },
 			{ label: 'Arial', value: 'Arial, sans-serif' },
 			{ label: 'Helvetica', value: 'Helvetica, sans-serif' },
 			{ label: 'Times New Roman', value: '"Times New Roman", serif' },
@@ -160,58 +160,58 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 		];
 
 		const borderStyles = [
-			{ label: __( 'None', 'dfx-telegram-channel-feed' ), value: '' },
-			{ label: __( 'Solid', 'dfx-telegram-channel-feed' ), value: 'solid' },
-			{ label: __( 'Dashed', 'dfx-telegram-channel-feed' ), value: 'dashed' },
-			{ label: __( 'Dotted', 'dfx-telegram-channel-feed' ), value: 'dotted' },
-			{ label: __( 'Double', 'dfx-telegram-channel-feed' ), value: 'double' },
+			{ label: __( 'None', 'dfx-feed-for-telegram-channels' ), value: '' },
+			{ label: __( 'Solid', 'dfx-feed-for-telegram-channels' ), value: 'solid' },
+			{ label: __( 'Dashed', 'dfx-feed-for-telegram-channels' ), value: 'dashed' },
+			{ label: __( 'Dotted', 'dfx-feed-for-telegram-channels' ), value: 'dotted' },
+			{ label: __( 'Double', 'dfx-feed-for-telegram-channels' ), value: 'double' },
 		];
 
 		const shadowPresets = [
-			{ label: __( 'None', 'dfx-telegram-channel-feed' ), value: '' },
+			{ label: __( 'None', 'dfx-feed-for-telegram-channels' ), value: '' },
 			{
-				label: __( 'Small', 'dfx-telegram-channel-feed' ),
+				label: __( 'Small', 'dfx-feed-for-telegram-channels' ),
 				value: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
 			},
 			{
-				label: __( 'Medium', 'dfx-telegram-channel-feed' ),
+				label: __( 'Medium', 'dfx-feed-for-telegram-channels' ),
 				value: '0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)',
 			},
 			{
-				label: __( 'Large', 'dfx-telegram-channel-feed' ),
+				label: __( 'Large', 'dfx-feed-for-telegram-channels' ),
 				value: '0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)',
 			},
 			{
-				label: __( 'Extra Large', 'dfx-telegram-channel-feed' ),
+				label: __( 'Extra Large', 'dfx-feed-for-telegram-channels' ),
 				value: '0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22)',
 			},
 			{
-				label: __( 'Inset', 'dfx-telegram-channel-feed' ),
+				label: __( 'Inset', 'dfx-feed-for-telegram-channels' ),
 				value: 'inset 0 2px 4px rgba(0,0,0,0.15)',
 			},
-			{ label: __( 'Custom', 'dfx-telegram-channel-feed' ), value: 'custom' },
+			{ label: __( 'Custom', 'dfx-feed-for-telegram-channels' ), value: 'custom' },
 		];
 
 		return (
 			<>
 				<InspectorControls>
 					<TabPanel
-						className="dfxtgfeed-tabs"
+						className="dfxfftc-tabs"
 						activeClass="is-active"
 						tabs={ [
 							{
 								name: 'settings',
-								title: __( 'Settings', 'dfx-telegram-channel-feed' ),
+								title: __( 'Settings', 'dfx-feed-for-telegram-channels' ),
 								className: 'tab-settings',
 							},
 							{
 								name: 'block-styles',
-								title: __( 'Block Styles', 'dfx-telegram-channel-feed' ),
+								title: __( 'Block Styles', 'dfx-feed-for-telegram-channels' ),
 								className: 'tab-block-styles',
 							},
 							{
 								name: 'message-styles',
-								title: __( 'Message Styles', 'dfx-telegram-channel-feed' ),
+								title: __( 'Message Styles', 'dfx-feed-for-telegram-channels' ),
 								className: 'tab-message-styles',
 							},
 						] }
@@ -223,18 +223,18 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 										<PanelBody
 											title={ __(
 												'General Settings',
-												'dfx-telegram-channel-feed'
+												'dfx-feed-for-telegram-channels'
 											) }
 											initialOpen={ true }
 										>
 											<TextControl
 												label={ __(
 													'Channel Username',
-													'dfx-telegram-channel-feed'
+													'dfx-feed-for-telegram-channels'
 												) }
 												help={ __(
 													'Enter channel username with @ (e.g., @yourchannel) or channel ID',
-													'dfx-telegram-channel-feed'
+													'dfx-feed-for-telegram-channels'
 												) }
 												value={ attributes.channel }
 												onChange={ ( value ) =>
@@ -246,7 +246,7 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 											<RangeControl
 												label={ __(
 													'Number of Messages',
-													'dfx-telegram-channel-feed'
+													'dfx-feed-for-telegram-channels'
 												) }
 												value={ attributes.count }
 												onChange={ ( value ) =>
@@ -266,7 +266,7 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 										<PanelBody
 											title={ __(
 												'Block Container',
-												'dfx-telegram-channel-feed'
+												'dfx-feed-for-telegram-channels'
 											) }
 											initialOpen={ true }
 										>
@@ -274,7 +274,7 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 												id="block-background-color-control"
 												label={ __(
 													'Background Color',
-													'dfx-telegram-channel-feed'
+													'dfx-feed-for-telegram-channels'
 												) }
 											>
 												<ColorPalette
@@ -293,7 +293,7 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 											<SelectControl
 												label={ __(
 													'Border Style',
-													'dfx-telegram-channel-feed'
+													'dfx-feed-for-telegram-channels'
 												) }
 												value={
 													attributes.blockBorderStyle
@@ -310,7 +310,7 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 													<UnitControl
 														label={ __(
 															'Border Width',
-															'dfx-telegram-channel-feed'
+															'dfx-feed-for-telegram-channels'
 														) }
 														value={
 															attributes.blockBorderWidth
@@ -326,7 +326,7 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 														id="block-background-color-control"
 														label={ __(
 															'Border Color',
-															'dfx-telegram-channel-feed'
+															'dfx-feed-for-telegram-channels'
 														) }
 													>
 														<ColorPalette
@@ -348,7 +348,7 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 													<UnitControl
 														label={ __(
 															'Border Radius',
-															'dfx-telegram-channel-feed'
+															'dfx-feed-for-telegram-channels'
 														) }
 														value={
 															attributes.blockBorderRadius
@@ -367,7 +367,7 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 													<BoxControl
 														label={ __(
 															'Padding',
-															'dfx-telegram-channel-feed'
+															'dfx-feed-for-telegram-channels'
 														) }
 														values={
 															attributes.blockPadding
@@ -382,7 +382,7 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 													<BoxControl
 														label={ __(
 															'Margin',
-															'dfx-telegram-channel-feed'
+															'dfx-feed-for-telegram-channels'
 														) }
 														values={
 															attributes.blockMargin
@@ -399,7 +399,7 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 											<SelectControl
 												label={ __(
 													'Box Shadow',
-													'dfx-telegram-channel-feed'
+													'dfx-feed-for-telegram-channels'
 												) }
 												value={
 													shadowPresets.find(
@@ -446,11 +446,11 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 												<TextControl
 													label={ __(
 														'Custom Shadow (CSS)',
-														'dfx-telegram-channel-feed'
+														'dfx-feed-for-telegram-channels'
 													) }
 													help={ __(
 														'e.g., 0 4px 6px rgba(0,0,0,0.1)',
-														'dfx-telegram-channel-feed'
+														'dfx-feed-for-telegram-channels'
 													) }
 													value={
 														attributes.blockBoxShadow
@@ -472,7 +472,7 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 										<PanelBody
 											title={ __(
 												'Message Container',
-												'dfx-telegram-channel-feed'
+												'dfx-feed-for-telegram-channels'
 											) }
 											initialOpen={ true }
 										>
@@ -480,7 +480,7 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 												id="block-background-color-control"
 												label={ __(
 													'Background Color',
-													'dfx-telegram-channel-feed'
+													'dfx-feed-for-telegram-channels'
 												) }
 											>
 												<ColorPalette
@@ -499,7 +499,7 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 											<SelectControl
 												label={ __(
 													'Border Style',
-													'dfx-telegram-channel-feed'
+													'dfx-feed-for-telegram-channels'
 												) }
 												value={
 													attributes.messageBorderStyle
@@ -517,7 +517,7 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 													<UnitControl
 														label={ __(
 															'Border Width',
-															'dfx-telegram-channel-feed'
+															'dfx-feed-for-telegram-channels'
 														) }
 														value={
 															attributes.messageBorderWidth
@@ -533,7 +533,7 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 														id="block-background-color-control"
 														label={ __(
 															'Border Color',
-															'dfx-telegram-channel-feed'
+															'dfx-feed-for-telegram-channels'
 														) }
 													>
 														<ColorPalette
@@ -555,7 +555,7 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 													<UnitControl
 														label={ __(
 															'Border Radius',
-															'dfx-telegram-channel-feed'
+															'dfx-feed-for-telegram-channels'
 														) }
 														value={
 															attributes.messageBorderRadius
@@ -574,7 +574,7 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 													<BoxControl
 														label={ __(
 															'Padding',
-															'dfx-telegram-channel-feed'
+															'dfx-feed-for-telegram-channels'
 														) }
 														values={
 															attributes.messagePadding
@@ -589,7 +589,7 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 													<BoxControl
 														label={ __(
 															'Margin',
-															'dfx-telegram-channel-feed'
+															'dfx-feed-for-telegram-channels'
 														) }
 														values={
 															attributes.messageMargin
@@ -606,7 +606,7 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 											<SelectControl
 												label={ __(
 													'Box Shadow',
-													'dfx-telegram-channel-feed'
+													'dfx-feed-for-telegram-channels'
 												) }
 												value={
 													shadowPresets.find(
@@ -653,11 +653,11 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 												<TextControl
 													label={ __(
 														'Custom Shadow (CSS)',
-														'dfx-telegram-channel-feed'
+														'dfx-feed-for-telegram-channels'
 													) }
 													help={ __(
 														'e.g., 0 4px 6px rgba(0,0,0,0.1)',
-														'dfx-telegram-channel-feed'
+														'dfx-feed-for-telegram-channels'
 													) }
 													value={
 														attributes.messageBoxShadow
@@ -674,17 +674,17 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 										<PanelBody
 											title={ __(
 												'Typography',
-												'dfx-telegram-channel-feed'
+												'dfx-feed-for-telegram-channels'
 											) }
 											initialOpen={ false }
 										>
 											<h3>
-												{ __( 'Date', 'dfx-telegram-channel-feed' ) }
+												{ __( 'Date', 'dfx-feed-for-telegram-channels' ) }
 											</h3>
 											<SelectControl
 												label={ __(
 													'Font Family',
-													'dfx-telegram-channel-feed'
+													'dfx-feed-for-telegram-channels'
 												) }
 												value={
 													attributes.dateFontFamily
@@ -699,7 +699,7 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 											<UnitControl
 												label={ __(
 													'Font Size',
-													'dfx-telegram-channel-feed'
+													'dfx-feed-for-telegram-channels'
 												) }
 												value={
 													attributes.dateFontSize
@@ -714,7 +714,7 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 												id="block-background-color-control"
 												label={ __(
 													'Text Color',
-													'dfx-telegram-channel-feed'
+													'dfx-feed-for-telegram-channels'
 												) }
 											>
 												<ColorPalette
@@ -732,12 +732,12 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 											</BaseControl>
 											<hr />
 											<h3>
-												{ __( 'Author', 'dfx-telegram-channel-feed' ) }
+												{ __( 'Author', 'dfx-feed-for-telegram-channels' ) }
 											</h3>
 											<SelectControl
 												label={ __(
 													'Font Family',
-													'dfx-telegram-channel-feed'
+													'dfx-feed-for-telegram-channels'
 												) }
 												value={
 													attributes.authorFontFamily
@@ -752,7 +752,7 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 											<UnitControl
 												label={ __(
 													'Font Size',
-													'dfx-telegram-channel-feed'
+													'dfx-feed-for-telegram-channels'
 												) }
 												value={
 													attributes.authorFontSize
@@ -767,7 +767,7 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 												id="block-background-color-control"
 												label={ __(
 													'Text Color',
-													'dfx-telegram-channel-feed'
+													'dfx-feed-for-telegram-channels'
 												) }
 											>
 												<ColorPalette
@@ -787,13 +787,13 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 											<h3>
 												{ __(
 													'Message Text',
-													'dfx-telegram-channel-feed'
+													'dfx-feed-for-telegram-channels'
 												) }
 											</h3>
 											<SelectControl
 												label={ __(
 													'Font Family',
-													'dfx-telegram-channel-feed'
+													'dfx-feed-for-telegram-channels'
 												) }
 												value={
 													attributes.textFontFamily
@@ -808,7 +808,7 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 											<UnitControl
 												label={ __(
 													'Font Size',
-													'dfx-telegram-channel-feed'
+													'dfx-feed-for-telegram-channels'
 												) }
 												value={
 													attributes.textFontSize
@@ -823,7 +823,7 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 												id="block-background-color-control"
 												label={ __(
 													'Text Color',
-													'dfx-telegram-channel-feed'
+													'dfx-feed-for-telegram-channels'
 												) }
 											>
 												<ColorPalette
@@ -849,12 +849,12 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 				<div { ...blockProps }>
 					{ attributes.channel ? (
 						<ServerSideRender
-							block="dfxtgfeed/channel-feed"
+							block="dfxfftc/channel-feed"
 							attributes={ attributes }
 						/>
 					) : (
 						<div
-							className="dfxtgfeed-placeholder"
+							className="dfxfftc-placeholder"
 							style={ {
 								padding: '20px',
 								border: '1px dashed #ccc',
@@ -863,7 +863,7 @@ registerBlockType( 'dfxtgfeed/channel-feed', {
 						>
 							{ __(
 								'Please enter a channel username in the block settings.',
-								'dfx-telegram-channel-feed'
+								'dfx-feed-for-telegram-channels'
 							) }
 						</div>
 					) }

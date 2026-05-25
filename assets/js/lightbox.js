@@ -36,13 +36,13 @@
 
 		// Create lightbox container
 		lightbox = document.createElement( 'div' );
-		lightbox.className = 'dfxtgfeed-lightbox';
+		lightbox.className = 'dfxfftc-lightbox';
 		lightbox.innerHTML = `
-            <div class="dfxtgfeed-lightbox-backdrop"></div>
-            <div class="dfxtgfeed-lightbox-content">
-                <img class="dfxtgfeed-lightbox-image" src="" alt="">
-                <div class="dfxtgfeed-lightbox-controls">
-                    <button class="dfxtgfeed-lightbox-btn dfxtgfeed-lightbox-zoom-in" title="Zoom In">
+            <div class="dfxfftc-lightbox-backdrop"></div>
+            <div class="dfxfftc-lightbox-content">
+                <img class="dfxfftc-lightbox-image" src="" alt="">
+                <div class="dfxfftc-lightbox-controls">
+                    <button class="dfxfftc-lightbox-btn dfxfftc-lightbox-zoom-in" title="Zoom In">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="11" cy="11" r="8"></circle>
                             <line x1="11" y1="8" x2="11" y2="14"></line>
@@ -50,14 +50,14 @@
                             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                         </svg>
                     </button>
-                    <button class="dfxtgfeed-lightbox-btn dfxtgfeed-lightbox-zoom-out" title="Zoom Out">
+                    <button class="dfxfftc-lightbox-btn dfxfftc-lightbox-zoom-out" title="Zoom Out">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="11" cy="11" r="8"></circle>
                             <line x1="8" y1="11" x2="14" y2="11"></line>
                             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                         </svg>
                     </button>
-                    <button class="dfxtgfeed-lightbox-btn dfxtgfeed-lightbox-reset" title="Reset">
+                    <button class="dfxfftc-lightbox-btn dfxfftc-lightbox-reset" title="Reset">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
                             <path d="M21 3v5h-5"></path>
@@ -65,7 +65,7 @@
                             <path d="M3 21v-5h5"></path>
                         </svg>
                     </button>
-                    <button class="dfxtgfeed-lightbox-btn dfxtgfeed-lightbox-close" title="Close">
+                    <button class="dfxfftc-lightbox-btn dfxfftc-lightbox-close" title="Close">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
                             <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -78,7 +78,7 @@
 		document.body.appendChild( lightbox );
 
 		// Get references to elements
-		lightboxImg = lightbox.querySelector( '.dfxtgfeed-lightbox-image' );
+		lightboxImg = lightbox.querySelector( '.dfxfftc-lightbox-image' );
 
 		// Attach event listeners
 		attachLightboxListeners();
@@ -90,31 +90,31 @@
 	function attachLightboxListeners() {
 		// Close on backdrop click
 		lightbox
-			.querySelector( '.dfxtgfeed-lightbox-backdrop' )
+			.querySelector( '.dfxfftc-lightbox-backdrop' )
 			.addEventListener( 'click', closeLightbox );
 
 		// Close button
 		lightbox
-			.querySelector( '.dfxtgfeed-lightbox-close' )
+			.querySelector( '.dfxfftc-lightbox-close' )
 			.addEventListener( 'click', closeLightbox );
 
 		// Zoom in button
 		lightbox
-			.querySelector( '.dfxtgfeed-lightbox-zoom-in' )
+			.querySelector( '.dfxfftc-lightbox-zoom-in' )
 			.addEventListener( 'click', function () {
 				zoomIn();
 			} );
 
 		// Zoom out button
 		lightbox
-			.querySelector( '.dfxtgfeed-lightbox-zoom-out' )
+			.querySelector( '.dfxfftc-lightbox-zoom-out' )
 			.addEventListener( 'click', function () {
 				zoomOut();
 			} );
 
 		// Reset button
 		lightbox
-			.querySelector( '.dfxtgfeed-lightbox-reset' )
+			.querySelector( '.dfxfftc-lightbox-reset' )
 			.addEventListener( 'click', function () {
 				resetZoom();
 			} );
@@ -158,7 +158,7 @@
 
 		lightboxImg.src = imgSrc;
 		lightboxImg.alt = imgAlt || 'Lightbox image';
-		lightbox.classList.add( 'dfxtgfeed-lightbox-active' );
+		lightbox.classList.add( 'dfxfftc-lightbox-active' );
 		lightboxOpen = true;
 
 		// Reset zoom and position
@@ -176,7 +176,7 @@
 			return;
 		}
 
-		lightbox.classList.remove( 'dfxtgfeed-lightbox-active' );
+		lightbox.classList.remove( 'dfxfftc-lightbox-active' );
 		lightboxOpen = false;
 
 		// Re-enable body scrolling
@@ -368,7 +368,7 @@
 	function initLightbox() {
 		// Find all non-sticker images in feed and browser
 		const images = document.querySelectorAll(
-			'.dfxtgfeed-media:not(.dfxtgfeed-media-sticker) img'
+			'.dfxfftc-media:not(.dfxfftc-media-sticker) img'
 		);
 
 		images.forEach( function ( img ) {
@@ -428,8 +428,8 @@
 					mutation.addedNodes.forEach( function ( node ) {
 						if (
 							node.nodeType === 1 &&
-							( node.classList.contains( 'dfxtgfeed-media' ) ||
-								node.querySelector( '.dfxtgfeed-media' ) )
+							( node.classList.contains( 'dfxfftc-media' ) ||
+								node.querySelector( '.dfxfftc-media' ) )
 						) {
 							shouldInit = true;
 						}

@@ -1,5 +1,5 @@
 <?php
-namespace DFXTgFeed;
+namespace DFXFFTC;
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
@@ -17,7 +17,7 @@ class API {
      * NOTE: Only messages since the bot was added will be returned.
      */
     public function fetch_channel_messages($channel_username, $limit = 10) {
-        $bot_token = get_option('dfxtgfeed_bot_token');
+        $bot_token = get_option('dfxfftc_bot_token');
         if (!$bot_token) return [];
         
         // Clean the @ if present, or use as-is if it's a channel ID
@@ -164,7 +164,7 @@ class API {
      * Resolve a Telegram file_id to a token-bearing fetchable URL.
      * Server-side only — never include the return value in HTML, JS, or any
      * client-visible response: the URL embeds the bot token. Use the media
-     * proxy (admin-ajax dfxtgfeed_proxy_media) for client-facing rendering.
+     * proxy (admin-ajax dfxfftc_proxy_media) for client-facing rendering.
      *
      * The file_path → URL mapping is cached briefly because Telegram URLs
      * remain valid for a limited time and a getFile call per asset is wasteful.
@@ -173,12 +173,12 @@ class API {
         if (empty($file_id)) {
             return null;
         }
-        $bot_token = get_option('dfxtgfeed_bot_token');
+        $bot_token = get_option('dfxfftc_bot_token');
         if (!$bot_token) {
             return null;
         }
 
-        $cache_key = 'dfxtgfeed_path_' . md5($file_id);
+        $cache_key = 'dfxfftc_path_' . md5($file_id);
         $file_path = get_transient($cache_key);
         if ($file_path === false) {
             $resp = wp_remote_get("https://api.telegram.org/bot{$bot_token}/getFile?file_id=" . urlencode($file_id), [
@@ -370,7 +370,7 @@ class API {
             case 'hashtag':
             case 'cashtag':
             case 'bot_command':
-                return ['open' => '<span class="dfxtgfeed-' . esc_attr($type) . '">', 'close' => '</span>'];
+                return ['open' => '<span class="dfxfftc-' . esc_attr($type) . '">', 'close' => '</span>'];
             case 'blockquote':
                 return ['open' => '<blockquote>', 'close' => '</blockquote>'];
             default:
