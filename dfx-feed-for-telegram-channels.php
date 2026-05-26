@@ -3,7 +3,7 @@
 Plugin Name:       DFX Feed for Telegram Channels
 Plugin URI:        https://github.com/davefx/dfx-feed-for-telegram-channels
 Description:       Display messages from one or more Telegram channels on your WordPress site, with full media support, via shortcode, Gutenberg block, or Elementor widget.
-Version:           2.0.0
+Version:           2.0.1
 Requires at least: 5.0
 Requires PHP:      7.4
 Author:            David Marín
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 define( 'DFXFFTC_PATH', plugin_dir_path( __FILE__ ) );
 define( 'DFXFFTC_URL', plugin_dir_url( __FILE__ ) );
-define( 'DFXFFTC_VER', '2.0.0' );
+define( 'DFXFFTC_VER', '2.0.1' );
 
 require_once DFXFFTC_PATH . 'includes/class-plugin.php';
 
