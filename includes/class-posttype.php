@@ -319,7 +319,7 @@ class PostType {
             true
         );
         
-        wp_localize_script('dfxfftc-admin', 'dfxTgAdmin', [
+        wp_localize_script('dfxfftc-admin', 'dfxfftcAdmin', [
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'hideConfirm' => __('Are you sure you want to hide this message from the frontend?', 'dfx-feed-for-telegram-channels'),
             'error' => __('An error occurred. Please try again.', 'dfx-feed-for-telegram-channels'),
@@ -723,19 +723,19 @@ class PostType {
             $count = absint($_REQUEST['bulk_hidden_messages']);
             printf(
                 '<div class="notice notice-success is-dismissible"><p>' .
-                _n('%s message hidden from frontend.', '%s messages hidden from frontend.', $count, 'dfx-feed-for-telegram-channels') .
+                esc_html(_n('%s message hidden from frontend.', '%s messages hidden from frontend.', $count, 'dfx-feed-for-telegram-channels')) .
                 '</p></div>',
-                number_format_i18n($count)
+                esc_html(number_format_i18n($count))
             );
         }
-        
+
         if (!empty($_REQUEST['bulk_unhidden_messages'])) {
             $count = absint($_REQUEST['bulk_unhidden_messages']);
             printf(
                 '<div class="notice notice-success is-dismissible"><p>' .
-                _n('%s message is now visible in frontend.', '%s messages are now visible in frontend.', $count, 'dfx-feed-for-telegram-channels') .
+                esc_html(_n('%s message is now visible in frontend.', '%s messages are now visible in frontend.', $count, 'dfx-feed-for-telegram-channels')) .
                 '</p></div>',
-                number_format_i18n($count)
+                esc_html(number_format_i18n($count))
             );
         }
     }

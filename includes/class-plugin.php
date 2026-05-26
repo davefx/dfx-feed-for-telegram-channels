@@ -217,7 +217,7 @@ final class Plugin {
      * Telegram URL attached to our bot token.
      */
     public function ajax_proxy_sticker() {
-        if (!isset($_GET['nonce']) || !wp_verify_nonce($_GET['nonce'], 'dfxfftc_sticker_proxy')) {
+        if (!isset($_GET['nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['nonce'])), 'dfxfftc_sticker_proxy')) {
             wp_send_json_error(['message' => 'Invalid nonce'], 403);
         }
 
@@ -282,7 +282,7 @@ final class Plugin {
      * when available; otherwise fetches from Telegram, persists, and serves.
      */
     public function ajax_proxy_media() {
-        if (!isset($_GET['nonce']) || !wp_verify_nonce($_GET['nonce'], 'dfxfftc_media_proxy')) {
+        if (!isset($_GET['nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['nonce'])), 'dfxfftc_media_proxy')) {
             status_header(403);
             exit;
         }

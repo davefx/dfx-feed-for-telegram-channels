@@ -4,7 +4,7 @@
  *
  * @param {Object} $ jQuery object
  */
-/* global jQuery, dfxTgAdmin, location, confirm, alert */
+/* global jQuery, dfxfftcAdmin, location, confirm, alert */
 ( function ( $ ) {
 	'use strict';
 
@@ -17,7 +17,7 @@
 			const $link = $( this );
 
 			// eslint-disable-next-line no-alert
-			if ( ! confirm( dfxTgAdmin.hideConfirm ) ) {
+			if ( ! confirm( dfxfftcAdmin.hideConfirm ) ) {
 				return;
 			}
 
@@ -28,7 +28,7 @@
 			$link.css( 'opacity', '0.5' ).css( 'pointer-events', 'none' );
 
 			$.ajax( {
-				url: dfxTgAdmin.ajaxUrl,
+				url: dfxfftcAdmin.ajaxUrl,
 				type: 'POST',
 				data: {
 					action: 'dfxfftc_hide_message',
@@ -41,7 +41,7 @@
 						location.reload();
 					} else {
 						// eslint-disable-next-line no-alert
-						alert( response.data || dfxTgAdmin.error );
+						alert( response.data || dfxfftcAdmin.error );
 						$link
 							.css( 'opacity', '1' )
 							.css( 'pointer-events', 'auto' );
@@ -49,7 +49,7 @@
 				},
 				error() {
 					// eslint-disable-next-line no-alert
-					alert( dfxTgAdmin.error );
+					alert( dfxfftcAdmin.error );
 					$link.css( 'opacity', '1' ).css( 'pointer-events', 'auto' );
 				},
 			} );
@@ -67,7 +67,7 @@
 			$link.css( 'opacity', '0.5' ).css( 'pointer-events', 'none' );
 
 			$.ajax( {
-				url: dfxTgAdmin.ajaxUrl,
+				url: dfxfftcAdmin.ajaxUrl,
 				type: 'POST',
 				data: {
 					action: 'dfxfftc_unhide_message',
@@ -80,7 +80,7 @@
 						location.reload();
 					} else {
 						// eslint-disable-next-line no-alert
-						alert( response.data || dfxTgAdmin.error );
+						alert( response.data || dfxfftcAdmin.error );
 						$link
 							.css( 'opacity', '1' )
 							.css( 'pointer-events', 'auto' );
@@ -88,7 +88,7 @@
 				},
 				error() {
 					// eslint-disable-next-line no-alert
-					alert( dfxTgAdmin.error );
+					alert( dfxfftcAdmin.error );
 					$link.css( 'opacity', '1' ).css( 'pointer-events', 'auto' );
 				},
 			} );
