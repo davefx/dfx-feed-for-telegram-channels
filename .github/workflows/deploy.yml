@@ -4,6 +4,10 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy (e.g. 2.0.1)'
+        required: true
 
 jobs:
   deploy:
@@ -18,3 +22,4 @@ jobs:
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
           SLUG: dfx-feed-for-telegram-channels
+          VERSION: ${{ github.event.inputs.version || '' }}
