@@ -4,7 +4,7 @@ Tags: telegram, channel, feed, shortcode, block
 Requires at least: 5.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 2.0.1
+Stable tag: 2.0.2
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -76,6 +76,9 @@ Telegram Bot API, provided by Telegram FZ-LLC.
 * Bot API documentation: https://core.telegram.org/bots/api
 
 == Changelog ==
+
+= 2.0.2 =
+* Replace all remaining old plugin name references with new name.
 
 = 2.0.1 =
 * Sanitize nonce inputs with sanitize_text_field(wp_unslash()) before wp_verify_nonce().
