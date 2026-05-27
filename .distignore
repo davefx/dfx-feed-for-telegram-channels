@@ -28,6 +28,9 @@
 Thumbs.db
 *.log
 
+# WP.org directory assets (icons, banners) — deployed separately by the action
+/.wordpress-org
+
 # Don't ship the ignore file or build script
 /.distignore
 /build-zip.sh
