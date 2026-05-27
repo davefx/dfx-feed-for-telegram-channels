@@ -1,6 +1,6 @@
 <?php
 /**
- * Template for displaying Telegram Channel Feed
+ * Template for displaying Feed for Telegram Channels
  * 
  * Available variables:
  * @var array $messages Array of message objects

@@ -32,7 +32,7 @@ DFX Feed for Telegram Channels mirrors messages from one or more Telegram channe
 3. In WordPress admin, go to **Settings → Telegram Feed**.
 4. Create a Telegram bot via [@BotFather](https://t.me/botfather), paste the bot token into the settings page, and save.
 5. Add the bot as an **administrator** of every channel you want to mirror.
-6. Add a shortcode such as `[dfxfftc_channel_feed channel="@yourchannel" count="10"]` to a page, or use the "Telegram Channel Feed" Gutenberg block / Elementor widget.
+6. Add a shortcode such as `[dfxfftc_channel_feed channel="@yourchannel" count="10"]` to a page, or use the "Feed for Telegram Channels" Gutenberg block / Elementor widget.
 
 Note: messages posted in the channel **before** the bot was added are not retrievable via the Bot API.
 

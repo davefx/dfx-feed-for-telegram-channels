@@ -85,7 +85,7 @@ class Settings {
         $channel = esc_attr(get_option('dfxfftc_channel', ''));
         ?>
         <div class="wrap">
-            <h1><?php esc_html_e('DFX Telegram Channel Feed', 'dfx-feed-for-telegram-channels'); ?></h1>
+            <h1><?php esc_html_e('DFX Feed for Telegram Channels', 'dfx-feed-for-telegram-channels'); ?></h1>
 
             <h2>How to setup your Telegram Bot</h2>
             <ol>

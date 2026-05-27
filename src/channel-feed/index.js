@@ -21,7 +21,7 @@ import ServerSideRender from '@wordpress/server-side-render';
 import './editor.css';
 
 registerBlockType( 'dfxfftc/channel-feed', {
-	title: __( 'Telegram Channel Feed', 'dfx-feed-for-telegram-channels' ),
+	title: __( 'Feed for Telegram Channels', 'dfx-feed-for-telegram-channels' ),
 	description: __(
 		'Display recent messages from a Telegram channel',
 		'dfx-feed-for-telegram-channels'

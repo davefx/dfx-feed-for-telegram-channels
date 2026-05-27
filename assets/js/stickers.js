@@ -1,5 +1,5 @@
 /**
- * DFX Telegram Channel Feed - Sticker Support
+ * DFX Feed for Telegram Channels - Sticker Support
  * Initializes Lottie animations for TGS stickers.
  *
  * Sticker bytes are fetched through the WordPress AJAX proxy using only the

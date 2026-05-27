@@ -1,5 +1,5 @@
 /**
- * Admin JavaScript for DFX Telegram Channel Feed
+ * Admin JavaScript for DFX Feed for Telegram Channels
  * Handles hide/unhide message actions
  *
  * @param {Object} $ jQuery object

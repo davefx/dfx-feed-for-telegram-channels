@@ -1,5 +1,5 @@
 /**
- * DFX Telegram Channel Feed - Image Lightbox
+ * DFX Feed for Telegram Channels - Image Lightbox
  * Provides full-size image viewing with zoom and pan capabilities
  */
 

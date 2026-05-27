@@ -10,7 +10,7 @@ class Widget_Channel_Feed extends \Elementor\Widget_Base {
     }
 
     public function get_title() {
-        return __('Telegram Channel Feed', 'dfx-feed-for-telegram-channels');
+        return __('Feed for Telegram Channels', 'dfx-feed-for-telegram-channels');
     }
 
     public function get_icon() {

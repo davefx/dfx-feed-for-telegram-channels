@@ -86,7 +86,7 @@ final class Plugin {
         if (!isset($schedules[self::CRON_SCHEDULE])) {
             $schedules[self::CRON_SCHEDULE] = [
                 'interval' => 2 * MINUTE_IN_SECONDS,
-                'display'  => __('Every 2 minutes (DFX Telegram Channel Feed)', 'dfx-feed-for-telegram-channels'),
+                'display'  => __('Every 2 minutes (DFX Feed for Telegram Channels)', 'dfx-feed-for-telegram-channels'),
             ];
         }
         return $schedules;
