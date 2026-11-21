@@ -4,7 +4,7 @@ Tags: telegram, channel, feed, shortcode, block
 Requires at least: 5.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 2.0.3
+Stable tag: 2.1.0
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -75,7 +75,17 @@ Telegram Bot API, provided by Telegram FZ-LLC.
 * Privacy Policy: https://telegram.org/privacy
 * Bot API documentation: https://core.telegram.org/bots/api
 
+= Author's plugin catalog (davefx.com) =
+
+The "More plugins" tab of the Settings page lists the author's other plugins. When an administrator opens that tab, the plugin downloads the list from https://davefx.com/plugins.json, at most once a week. Nothing about the site or its users is sent: the request identifies itself only as DFX-Plugin-Showcase and its version, although, as with any web request, davefx.com's server receives the IP address of the server making it. If the file cannot be reached, a copy bundled with the plugin is shown.
+
+* Privacy Policy: https://davefx.com/en/privacy-policy/
+
 == Changelog ==
+
+= 2.1.0 =
+* The Settings page has a "More plugins" tab with the author's other plugins. The list is downloaded from davefx.com only when that tab is opened (see External services).
+* Added a PHPUnit test suite.
 
 = 2.0.3 =
 * Add plugin icons for the WordPress.org directory page.

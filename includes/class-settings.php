@@ -87,6 +87,23 @@ class Settings {
         <div class="wrap">
             <h1><?php esc_html_e('DFX Feed for Telegram Channels', 'dfx-feed-for-telegram-channels'); ?></h1>
 
+            <?php
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only tab switch.
+            $tab = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : '';
+            ?>
+            <nav class="nav-tab-wrapper">
+                <a href="<?php echo esc_url(admin_url('admin.php?page=dfxfftc')); ?>" class="nav-tab<?php echo 'more-plugins' !== $tab ? ' nav-tab-active' : ''; ?>"><?php esc_html_e('Settings', 'dfx-feed-for-telegram-channels'); ?></a>
+                <a href="<?php echo esc_url(admin_url('admin.php?page=dfxfftc&tab=more-plugins')); ?>" class="nav-tab<?php echo 'more-plugins' === $tab ? ' nav-tab-active' : ''; ?>"><?php echo esc_html(dfx_plugin_showcase_label()); ?></a>
+            </nav>
+
+            <?php
+            if ('more-plugins' === $tab) {
+                dfx_plugin_showcase_render(['exclude' => 'telegram-feed']);
+                echo '</div>';
+                return;
+            }
+            ?>
+
             <h2>How to setup your Telegram Bot</h2>
             <ol>
                 <li>Open Telegram and chat with <a href="https://t.me/botfather" target="_blank">@BotFather</a></li>

@@ -34,3 +34,10 @@ Thumbs.db
 # Don't ship the ignore file or build script
 /.distignore
 /build-zip.sh
+
+# PHP tests and their tooling
+/tests
+/vendor
+/composer.json
+/composer.lock
+/phpunit.xml.dist
